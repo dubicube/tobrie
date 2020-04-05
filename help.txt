@@ -2,6 +2,7 @@
 
 /list : liste les vidéos disponibles
 /dico : dictionnaire des tags des vidéos disponibles
+/dico2 : dictionnaire des tags de réponses automatiques en vidéos
 @eir_bot tag1 tag2 tag3... : lance une recherche de vidéo basée sur les tags
 /di : active/désactive le di/cri
 /video : active/désactive les réponses automatiques de vidéos
