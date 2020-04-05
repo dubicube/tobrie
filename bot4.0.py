@@ -85,26 +85,34 @@ def saveToLog(msg):
         file.close()
 
 def notifConsole(update, context):
-    if (update.message.chat_id != (-1001455757279)):
-        context.bot.send_message(chat_id=conv_perso, text="["+str(update.message.chat_id)+", "+update.message.from_user.first_name+", "+str(update.message.from_user.id)+": "+update.message.text)
+    message = getUpdateMessage(update)
+    if message is None:return
+    if (message.chat_id != (-1001455757279)):
+        context.bot.send_message(chat_id=conv_perso, text="["+str(message.chat_id)+", "+message.from_user.first_name+", "+str(message.from_user.id)+": "+message.text)
 
 
 ########################################################################################################################################################
 #                                                                       TEXT                                                                           #
 ########################################################################################################################################################
 
+def getUpdateMessage(update):
+    if not update.message is None:
+        return update.message
+    if not update.edited_message is None:
+        return update.edited_message
+    return None
 
-def sendVideo(update, context, file):
-    context.bot.send_video(chat_id=update.message.chat_id, video=dataServerAddress+file, supports_streaming=True)
+def sendVideo(message, context, file):
+    context.bot.send_video(chat_id=message.chat_id, video=dataServerAddress+file, supports_streaming=True)
 
-def sendYesNo(bot, update):
+def sendYesNo(bot, message):
     if random.randint(0, 1) == 0:
-        bot.sendChatAction(chat_id=update.message.chat_id, action=telegram.ChatAction.UPLOAD_PHOTO)
-        bot.sendDocument(chat_id=update.message.chat_id, document="https://media1.giphy.com/media/uXiGkGqG4ZQ6A/giphy.gif?cid=3640f6095c9b5bc04c6d737836068cde")
+        bot.sendChatAction(chat_id=message.chat_id, action=telegram.ChatAction.UPLOAD_PHOTO)
+        bot.sendDocument(chat_id=message.chat_id, document="https://media1.giphy.com/media/uXiGkGqG4ZQ6A/giphy.gif?cid=3640f6095c9b5bc04c6d737836068cde")
     else:
-        bot.sendChatAction(chat_id=update.message.chat_id, action=telegram.ChatAction.UPLOAD_PHOTO)
-        bot.sendDocument(chat_id=update.message.chat_id, document="https://i.imgflip.com/19nqxs.gif")
-def recur(update, context, msg):
+        bot.sendChatAction(chat_id=message.chat_id, action=telegram.ChatAction.UPLOAD_PHOTO)
+        bot.sendDocument(chat_id=message.chat_id, document="https://i.imgflip.com/19nqxs.gif")
+def recur(message, context, msg):
     seteirbot = context.bot.get_sticker_set("EIRBOTO")
     msg_lower = msg.lower()
 
@@ -120,51 +128,55 @@ def recur(update, context, msg):
         if j == -1:
             j = len(msg)
         if j-i-2 > 1:
-            context.bot.send_message(chat_id=update.message.chat_id, text=msg[i+2:j])
-            recur(update, context, msg[i+2:j])
+            context.bot.send_message(chat_id=message.chat_id, text=msg[i+2:j])
+            recur(message, context, msg[i+2:j])
     if "cri" in msg_lower:
         i = msg_lower.find("cri")
         j = msg.find(" ", i);
         if j == -1:
             j = len(msg)
         if j-i-3 > 1:
-            context.bot.send_message(chat_id=update.message.chat_id, text=msg[i+3:j].upper())
-            recur(update, context, msg[i+3:j].upper())
+            context.bot.send_message(chat_id=message.chat_id, text=msg[i+3:j].upper())
+            recur(message, context, msg[i+3:j].upper())
 
     # Special detection
     if "fromage" in msg_lower:
-        context.bot.sendSticker(chat_id=update.message.chat_id, sticker=seteirbot.stickers[24])
+        context.bot.sendSticker(chat_id=message.chat_id, sticker=seteirbot.stickers[24])
 
     # Generic maps
     for i in sticker_map:
         if i[0] in msg_lower:
-            context.bot.sendSticker(chat_id=update.message.chat_id, sticker=seteirbot.stickers[i[1]])
+            context.bot.sendSticker(chat_id=message.chat_id, sticker=seteirbot.stickers[i[1]])
     for i in end_map:
         if msg_lower.endswith(i[0]):
-            context.bot.send_message(chat_id=update.message.chat_id, text=i[1])
+            context.bot.send_message(chat_id=message.chat_id, text=i[1])
     for i in simple_map:
         if i[0] in msg_lower:
-            context.bot.send_message(chat_id=update.message.chat_id, text=i[1])
+            context.bot.send_message(chat_id=message.chat_id, text=i[1])
 
     if "salim" in msg_lower and not("salime" in msg_lower):
-        context.bot.send_message(chat_id=update.message.chat_id, text="Salime avec un E!!!")
+        context.bot.send_message(chat_id=message.chat_id, text="Salime avec un E!!!")
     if "ariane" in msg_lower:
-        context.bot.sendChatAction(chat_id=update.message.chat_id, action=telegram.ChatAction.UPLOAD_PHOTO)
-        context.bot.sendDocument(chat_id=update.message.chat_id, document="https://media3.giphy.com/media/3ov9jPjweggTGwtalG/giphy.gif")
+        context.bot.sendChatAction(chat_id=message.chat_id, action=telegram.ChatAction.UPLOAD_PHOTO)
+        context.bot.sendDocument(chat_id=message.chat_id, document="https://media3.giphy.com/media/3ov9jPjweggTGwtalG/giphy.gif")
     elif msg[-1] == "?":
         if random.randint(0, 2) == 0:
-            sendYesNo(context.bot, update)
+            sendYesNo(context.bot, message)
 def handleText(update, context):
+    message = getUpdateMessage(update)
+    if message is None:
+        return
+
     # Chatbot response
-    if chatbot_enable and update.message.chat_id in [-1001216704238, -1001294887664]:
+    if chatbot_enable and message.chat_id in [-1001216704238, -1001294887664]:
         context.bot.send_message(chat_id=conv_out, text=generate().replace('apos', '\''))
 
-    msg = update.message.text
+    msg = message.text
 
     # Log + forward
-    if update.message.chat_id != update.message.from_user.id:
-        saveToLog(update.message);
-    if update.message.chat_id == conv_perso:
+    if message.chat_id != message.from_user.id:
+        saveToLog(message);
+    if message.chat_id == conv_perso:
         context.bot.send_message(chat_id=conv_out, text=update.message.text)
     else:
         notifConsole(update, context)
@@ -174,9 +186,9 @@ def handleText(update, context):
         global depth
         depth = 0
         for i in messages_perso:
-            if update.message.from_user.username == i[0] and i[1]-1 >= 0 and random.randint(0, i[1]-1) == 0:
-                context.bot.send_message(chat_id=update.message.chat_id, text=i[2])
-                recur(update, context, msg)
+            if message.from_user.username == i[0] and i[1]-1 >= 0 and random.randint(0, i[1]-1) == 0:
+                context.bot.send_message(chat_id=message.chat_id, text=i[2])
+                recur(message, context, msg)
 
     # Video auto reply from video_strong_tags
     if auto_reply:
@@ -187,7 +199,7 @@ def handleText(update, context):
                 results+=[video_names_out[i]]
             i+=1
         if len(results) > 0:
-            sendVideo(update, context, results[random.randint(0, len(results)-1)])
+            sendVideo(message, context, results[random.randint(0, len(results)-1)])
 
 
 ########################################################################################################################################################
@@ -207,7 +219,7 @@ def update_video_names_command(update, context):
     update_video_names()
     global video_names_out
     context.bot.send_message(chat_id=update.message.chat_id, text="Ménage effectué ("+str(len(video_names_out))+" fichiers supprimés).")
-    sendVideo(update, context, 'lol_issou_xd_1.mp4')
+    sendVideo(update.message, context, 'lol_issou_xd_1.mp4')
 
 def getResults(txt, names):
     results = []
