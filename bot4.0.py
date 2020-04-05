@@ -132,10 +132,6 @@ def recur(update, context, msg):
             recur(update, context, msg[i+3:j].upper())
 
     # Special detection
-    if "mercredi" in msg_lower:
-        context.bot.send_message(chat_id=update.message.chat_id, text="It is wednesday my dudes !")
-    if "cafe" in msg_lower:
-        context.bot.send_message(chat_id=update.message.chat_id, text="PATAR")
     if "fromage" in msg_lower:
         context.bot.sendSticker(chat_id=update.message.chat_id, sticker=seteirbot.stickers[24])
 
@@ -181,14 +177,13 @@ def handleText(update, context):
             if update.message.from_user.username == i[0] and i[1]-1 >= 0 and random.randint(0, i[1]-1) == 0:
                 context.bot.send_message(chat_id=update.message.chat_id, text=i[2])
                 recur(update, context, msg)
-        # Video auto reply from video_strong_tags
+
+    # Video auto reply from video_strong_tags
     if auto_reply:
         i = 0
         results = []
         while i < len(video_strong_tags):
             if video_strong_tags[i] != '' and ' '+video_strong_tags[i]+' ' in ' '+msg.lower()+' ':
-                #sendVideo(update, context, video_names_out[i])
-                #i = len(video_strong_tags)
                 results+=[video_names_out[i]]
             i+=1
         if len(results) > 0:
