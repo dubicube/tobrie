@@ -1,0 +1,12 @@
+>>>>>  EIR_BOT V3.2  <<<<<
+
+/list : liste les vidéos disponibles
+/dico : dictionnaire des tags des vidéos disponibles
+@eir_bot tag1 tag2 tag3... : lance une recherche de vidéo basée sur les tags
+/di : active/désactive le di/cri
+/video : active/désactive les réponses automatiques de vidéos
+/calc expr : Dicte l'opération $expr. Caractères autorisées: 0123456789+-*/cr
+/meme : Renvoie un meme random
+/quote : Renvoie une phrase random
+/info : Renvoie une info inutile
+@eirbot z Mon texte : Ecrit "Mon texte" en zalgo
