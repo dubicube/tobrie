@@ -227,16 +227,19 @@ def update_video_names_command(update, context):
 
 def getResults(txt, names):
     results = []
+    nbr = 0
     for vid in names:
-        i = 0
-        ok = True
-        while i < len(txt):
-            if not(txt[i] in vid.lower()):
-                ok = False
-                i = len(txt)
-            i+=1
-        if ok:
-            results+=[vid]
+        if nbr < 10:
+            i = 0
+            ok = True
+            while i < len(txt):
+                if not(txt[i] in vid.lower()):
+                    ok = False
+                    i = len(txt)
+                i+=1
+            if ok:
+                results+=[vid]
+                nbr+=1
     return results
 def inlinequery(update, context):
     context.bot.send_message(chat_id=conv_perso, text="["+", "+str(update.inline_query.from_user.first_name)+", "+str(update.inline_query.from_user.id)+": "+update.inline_query.query)
@@ -248,7 +251,7 @@ def inlinequery(update, context):
         update.inline_query.answer(results)
     else:
         r = getResults(txt, video_names_out)
-        results = [InlineQueryResultVideo(uuid4(), dataServerAddress+vname, "video/mp4", "https://bde.eirb.fr/storage/img/logo/LogoEirbot.png", vname) for vname in r]
+        results = [InlineQueryResultVideo(uuid4(), dataServerAddress+vname.replace(" ", "%20"), "video/mp4", "https://bde.eirb.fr/storage/img/logo/LogoEirbot.png", vname) for vname in r]
         update.inline_query.answer(results)
 def list(update, context):
     notifConsole(update, context)
