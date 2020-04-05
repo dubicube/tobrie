@@ -95,6 +95,9 @@ def notifConsole(update, context):
 #                                                                       TEXT                                                                           #
 ########################################################################################################################################################
 
+def removeAccents(text):
+    return text.replace('é', 'e').replace('è', 'e')
+
 def getUpdateMessage(update):
     if not update.message is None:
         return update.message
@@ -194,8 +197,9 @@ def handleText(update, context):
     if auto_reply:
         i = 0
         results = []
+        msg = removeAccents(msg.lower())
         while i < len(video_strong_tags):
-            if video_strong_tags[i] != '' and ' '+video_strong_tags[i]+' ' in ' '+msg.lower()+' ':
+            if video_strong_tags[i] != '' and (' '+removeAccents(video_strong_tags[i])+' ' in ' '+msg+' ' or '\''+removeAccents(video_strong_tags[i])+' ' in '\''+msg+' '):
                 results+=[video_names_out[i]]
             i+=1
         if len(results) > 0:
