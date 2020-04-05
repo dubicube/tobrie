@@ -225,11 +225,11 @@ def update_video_names_command(update, context):
     context.bot.send_message(chat_id=update.message.chat_id, text="Ménage effectué ("+str(len(video_names_out))+" fichiers supprimés).")
     sendVideo(update.message, context, 'lol_issou_xd_1.mp4')
 
-def getResults(txt, names):
+def getResults(txt, names, nbr_max):
     results = []
     nbr = 0
     for vid in names:
-        if nbr < 10:
+        if nbr < nbr_max:
             i = 0
             ok = True
             while i < len(txt):
@@ -250,15 +250,18 @@ def inlinequery(update, context):
         results = [InlineQueryResultArticle(id=uuid4(), title=zal, input_message_content=InputTextMessageContent(zal), description=zal)]#zalgo.zalgo().zalgofy("Some text to zalgofy!")
         update.inline_query.answer(results)
     else:
-        r = getResults(txt, video_names_out)
+        r = getResults(txt, video_names_out, 10)
         results = [InlineQueryResultVideo(uuid4(), dataServerAddress+vname.replace(" ", "%20"), "video/mp4", "https://bde.eirb.fr/storage/img/logo/LogoEirbot.png", vname) for vname in r]
         update.inline_query.answer(results)
 def list(update, context):
     notifConsole(update, context)
     if update.message.chat_id == update.message.from_user.id:
-        for i in range(len(video_names_out)//10):
-            context.bot.send_message(chat_id=update.message.chat_id, text="\n".join(video_names_out[i*10:(i+1)*10]))
-        context.bot.send_message(chat_id=update.message.chat_id, text="\n".join(video_names_out[(int(len(video_names_out)//10))*10:]))
+        list_out = video_names_out
+        if len(update.message.text) > 6:
+            list_out = getResults(update.message.text[6:].lower().split(' '), video_names_out, 9999999)
+        for i in range(len(list_out)//10):
+            context.bot.send_message(chat_id=update.message.chat_id, text="\n".join(list_out[i*10:(i+1)*10]))
+        context.bot.send_message(chat_id=update.message.chat_id, text="\n".join(list_out[(int(len(list_out)//10))*10:]))
     else:
         context.bot.send_message(chat_id=update.message.chat_id, text="Le /list est interdit dans les groupes")
 def dico(update, context):
@@ -513,13 +516,9 @@ load(getDataFiles())
 #                                                                       MAIN                                                                           #
 ########################################################################################################################################################
 
-#Quoteirbot
-#834389299:AAH1PThvlI1k03OJ8_WEle4MrdRZVjP6gQ0
-#Tobrie:
-#720838667:AAGZLMgYiik_io66Su2-COVQ20SOkGOcCYE
-
 def main():
-    TOKEN='834389299:AAH1PThvlI1k03OJ8_WEle4MrdRZVjP6gQ0' if TEST else '720838667:AAGZLMgYiik_io66Su2-COVQ20SOkGOcCYE'
+    tokens = open("tokens", "r").read().split("\n")
+    TOKEN=tokens[1] if TEST else tokens[0]
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
