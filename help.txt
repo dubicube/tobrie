@@ -1,4 +1,4 @@
->>>>>  EIR_BOT V3.2  <<<<<
+>>>>>  EIR_BOT V4.0  <<<<<
 
 /list : liste les vidéos disponibles
 /dico : dictionnaire des tags des vidéos disponibles
