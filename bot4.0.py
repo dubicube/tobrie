@@ -250,8 +250,8 @@ def inlinequery(update, context):
         results = [InlineQueryResultArticle(id=uuid4(), title=zal, input_message_content=InputTextMessageContent(zal), description=zal)]#zalgo.zalgo().zalgofy("Some text to zalgofy!")
         update.inline_query.answer(results)
     else:
-        r = getResults(txt, video_names_out, 10)
-        results = [InlineQueryResultVideo(uuid4(), dataServerAddress+vname.replace(" ", "%20"), "video/mp4", "https://bde.eirb.fr/storage/img/logo/LogoEirbot.png", vname) for vname in r]
+        r = getResults(txt, video_names_out, 50)
+        results = [InlineQueryResultVideo(uuid4(), dataServerAddress+vname.replace(" ", "%20"), "video/mp4", "http://copperbot.fr/tobrie_uploader/logo_320.png", vname) for vname in r]
         update.inline_query.answer(results)
 def list(update, context):
     notifConsole(update, context)
