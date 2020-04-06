@@ -31,6 +31,7 @@ soundPath = 'sound/'
 memePath = 'meme/'
 logPath = 'log/'
 dataServerAddress = 'http://copperbot.fr/tobrie_uploader/videos/'
+thumbnailsServerAddress = 'http://copperbot.fr/tobrie_uploader/thumbnails/'
 
 dataPath = 'data/old/'
 
@@ -202,6 +203,8 @@ def handleText(update, context):
             if video_strong_tags[i] != '' and (' '+removeAccents(video_strong_tags[i])+' ' in ' '+msg+' ' or '\''+removeAccents(video_strong_tags[i])+' ' in '\''+msg+' '):
                 results+=[video_names_out[i]]
             i+=1
+        #if '@' in msg:
+        #    results+=[]
         if len(results) > 0:
             sendVideo(message, context, results[random.randint(0, len(results)-1)])
 
@@ -251,7 +254,7 @@ def inlinequery(update, context):
         update.inline_query.answer(results)
     else:
         r = getResults(txt, video_names_out, 50)
-        results = [InlineQueryResultVideo(uuid4(), dataServerAddress+vname.replace(" ", "%20"), "video/mp4", "http://copperbot.fr/tobrie_uploader/logo_320.png", vname) for vname in r]
+        results = [InlineQueryResultVideo(uuid4(), dataServerAddress+vname.replace(" ", "%20"), "video/mp4", thumbnailsServerAddress+vname[:-3].replace(" ", "%20")+'jpg', vname) for vname in r]
         update.inline_query.answer(results)
 def list(update, context):
     notifConsole(update, context)
