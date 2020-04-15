@@ -33,6 +33,13 @@ logPath = 'log/'
 dataServerAddress = 'http://copperbot.fr/tobrie_uploader/videos/'
 thumbnailsServerAddress = 'http://copperbot.fr/tobrie_uploader/thumbnails/'
 
+stickers_map_file = 'maps/sticker_map'
+sticker_map_regex = []
+text_map_file = 'maps/text_map'
+text_map_regex = []
+video_map_file = 'maps/video_map'
+video_map_regex = []
+
 dataPath = 'data/old/'
 
 chatbot_enable = False
@@ -70,10 +77,6 @@ conv_perso = 479998987
 conv_out = conv_perso
 
 depth = 0
-
-simple_map = [[u'whisky', u'Non bordel, ramenez pas du whisky, personne n\'aime ça sauf Hugo !'], [u'matlab', u'T\'as mis clc ?'], [u'tristant', u'Y a pas de T a la fin bordel !'], [u'soeur d\'alban', u'Alban a une soeur?'], [u'matthieu', u'Mathieu avec un seul T!!!'], [u'forsans', u'C\'est en forçant qu\'on y arrive !!'], [u'jeanne', u'Au secours !!!'], [u'bolzano', u'Un espace metrisable X est compact (au sens de l\'axiome de Borel-Lebesgue) si (et seulement si) toute suite d\'elements de X admet une valeur d\'adherence dans X ou, de maniere equivalente, admet une sous-suite qui converge vers un element de X.']]
-end_map = [['quoi', 'feur'], ['vincent', 'timetre'], ['hugo', 'blet'], ['lucas', 'tapulte']]
-sticker_map = [['tesson', 16], ['biere', 18], ['reunion', 19], ['velo', 4], ['energie', 23], ['tocard', 14], ['silence', 13]]
 
 ########################################################################################################################################################
 #                                                                       LOGS                                                                           #
@@ -147,17 +150,6 @@ def recur(message, context, msg):
     if "fromage" in msg_lower:
         context.bot.sendSticker(chat_id=message.chat_id, sticker=seteirbot.stickers[24])
 
-    # Generic maps
-    for i in sticker_map:
-        if i[0] in msg_lower:
-            context.bot.sendSticker(chat_id=message.chat_id, sticker=seteirbot.stickers[i[1]])
-    for i in end_map:
-        if msg_lower.endswith(i[0]):
-            context.bot.send_message(chat_id=message.chat_id, text=i[1])
-    for i in simple_map:
-        if i[0] in msg_lower:
-            context.bot.send_message(chat_id=message.chat_id, text=i[1])
-
     if "salim" in msg_lower and not("salime" in msg_lower):
         context.bot.send_message(chat_id=message.chat_id, text="Salime avec un E!!!")
     if "ariane" in msg_lower:
@@ -196,18 +188,49 @@ def handleText(update, context):
 
     # Video auto reply from video_strong_tags
     if auto_reply:
-        i = 0
-        results = []
-        msg = removeAccents(msg.lower())
-        while i < len(video_strong_tags):
-            if video_strong_tags[i] != '' and (' '+removeAccents(video_strong_tags[i])+' ' in ' '+msg+' ' or '\''+removeAccents(video_strong_tags[i])+' ' in '\''+msg+' '):
-                results+=[video_names_out[i]]
-            i+=1
-        #if '@' in msg:
-        #    results+=[]
+        check_for_stickers(update, context, msg)
+        check_for_text(update, context, msg)
+        results = [check_for_video(update, context, msg)]
+        if results == [""]:
+            results = []
+            i = 0
+            msg = removeAccents(msg.lower())
+            while i < len(video_strong_tags):
+                if video_strong_tags[i] != '' and (' '+removeAccents(video_strong_tags[i])+' ' in ' '+msg+' ' or '\''+removeAccents(video_strong_tags[i])+' ' in '\''+msg+' '):
+                    results+=[video_names_out[i]]
+                i+=1
         if len(results) > 0:
             sendVideo(message, context, results[random.randint(0, len(results)-1)])
 
+########################################################################################################################################################
+#                                                                     REGEX MAPS                                                                       #
+########################################################################################################################################################
+
+def load_maps():
+    global sticker_map_regex
+    global text_map_regex
+    global video_map_regex
+    sticker_map_regex=[i.split('\n') for i in open(stickers_map_file, "r").read().split('\n\n')]
+    text_map_regex=[i.split('\n') for i in open(text_map_file, "r").read().split('\n\n')]
+    video_map_regex=[i.split('\n') for i in open(video_map_file, "r").read().split('\n\n')]
+load_maps()
+
+def check_for_stickers(update, context, msg):
+    for s in sticker_map_regex:
+        if not(re.search(s[2], msg.lower()) is None):
+            pack = context.bot.get_sticker_set(s[0])
+            context.bot.sendSticker(chat_id=update.message.chat_id, sticker=pack.stickers[int(s[1])])
+
+def check_for_text(update, context, msg):
+    for s in text_map_regex:
+        if not(re.search(s[0], msg.lower()) is None):
+            context.bot.send_message(chat_id=update.message.chat_id, text=s[1])
+
+def check_for_video(update, context, msg):
+    for s in video_map_regex:
+        if not(re.search(s[0], msg.lower()) is None):
+            return s[1]
+    return ""
 
 ########################################################################################################################################################
 #                                                                       VIDEO                                                                          #
@@ -222,11 +245,13 @@ def update_video_names():
     video_strong_tags = [(i+'__.mp4').split('__')[1][:-4] for i in video_names_out]
 update_video_names()
 def update_video_names_command(update, context):
-    context.bot.send_message(chat_id=update.message.chat_id, text="Hack de votre pc en cours...")
+    load_maps()
+    context.bot.send_message(chat_id=update.message.chat_id, text="Sticker map mise à jour ("+str(len(sticker_map_regex))+" stickers)")
+    context.bot.send_message(chat_id=update.message.chat_id, text="Text map mise à jour ("+str(len(text_map_regex))+" textes)")
+    context.bot.send_message(chat_id=update.message.chat_id, text="Video map mise à jour ("+str(len(video_map_regex))+" vidéos)")
     update_video_names()
     global video_names_out
-    context.bot.send_message(chat_id=update.message.chat_id, text="Ménage effectué ("+str(len(video_names_out))+" fichiers supprimés).")
-    sendVideo(update.message, context, 'lol_issou_xd_1.mp4')
+    context.bot.send_message(chat_id=update.message.chat_id, text="Vidéos mises à jours ("+str(len(video_names_out))+" vidéos).")
 
 def getResults(txt, names, nbr_max):
     results = []
