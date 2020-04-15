@@ -190,15 +190,12 @@ def handleText(update, context):
     if auto_reply:
         check_for_stickers(update, context, msg)
         check_for_text(update, context, msg)
-        results = [check_for_video(update, context, msg)]
-        if results == [""]:
-            results = []
-            i = 0
-            msg = removeAccents(msg.lower())
-            while i < len(video_strong_tags):
-                if video_strong_tags[i] != '' and (' '+removeAccents(video_strong_tags[i])+' ' in ' '+msg+' ' or '\''+removeAccents(video_strong_tags[i])+' ' in '\''+msg+' '):
-                    results+=[video_names_out[i]]
-                i+=1
+        results = []
+        i = 0
+        msg = removeAccents(msg.lower())
+        for s in video_map_regex:
+            if not(re.search(s[0], msg) is None):
+                results+=[s[1]]
         if len(results) > 0:
             sendVideo(message, context, results[random.randint(0, len(results)-1)])
 
@@ -213,6 +210,7 @@ def load_maps():
     sticker_map_regex=[i.split('\n') for i in open(stickers_map_file, "r").read().split('\n\n')]
     text_map_regex=[i.split('\n') for i in open(text_map_file, "r").read().split('\n\n')]
     video_map_regex=[i.split('\n') for i in open(video_map_file, "r").read().split('\n\n')]
+    video_map_regex = [[removeAccents(i[0]), i[1]] for i in video_map_regex]
 load_maps()
 
 def check_for_stickers(update, context, msg):
@@ -243,6 +241,11 @@ def update_video_names():
     #Mouhahaha
     video_names_out=sorted([i.split('>')[0][9:-1] for i in unquote(requests.get(dataServerAddress).text).split("<img src=\"/__ovh_icons/movie.gif\" alt=\"[VID]\"> ")[1:]])
     video_strong_tags = [(i+'__.mp4').split('__')[1][:-4] for i in video_names_out]
+    l = []
+    for i in range(len(video_names_out)):
+        if video_strong_tags[i] != "":
+            l+=[video_strong_tags[i]+'\n'+video_names_out[i]]
+    #print("\n\n".join(l))
 update_video_names()
 def update_video_names_command(update, context):
     load_maps()
