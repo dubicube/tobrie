@@ -125,7 +125,6 @@ def sendYesNo(bot, message):
         bot.sendChatAction(chat_id=message.chat_id, action=telegram.ChatAction.UPLOAD_PHOTO)
         bot.sendDocument(chat_id=message.chat_id, document="https://i.imgflip.com/19nqxs.gif")
 def recur(message, context, msg):
-    seteirbot = context.bot.get_sticker_set("EIRBOTO")
     msg_lower = msg.lower()
 
     # Anti spam
@@ -151,18 +150,12 @@ def recur(message, context, msg):
             context.bot.send_message(chat_id=message.chat_id, text=msg[i+3:j].upper())
             recur(message, context, msg[i+3:j].upper())
 
-    # Special detection
-    if "fromage" in msg_lower:
-        context.bot.sendSticker(chat_id=message.chat_id, sticker=seteirbot.stickers[24])
-
-    if "salim" in msg_lower and not("salime" in msg_lower):
-        context.bot.send_message(chat_id=message.chat_id, text="Salime avec un E!!!")
     if "ariane" in msg_lower:
         context.bot.sendChatAction(chat_id=message.chat_id, action=telegram.ChatAction.UPLOAD_PHOTO)
         context.bot.sendDocument(chat_id=message.chat_id, document="https://media3.giphy.com/media/3ov9jPjweggTGwtalG/giphy.gif")
-    elif msg[-1] == "?":
-        if random.randint(0, 2) == 0:
-            sendYesNo(context.bot, message)
+
+    if msg[-1] == "?" and random.randint(0, 2) == 0:
+        sendYesNo(context.bot, message)
 def handleText(update, context):
     message = getUpdateMessage(update)
     if message is None:
@@ -189,7 +182,7 @@ def handleText(update, context):
         for i in messages_perso:
             if message.from_user.username == i[0] and i[1]-1 >= 0 and random.randint(0, i[1]-1) == 0:
                 context.bot.send_message(chat_id=message.chat_id, text=i[2])
-                recur(message, context, msg)
+        recur(message, context, msg)
 
     # Video auto reply from video_strong_tags
     if auto_reply:
