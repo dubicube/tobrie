@@ -33,6 +33,11 @@ logPath = 'log/'
 dataServerAddress = 'http://copperbot.fr/tobrie_uploader/videos/'
 thumbnailsServerAddress = 'http://copperbot.fr/tobrie_uploader/thumbnails/'
 
+
+
+regex_start = "(^| |\')("
+regex_end = ")($| |,|\\.|!|\\?)"
+
 stickers_map_file = 'maps/sticker_map'
 sticker_map_regex = []
 text_map_file = 'maps/text_map'
@@ -194,7 +199,7 @@ def handleText(update, context):
         i = 0
         msg = removeAccents(msg.lower())
         for s in video_map_regex:
-            if not(re.search(s[0], msg) is None):
+            if not(re.search(regex_start+s[0]+regex_end, msg) is None):
                 results+=[s[1]]
         if len(results) > 0:
             sendVideo(message, context, results[random.randint(0, len(results)-1)])
@@ -215,7 +220,7 @@ load_maps()
 
 def check_for_stickers(update, context, msg):
     for s in sticker_map_regex:
-        if not(re.search(s[2], msg.lower()) is None):
+        if not(re.search(regex_start+s[2]+regex_end, msg.lower()) is None):
             pack = context.bot.get_sticker_set(s[0])
             context.bot.sendSticker(chat_id=update.message.chat_id, sticker=pack.stickers[int(s[1])])
 
@@ -223,12 +228,6 @@ def check_for_text(update, context, msg):
     for s in text_map_regex:
         if not(re.search(s[0], msg.lower()) is None):
             context.bot.send_message(chat_id=update.message.chat_id, text=s[1])
-
-def check_for_video(update, context, msg):
-    for s in video_map_regex:
-        if not(re.search(s[0], msg.lower()) is None):
-            return s[1]
-    return ""
 
 ########################################################################################################################################################
 #                                                                       VIDEO                                                                          #
