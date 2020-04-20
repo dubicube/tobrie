@@ -458,6 +458,8 @@ def rapport(update, context):
 
 def bowling(update, context):
     context.bot.send_audio(chat_id=update.message.chat_id, audio=open(soundPath+"liam_bowling.mp3", 'rb'))
+def croa(update, context):
+    context.bot.send_audio(chat_id=update.message.chat_id, audio=open(soundPath+"croa.mp3", 'rb'))
 
 
 
@@ -567,6 +569,7 @@ def main():
     dp.add_handler(CommandHandler('rapport',rapport))
     dp.add_handler(CommandHandler('update',update_video_names_command))
     dp.add_handler(CommandHandler('bowling',bowling))
+    dp.add_handler(CommandHandler('croa',croa))
 
     #dp.add_handler(CommandHandler('play',play))
 
