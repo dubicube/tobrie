@@ -459,7 +459,33 @@ def rapport(update, context):
 def bowling(update, context):
     context.bot.send_audio(chat_id=update.message.chat_id, audio=open(soundPath+"liam_bowling.mp3", 'rb'))
 def croa(update, context):
-    context.bot.send_audio(chat_id=update.message.chat_id, audio=open(soundPath+"croa.mp3", 'rb'))
+
+    notifConsole(update, context)
+    context.bot.send_chat_action(update.message.chat_id, 'upload_audio')
+    infiles = []
+    v = 1
+    if len(update.message.text[6:]) > 0 and int(update.message.text[6:]) < 100:
+        v = int(update.message.text[6:])
+    for i in range(v):
+        infiles+=[soundPath+"croa"+".wav"]
+    outfile = soundPath+"v.wav"
+    data= []
+    for infile in infiles:
+        w = wave.open(infile, 'rb')
+        data.append( [w.getparams(), w.readframes(w.getnframes())] )
+        w.close()
+
+    output = wave.open(outfile, 'wb')
+    output.setparams(data[0][0])
+    for i in range(len(infiles)):
+        output.writeframes(data[i][1])
+    output.close()
+    wav = outfile
+    cmd = 'lame --preset insane %s' % wav
+    subprocess.call(cmd, shell=True)
+    context.bot.send_audio(chat_id=update.message.chat_id, audio=open(soundPath+"v.mp3", 'rb'))
+
+    #context.bot.send_audio(chat_id=update.message.chat_id, audio=open(soundPath+"croa.mp3", 'rb'))
 
 
 
