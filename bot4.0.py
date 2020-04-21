@@ -149,7 +149,10 @@ def recur(message, context, msg):
         context.bot.sendDocument(chat_id=message.chat_id, document="https://media3.giphy.com/media/3ov9jPjweggTGwtalG/giphy.gif")
 
     if msg[-1] == "?" and random.randint(0, 2) == 0:
-        sendYesNo(context.bot, message)
+        if "qui" in msg:
+            context.bot.send_message(chat_id=message.chat_id, text="C'est pas moi")
+        else:
+            sendYesNo(context.bot, message)
 def handleText(update, context):
     message = getUpdateMessage(update)
     if message is None:
