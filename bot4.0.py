@@ -24,6 +24,8 @@ import wave
 import re
 from collections import defaultdict
 
+import threading
+
 TEST = False
 
 #videoPath = 'video/'
@@ -565,10 +567,20 @@ load(getDataFiles())
 #                                                                       MAIN                                                                           #
 ########################################################################################################################################################
 
+tokens = open("tokens", "r").read().split("\n")
+TOKEN=tokens[1] if TEST else tokens[0]
+updater = Updater(TOKEN, use_context=True)
+
+def shutdown():
+    updater.stop()
+    updater.is_idle = False
+def stop(update, context):
+    if update.message.from_user.id == super_admin:
+        context.bot.send_message(update.message.chat_id, "Stopping...")
+        threading.Thread(target=shutdown).start()
+
+
 def main():
-    tokens = open("tokens", "r").read().split("\n")
-    TOKEN=tokens[1] if TEST else tokens[0]
-    updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
     dp.add_handler(MessageHandler(Filters.text, handleText))
@@ -597,6 +609,7 @@ def main():
 
     #Personal commands
     dp.add_handler(CommandHandler('conv', conv))
+    dp.add_handler(CommandHandler('stop', stop))
 
     updater.start_polling()
     updater.idle()
