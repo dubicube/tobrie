@@ -133,22 +133,16 @@ def recur(message, context, msg):
     if depth > 2:return
 
     # di/cri
-    if "di" in msg_lower:
-        i = msg_lower.find("di")
-        j = msg.find(" ", i);
-        if j == -1:
-            j = len(msg)
-        if j-i-2 > 1:
-            context.bot.send_message(chat_id=message.chat_id, text=msg[i+2:j])
-            recur(message, context, msg[i+2:j])
-    if "cri" in msg_lower:
-        i = msg_lower.find("cri")
-        j = msg.find(" ", i);
-        if j == -1:
-            j = len(msg)
-        if j-i-3 > 1:
-            context.bot.send_message(chat_id=message.chat_id, text=msg[i+3:j].upper())
-            recur(message, context, msg[i+3:j].upper())
+    regex_r = re.search('(?<=di)\\w{3,}', msg_lower)
+    if regex_r != None:
+        txt_rep = regex_r.group(0)
+        context.bot.send_message(chat_id=message.chat_id, text=txt_rep)
+        recur(message, context, txt_rep)
+    regex_r = re.search('(?<=cri)\\w{3,}', msg_lower)
+    if regex_r != None:
+        txt_rep = regex_r.group(0)
+        context.bot.send_message(chat_id=message.chat_id, text=txt_rep.upper())
+        recur(message, context, txt_rep.upper())
 
     if "ariane" in msg_lower:
         context.bot.sendChatAction(chat_id=message.chat_id, action=telegram.ChatAction.UPLOAD_PHOTO)
@@ -317,9 +311,69 @@ def dico2(update, context):
 
 
 ########################################################################################################################################################
-#                                                              OTHER COMMANDS                                                                          #
+#                                                              AUDIO                                                                                   #
 ########################################################################################################################################################
 
+def calc(update, context):
+    notifConsole(update, context)
+    context.bot.send_chat_action(update.message.chat_id, 'upload_audio')
+    infiles = []
+    for c in update.message.text[6:]:
+        if c == '/':c = 'd'
+        if c == '*':c = 'x'
+        if c in sound_files:
+            infiles+=[soundPath+c+".wav"]
+    outfile = soundPath+"v.wav"
+    data= []
+    for infile in infiles:
+        w = wave.open(infile, 'rb')
+        data.append( [w.getparams(), w.readframes(w.getnframes())] )
+        w.close()
+
+    output = wave.open(outfile, 'wb')
+    output.setparams(data[0][0])
+    for i in range(len(infiles)):
+        output.writeframes(data[i][1])
+    output.close()
+    wav = outfile
+    cmd = 'lame --preset insane %s' % wav
+    subprocess.call(cmd, shell=True)
+    context.bot.send_audio(chat_id=update.message.chat_id, audio=open(soundPath+"v.mp3", 'rb'))
+
+def bowling(update, context):
+    context.bot.send_audio(chat_id=update.message.chat_id, audio=open(soundPath+"liam_bowling.mp3", 'rb'))
+
+def croa(update, context):
+    notifConsole(update, context)
+    context.bot.send_chat_action(update.message.chat_id, 'upload_audio')
+    infiles = []
+    v = 1
+    if len(update.message.text[6:]) > 0 and int(update.message.text[6:]) < 100:
+        v = int(update.message.text[6:])
+    for i in range(v):
+        infiles+=[soundPath+"croa"+".wav"]
+    outfile = soundPath+"v.wav"
+    data= []
+    for infile in infiles:
+        w = wave.open(infile, 'rb')
+        data.append( [w.getparams(), w.readframes(w.getnframes())] )
+        w.close()
+
+    output = wave.open(outfile, 'wb')
+    output.setparams(data[0][0])
+    for i in range(len(infiles)):
+        output.writeframes(data[i][1])
+    output.close()
+    wav = outfile
+    cmd = 'lame --preset insane %s' % wav
+    subprocess.call(cmd, shell=True)
+    context.bot.send_audio(chat_id=update.message.chat_id, audio=open(soundPath+"v.mp3", 'rb'))
+
+
+
+########################################################################################################################################################
+#                                                              OTHER COMMANDS                                                                          #
+########################################################################################################################################################
 
 def msg(update, context):
     notifConsole(update, context)
@@ -364,31 +418,6 @@ def help(update, context):
     notifConsole(update, context)
     context.bot.send_message(chat_id=update.message.chat_id, text=open("help.txt", "r").read())
 
-def calc(update, context):
-    notifConsole(update, context)
-    context.bot.send_chat_action(update.message.chat_id, 'upload_audio')
-    infiles = []
-    for c in update.message.text[6:]:
-        if c == '/':c = 'd'
-        if c == '*':c = 'x'
-        if c in sound_files:
-            infiles+=[soundPath+c+".wav"]
-    outfile = soundPath+"v.wav"
-    data= []
-    for infile in infiles:
-        w = wave.open(infile, 'rb')
-        data.append( [w.getparams(), w.readframes(w.getnframes())] )
-        w.close()
-
-    output = wave.open(outfile, 'wb')
-    output.setparams(data[0][0])
-    for i in range(len(infiles)):
-        output.writeframes(data[i][1])
-    output.close()
-    wav = outfile
-    cmd = 'lame --preset insane %s' % wav
-    subprocess.call(cmd, shell=True)
-    context.bot.send_audio(chat_id=update.message.chat_id, audio=open(soundPath+"v.mp3", 'rb'))
 
 ########################################################################################################################################################
 #                                                                RANDOM TEXTS                                                                          #
@@ -454,40 +483,6 @@ def rapport(update, context):
         sec = reste.seconds
         context.bot.send_message(chat_id=msg.chat_id, text="Trop tard, il fallait rendre le rapport de projet robot il y a "+str(reste.days)+" jours, "+str(sec//3600)+" heures, "+str((sec%3600)//60)+" minutes et "+str((sec%3600)%60)+" secondes !")
         #context.bot.send_message(chat_id=msg.chat_id, text="C'est finiiiiiiiit!!!!!!")
-
-
-def bowling(update, context):
-    context.bot.send_audio(chat_id=update.message.chat_id, audio=open(soundPath+"liam_bowling.mp3", 'rb'))
-def croa(update, context):
-
-    notifConsole(update, context)
-    context.bot.send_chat_action(update.message.chat_id, 'upload_audio')
-    infiles = []
-    v = 1
-    if len(update.message.text[6:]) > 0 and int(update.message.text[6:]) < 100:
-        v = int(update.message.text[6:])
-    for i in range(v):
-        infiles+=[soundPath+"croa"+".wav"]
-    outfile = soundPath+"v.wav"
-    data= []
-    for infile in infiles:
-        w = wave.open(infile, 'rb')
-        data.append( [w.getparams(), w.readframes(w.getnframes())] )
-        w.close()
-
-    output = wave.open(outfile, 'wb')
-    output.setparams(data[0][0])
-    for i in range(len(infiles)):
-        output.writeframes(data[i][1])
-    output.close()
-    wav = outfile
-    cmd = 'lame --preset insane %s' % wav
-    subprocess.call(cmd, shell=True)
-    context.bot.send_audio(chat_id=update.message.chat_id, audio=open(soundPath+"v.mp3", 'rb'))
-
-    #context.bot.send_audio(chat_id=update.message.chat_id, audio=open(soundPath+"croa.mp3", 'rb'))
-
-
 
 ########################################################################################################################################################
 #                                                                    CHATBOT                                                                           #
@@ -573,17 +568,14 @@ def main():
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-    #dp.add_handler(MessageHandler(Filters.video, handleVideo))
     dp.add_handler(MessageHandler(Filters.text, handleText))
     dp.add_handler(InlineQueryHandler(inlinequery))
 
     dp.add_handler(CommandHandler('list',list))
     dp.add_handler(CommandHandler('dico',dico))
     dp.add_handler(CommandHandler('dico2',dico2))
-    #dp.add_handler(CommandHandler('w',wideo))
     dp.add_handler(CommandHandler('msg',msg))
     dp.add_handler(CommandHandler('help',help))
-    #dp.add_handler(CommandHandler('link',link))
     dp.add_handler(CommandHandler('calc',calc))
     dp.add_handler(CommandHandler('meme',meme))
     dp.add_handler(CommandHandler('info',info))
@@ -597,15 +589,8 @@ def main():
     dp.add_handler(CommandHandler('bowling',bowling))
     dp.add_handler(CommandHandler('croa',croa))
 
-    #dp.add_handler(CommandHandler('play',play))
-
     dp.add_handler(CommandHandler('chat',setChat))
     dp.add_handler(CommandHandler('loadData',loadData))
-
-    #Admin commands
-    #dp.add_handler(CommandHandler('add',add))
-    #dp.add_handler(CommandHandler('rm',rm))
-    #dp.add_handler(CommandHandler('mv',mv))
 
     #Personal commands
     dp.add_handler(CommandHandler('conv', conv))
