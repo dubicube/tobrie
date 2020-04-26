@@ -591,6 +591,38 @@ def loadData(update, context):
     load(getDataFiles())
 load(getDataFiles())
 
+
+########################################################################################################################################################
+#                                                                       INVENTORY                                                                      #
+########################################################################################################################################################
+
+
+inventory = []
+def processInventoryHTML(htmlData):
+    global inventory
+    inventory = [[(j[:-6] if j[:-6]!="&#xa0;" else "") for j in i.split("<td class=\"org-left\">")[1:5]] for i in htmlData.split("<tr>")][2:]
+    inventory = [[i[0],i[1],i[2],i[3][:-8] if i[3][:-8]!="&#xa0;" else ""] for i in inventory]
+    print(inventory)
+processInventoryHTML(open("base.html", "r").read())
+def searchInventory(update, context, data):
+    results = []
+    for l in inventory:
+        ok = True
+        for i in data.lower().split(' '):
+            if not(i in l[0].lower() or i in l[1].lower() or i in l[2].lower() or i in l[3].lower()):
+                ok = False
+        if ok:
+            results+=[l]
+    print(results)
+    if len(results) < 10:
+        for l in results:
+            context.bot.send_message(update.message.chat_id, (("Référence: "+l[0]+"\n")if l[0]!=""else"")+("Nom: "+l[1]+"\n"if l[1]!=""else"")+("Emplacement: "+l[2]+"\n"if l[2]!=""else"")+("Caractéristique: "+l[3]if l[3]!=""else""))
+    else:
+        context.bot.send_message(update.message.chat_id, "Trop de résultats")
+def find(update, context):
+    searchInventory(update, context, update.message.text[6:])
+
+
 ########################################################################################################################################################
 #                                                                       MAIN                                                                           #
 ########################################################################################################################################################
@@ -631,6 +663,7 @@ def main():
     dp.add_handler(CommandHandler('update',update_video_names_command))
     dp.add_handler(CommandHandler('bowling',bowling))
     dp.add_handler(CommandHandler('croa',croa))
+    dp.add_handler(CommandHandler('find',find))
 
     dp.add_handler(CommandHandler('chat',setChat))
     dp.add_handler(CommandHandler('loadData',loadData))
