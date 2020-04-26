@@ -17,6 +17,7 @@ import requests
 from timeloop import Timeloop
 from zalgo_text import zalgo
 import urllib.parse
+import html
 
 import subprocess
 import wave
@@ -440,7 +441,7 @@ def getGoogleResponse(msg):
     keys = msg.split(' ')
     keys = [urllib.parse.quote(k) for k in keys]
     data = '+'.join(keys)
-    text = requests.get('https://www.google.com/search?q='+data).text
+    text = html.unescape(requests.get('https://www.google.com/search?q='+data).text)
     regex_r = re.search('(?<=<div class="BNeawe iBp4i AP7Wnd">)(?:(?!<div>).)*?(?=</div>)', text)
     if regex_r != None:
         txt_rep = regex_r.group(0)
