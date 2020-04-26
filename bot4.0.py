@@ -14,9 +14,9 @@ import time
 import os
 from shutil import move
 import requests
-from urllib.parse import unquote
 from timeloop import Timeloop
 from zalgo_text import zalgo
+import urllib.parse
 
 import subprocess
 import wave
@@ -155,14 +155,14 @@ def recur(message, context, msg):
             context.bot.send_message(chat_id=message.chat_id, text="C'est pas moi")
         else:
             sendYesNo(context.bot, message)
+
+
 def handleText(update, context):
-    message = getUpdateMessage(update)
+    #message = getUpdateMessage(update) # message source for regulat messages and for edited messages
+    message = update.message # only regular messages (no update on edited messages)
+
     if message is None:
         return
-
-    # Chatbot response
-    if chatbot_enable and message.chat_id in [-1001216704238, -1001294887664]:
-        context.bot.send_message(chat_id=conv_out, text=generate().replace('apos', '\''))
 
     msg = message.text
 
@@ -173,6 +173,13 @@ def handleText(update, context):
         context.bot.send_message(chat_id=conv_out, text=update.message.text)
     else:
         notifConsole(update, context)
+
+    # Auto response from google. Terminate if response provided
+    if msg.lower()[0:7] == "brenda ":
+        googleresp = getGoogleResponse(message.text[7:])
+        if len(googleresp) > 1:
+            context.bot.send_message(chat_id=message.chat_id, text=googleresp)
+            return
 
     # Process text for responses
     if di_enable:
@@ -230,7 +237,7 @@ video_names_out = []
 def update_video_names():
     global video_names_out, video_strong_tags
     #Mouhahaha
-    video_names_out=sorted([i.split('>')[0][9:-1] for i in unquote(requests.get(dataServerAddress).text).split("<img src=\"/__ovh_icons/movie.gif\" alt=\"[VID]\"> ")[1:]])
+    video_names_out=sorted([i.split('>')[0][9:-1] for i in urllib.parse.unquote(requests.get(dataServerAddress).text).split("<img src=\"/__ovh_icons/movie.gif\" alt=\"[VID]\"> ")[1:]])
     video_strong_tags = [(i+'__.mp4').split('__')[1][:-4] for i in video_names_out]
     l = []
     for i in range(len(video_names_out)):
@@ -425,8 +432,28 @@ def help(update, context):
 
 
 ########################################################################################################################################################
-#                                                                RANDOM TEXTS                                                                          #
+#                                                                TEXTS FROM WEB                                                                        #
 ########################################################################################################################################################
+
+# Infinite regex poweeeerrrrr
+def getGoogleResponse(msg):
+    keys = msg.split(' ')
+    keys = [urllib.parse.quote(k) for k in keys]
+    data = '+'.join(keys)
+    text = requests.get('https://www.google.com/search?q='+data).text
+    regex_r = re.search('(?<=<div class="BNeawe iBp4i AP7Wnd">)(?:(?!<div>).)*?(?=</div>)', text)
+    if regex_r != None:
+        txt_rep = regex_r.group(0)
+        return txt_rep
+    regex_r = re.search('(?<=<div class="BNeawe s3v9rd AP7Wnd">)(?!<div>)(?:(?!<div>).)*?(?=</div>)', text)
+    if regex_r != None:
+        txt_rep = regex_r.group(0)
+        while "<" in txt_rep:
+            a = txt_rep.index("<")
+            b = txt_rep.index(">")
+            txt_rep = txt_rep[0:a]+txt_rep[b+1:]
+        return txt_rep
+    return ""
 
 def getQuote():
     text = requests.get('http://generateur.vuzi.fr/').text
