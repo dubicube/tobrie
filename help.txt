@@ -11,3 +11,4 @@
 /quote : Renvoie une phrase random
 /info : Renvoie une info inutile
 @eirbot z Mon texte : Ecrit "Mon texte" en zalgo
+Brenda question : renvoie un résultat d'une recherche google sur "question"
