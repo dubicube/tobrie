@@ -229,6 +229,8 @@ def check_for_stickers(update, context, msg):
         if not(re.search(regex_start+s[2]+regex_end, msg.lower()) is None):
             if s[0] == "GIF":
                 context.bot.send_animation(chat_id=update.message.chat_id, animation=s[1])
+            elif s[0] == "FILE":
+                context.bot.send_document(chat_id=update.message.chat_id, document=open(s[1], 'rb'))
             else:
                 pack = context.bot.get_sticker_set(s[0])
                 context.bot.sendSticker(chat_id=update.message.chat_id, sticker=pack.stickers[int(s[1])])
