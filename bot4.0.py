@@ -4,8 +4,8 @@
 from uuid import uuid4
 import telegram
 from telegram import InlineQueryResultArticle, InlineQueryResultVideo, InputTextMessageContent, ParseMode, \
-    InputTextMessageContent
-from telegram.ext import Updater, InlineQueryHandler, ChosenInlineResultHandler, CommandHandler, MessageHandler, Filters
+    InputTextMessageContent, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, InlineQueryHandler, ChosenInlineResultHandler, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
 import re
 import logging
 import random
@@ -212,7 +212,13 @@ def load_maps():
     global sticker_map_regex
     global text_map_regex
     global video_map_regex
-    sticker_map_regex=[i.split('\n') for i in open(stickers_map_file, "r").read().split('\n\n')]
+    sticker_map_regex = []
+    for l in open(stickers_map_file, "r").read().split('\n'):
+        if len(l) > 2:
+            a = l.index(' ')
+            b = l.index(' ', a+1)
+            sticker_map_regex+=[[l[:a], l[a+1:b], l[b+1:]]]
+    #sticker_map_regex=[i.split('\n') for i in open(stickers_map_file, "r").read().split('\n\n')]
     text_map_regex=[i.split('\n') for i in open(text_map_file, "r").read().split('\n\n')]
     video_map_regex=[i.split('\n') for i in open(video_map_file, "r").read().split('\n\n')]
     video_map_regex = [[removeAccents(i[0]), i[1]] for i in video_map_regex]
@@ -221,8 +227,11 @@ load_maps()
 def check_for_stickers(update, context, msg):
     for s in sticker_map_regex:
         if not(re.search(regex_start+s[2]+regex_end, msg.lower()) is None):
-            pack = context.bot.get_sticker_set(s[0])
-            context.bot.sendSticker(chat_id=update.message.chat_id, sticker=pack.stickers[int(s[1])])
+            if s[0] == "GIF":
+                context.bot.send_animation(chat_id=update.message.chat_id, animation=s[1])
+            else:
+                pack = context.bot.get_sticker_set(s[0])
+                context.bot.sendSticker(chat_id=update.message.chat_id, sticker=pack.stickers[int(s[1])])
 
 def check_for_text(update, context, msg):
     for s in text_map_regex:
@@ -520,7 +529,7 @@ def rapport(update, context):
 ########################################################################################################################################################
 #                                                                    CHATBOT                                                                           #
 ########################################################################################################################################################
-
+"""
 def getDataFiles():
     return [dataPath+f for f in os.listdir(dataPath) if os.path.isfile(os.path.join(dataPath, f))]
 
@@ -549,13 +558,11 @@ def load(phrasesFiles):
     for phrases in phrasesFiles:
         with open(phrases, 'r', encoding="utf8") as f:
             for line in f:
-                """
-                if line[0] == '[':
-                    line = line.split(':')[3]
-                    #message = re.sub(r'[^\w\s\']', '', line).lower().strip()
-                    #print(message)
-                    add_message(line)
-                """
+                #if line[0] == '[':
+                #    line = line.split(':')[3]
+                #    #message = re.sub(r'[^\w\s\']', '', line).lower().strip()
+                #    #print(message)
+                #    add_message(line)
                 add_message(line)
 
 def add_message(message):
@@ -590,7 +597,7 @@ def setChat(update, context):
 def loadData(update, context):
     load(getDataFiles())
 load(getDataFiles())
-
+"""
 
 ########################################################################################################################################################
 #                                                                       INVENTORY                                                                      #
@@ -602,8 +609,8 @@ def processInventoryHTML(htmlData):
     global inventory
     inventory = [[(j[:-6] if j[:-6]!="&#xa0;" else "") for j in i.split("<td class=\"org-left\">")[1:5]] for i in htmlData.split("<tr>")][2:]
     inventory = [[i[0],i[1],i[2],i[3][:-8] if i[3][:-8]!="&#xa0;" else ""] for i in inventory]
-    print(inventory)
-processInventoryHTML(open("base.html", "r").read())
+if not(TEST):
+    processInventoryHTML(open("base.html", "r").read())
 def searchInventory(update, context, data):
     results = []
     for l in inventory:
@@ -613,7 +620,6 @@ def searchInventory(update, context, data):
                 ok = False
         if ok:
             results+=[l]
-    print(results)
     if len(results) < 10:
         for l in results:
             context.bot.send_message(update.message.chat_id, (("Référence: "+l[0]+"\n")if l[0]!=""else"")+("Nom: "+l[1]+"\n"if l[1]!=""else"")+("Emplacement: "+l[2]+"\n"if l[2]!=""else"")+("Caractéristique: "+l[3]if l[3]!=""else""))
@@ -624,11 +630,16 @@ def find(update, context):
 
 
 ########################################################################################################################################################
+#                                                                       GAMES                                                                          #
+########################################################################################################################################################
+
+
+########################################################################################################################################################
 #                                                                       MAIN                                                                           #
 ########################################################################################################################################################
 
 tokens = open("tokens", "r").read().split("\n")
-TOKEN=tokens[1] if TEST else tokens[0]
+TOKEN=tokens[2] if TEST else tokens[0]
 updater = Updater(TOKEN, use_context=True)
 
 def shutdown():
@@ -645,6 +656,7 @@ def main():
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
     dp.add_handler(MessageHandler(Filters.text, handleText))
     dp.add_handler(InlineQueryHandler(inlinequery))
+    #dp.add_handler(CallbackQueryHandler(button))
 
     dp.add_handler(CommandHandler('list',list))
     dp.add_handler(CommandHandler('dico',dico))
@@ -665,8 +677,9 @@ def main():
     dp.add_handler(CommandHandler('croa',croa))
     dp.add_handler(CommandHandler('find',find))
 
-    dp.add_handler(CommandHandler('chat',setChat))
-    dp.add_handler(CommandHandler('loadData',loadData))
+    #dp.add_handler(CommandHandler('chat',setChat))
+    #dp.add_handler(CommandHandler('loadData',loadData))
+
 
     #Personal commands
     dp.add_handler(CommandHandler('conv', conv))
