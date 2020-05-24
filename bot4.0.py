@@ -1,6 +1,9 @@
 #sudo apt-get install python-pip python-dev libffi-dev libssl-dev libxml2-dev libxslt1-dev libjpeg8-dev zlib1g-dev
 #pip install python-telegram-bot==12.0.0b1 --upgrade
 
+
+import discord
+
 from uuid import uuid4
 import telegram
 from telegram import InlineQueryResultArticle, InlineQueryResultVideo, InputTextMessageContent
@@ -148,35 +151,12 @@ def help(update, context):
 #                                                                TEXTS FROM WEB                                                                        #
 ########################################################################################################################################################
 
-# Special function to send info/quote to another conversation and/or to spam it
-def sendMessage(update, context, fun):
-    param = chat_id=update.message.text.split(' ')
-    ci = update.message.chat_id
-    if len(param) >= 2:
-        a = int(param[1])
-        if a != 0:
-            ci = a
-    n = 1
-    if len(param) >= 3:
-        n = int(param[2])
-    troll = n > 10
-    if len(param) >= 4:
-        troll = param[3]!="false"
-    remove_l = []
-    for i in range(n):
-        m = context.bot.send_message(chat_id=ci, text=fun())
-        if troll:
-            remove_l = remove_l+[m.message_id]
-    for id in remove_l:
-        context.bot.delete_message(ci, id)
-    if troll:
-        context.bot.send_video(chat_id=ci, video=dataServerAddress+"nounours_en_fait_non.mp4", supports_streaming=True)
-def info(update, context):
-    sh_core.notifConsole(TelegramBot(update, context))
-    sendMessage(update, context, getInfo)
-def quote(update, context):
-    sh_core.notifConsole(TelegramBot(update, context))
-    sendMessage(update, context, getQuote)
+def info(contextual_bot, sh_core):
+    sh_core.notifConsole(contextual_bot)
+    contextual_bot.replyText(getInfo())
+def quote(contextual_bot, sh_core):
+    sh_core.notifConsole(contextual_bot)
+    contextual_bot.replyText(getQuote())
 
 ########################################################################################################################################################
 #                                                              OTHER COMMANDS                                                                          #
@@ -203,13 +183,13 @@ def rapport(update, context):
 inventory = []
 if not(TEST):
     inventory = processInventoryHTML("base.html")
-def find(update, context):
-    results = searchInventory(update.message.text[6:], inventory)
+def find(contextual_bot):
+    results = searchInventory(contextual_bot.getText()[6:], inventory)
     if len(results) < 10:
         for l in results:
-            context.bot.send_message(update.message.chat_id, (("Référence: "+l[0]+"\n")if l[0]!=""else"")+("Nom: "+l[1]+"\n"if l[1]!=""else"")+("Emplacement: "+l[2]+"\n"if l[2]!=""else"")+("Caractéristique: "+l[3]if l[3]!=""else""))
+            contextual_bot.replyText((("Référence: "+l[0]+"\n")if l[0]!=""else"")+("Nom: "+l[1]+"\n"if l[1]!=""else"")+("Emplacement: "+l[2]+"\n"if l[2]!=""else"")+("Caractéristique: "+l[3]if l[3]!=""else""))
     else:
-        context.bot.send_message(update.message.chat_id, "Trop de résultats")
+        contextual_bot.replyText("Trop de résultats")
 
 
 ########################################################################################################################################################
@@ -224,14 +204,21 @@ def telegram_setAutoReply(update, context):
     setAutoReply(TelegramBot(update, context), sh_core)
 def telegram_conv(update, context):
     conv(TelegramBot(update, context))
+def telegram_find(update, context):
+    find(TelegramBot(update, context))
+def telegram_info(update, context):
+    info(TelegramBot(update, context), sh_core)
+def telegram_quote(update, context):
+    quote(TelegramBot(update, context), sh_core)
 
 ########################################################################################################################################################
 #                                                                       MAIN                                                                           #
 ########################################################################################################################################################
 
 tokens = open("tokens", "r").read().split("\n")
-TOKEN=tokens[2] if TEST else tokens[0]
-updater = Updater(TOKEN, use_context=True)
+TELEGRAM_TOKEN=tokens[2] if TEST else tokens[0]
+DISCORD_TOKEN = tokens[16]
+updater = Updater(TELEGRAM_TOKEN, use_context=True)
 sh_core = SharedCore(updater.bot)
 
 def shutdown():
@@ -254,20 +241,51 @@ def main():
     dp.add_handler(CommandHandler('help',help))
     dp.add_handler(CommandHandler('calc',calc))
     dp.add_handler(CommandHandler('meme',meme))
-    dp.add_handler(CommandHandler('info',info))
-    dp.add_handler(CommandHandler('quote',quote))
+
+    dp.add_handler(CommandHandler('info', telegram_info))
+    dp.add_handler(CommandHandler('quote', telegram_quote))
     dp.add_handler(CommandHandler('di', telegram_setDI))
     dp.add_handler(CommandHandler('video', telegram_setAutoReply))
+    dp.add_handler(CommandHandler('find',telegram_find))
+
     dp.add_handler(CommandHandler('rapport',rapport))
     dp.add_handler(CommandHandler('update',update_video_names_command))
+
     dp.add_handler(CommandHandler('croa',croa))
-    dp.add_handler(CommandHandler('find',find))
 
     #Personal commands
     dp.add_handler(CommandHandler('conv', telegram_conv))
     dp.add_handler(CommandHandler('stop', stop))
 
     updater.start_polling()
-    updater.idle()
+    #updater.idle()
+
+
+    #####  DISCORD  #####
+    client = discord.Client()
+    @client.event
+    async def on_message(message):
+        if message.author == client.user:
+            return
+        contextual_bot = DiscordBot(message)
+        if message.content[0] == '/':
+            if message.content[1:] == "di":
+                setDI(contextual_bot, sh_core)
+            if message.content[1:] == "video":
+                setAutoReply(contextual_bot, sh_core)
+            if message.content[1:5] == "find":
+                find(contextual_bot)
+            if message.content[1:] == "info":
+                info(contextual_bot, sh_core)
+            if message.content[1:] == "quote":
+                quote(contextual_bot, sh_core)
+        else:
+            handleText(contextual_bot, sh_core)
+        await contextual_bot.outputMessages()
+    @client.event
+    async def on_ready():
+        print('Connected to Discord!')
+    client.run(DISCORD_TOKEN)
+
 if __name__ == '__main__':
     main()

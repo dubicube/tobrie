@@ -71,3 +71,46 @@ class TelegramBot(ContextualBot):
         self.context.bot.send_sticker(self.update.message.chat_id, sticker)
     def replyAnimation(self, animation):
         self.context.bot.send_animation(self.update.message.chat_id, animation)
+
+
+
+class DiscordBot(ContextualBot):
+    message = None
+    text_reply = []
+    document_reply = []
+    video_reply = []
+    def __init__(self, message):
+        self.message = message
+        self.text_reply = []
+        self.document_reply = []
+        self.video_reply = []
+    def getChatID(self):
+        return 0
+    def getUserID(self):
+        return self.message.author
+    def getUserName(self):
+        return self.message.author
+    #def getUserFirstName(self):
+    def isChatPerso(self):
+        return self.message.author=="dubicube#8553"
+    def getText(self):
+        return self.message.content
+    def getAbsoluteText(self):
+        return self.message.content
+
+    def replyText(self, text):
+        self.text_reply+=[text]
+    def replyDocument(self, document_url):
+        self.document_reply+=[document_url]
+    def replyVideo(self, video_url):
+        self.video_reply+=[video_url]
+    def replySticker(self, sticker):
+        print("Sticker")
+    def replyAnimation(self, animation):
+        print("Animation")
+
+    async def outputMessages(self):
+        for text in self.text_reply:
+            await self.message.channel.send(text)
+        for video in self.video_reply:
+            await self.message.channel.send(video)
