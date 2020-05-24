@@ -1,2 +1,2 @@
 # tobrie
-Le magnifique bot Telegram de l'asso Eirbot
+Le magnifique bot de l'asso Eirbot, sur Telegram et Discord.

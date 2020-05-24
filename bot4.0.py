@@ -1,7 +1,3 @@
-#sudo apt-get install python-pip python-dev libffi-dev libssl-dev libxml2-dev libxslt1-dev libjpeg8-dev zlib1g-dev
-#pip install python-telegram-bot==12.0.0b1 --upgrade
-
-
 import discord
 
 from uuid import uuid4
@@ -11,17 +7,15 @@ from telegram.ext import Updater, InlineQueryHandler, CommandHandler, MessageHan
 import re
 import logging
 import random
-from datetime import datetime, timedelta
+from datetime import datetime
 import time
 import os
 import requests
-from timeloop import Timeloop
 from zalgo_text import zalgo
 import urllib.parse
 import urllib.request
 
 import re
-from collections import defaultdict
 
 import threading
 
@@ -39,9 +33,9 @@ video_map_regex = []
 
 sh_core = None
 
-########################################################################################################################################################
-#                                                                  VIDEO QUERY                                                                         #
-########################################################################################################################################################
+#########################################################################################
+#                                        VIDEO                                          #
+#########################################################################################
 
 video_names_out = []
 def update_video_names():
@@ -112,9 +106,9 @@ def dico(update, context):
     else:
         context.bot.send_message(chat_id=update.message.chat_id, text="Le /dico est interdit dans les groupes")
 
-########################################################################################################################################################
-#                                                              AUDIO                                                                                   #
-########################################################################################################################################################
+#########################################################################################
+#                                        AUDIO                                          #
+#########################################################################################
 
 def calc(update, context):
     sh_core.notifConsole(TelegramBot(update, context))
@@ -132,9 +126,9 @@ def croa(update, context):
     context.bot.send_audio(chat_id=update.message.chat_id, audio=open(soundPath+"v.mp3", 'rb'))
 
 
-########################################################################################################################################################
-#                                                              OTHER COMMANDS                                                                          #
-########################################################################################################################################################
+#########################################################################################
+#                                   OTHER COMMANDS                                      #
+#########################################################################################
 
 def meme(update, context):
     sh_core.notifConsole(TelegramBot(update, context))
@@ -147,9 +141,9 @@ def help(update, context):
     context.bot.send_message(chat_id=update.message.chat_id, text=open("help.txt", "r").read())
 
 
-########################################################################################################################################################
-#                                                                TEXTS FROM WEB                                                                        #
-########################################################################################################################################################
+#########################################################################################
+#                                   USELESS TEXTS                                       #
+#########################################################################################
 
 def info(contextual_bot, sh_core):
     sh_core.notifConsole(contextual_bot)
@@ -158,9 +152,9 @@ def quote(contextual_bot, sh_core):
     sh_core.notifConsole(contextual_bot)
     contextual_bot.replyText(getQuote())
 
-########################################################################################################################################################
-#                                                              OTHER COMMANDS                                                                          #
-########################################################################################################################################################
+#########################################################################################
+#                                       RAPPORT                                         #
+#########################################################################################
 
 def rapport(update, context):
     msg = update.message
@@ -176,9 +170,9 @@ def rapport(update, context):
         context.bot.send_message(chat_id=msg.chat_id, text="Trop tard, il fallait rendre le rapport de projet robot il y a "+str(reste.days)+" jours, "+str(sec//3600)+" heures, "+str((sec%3600)//60)+" minutes et "+str((sec%3600)%60)+" secondes !")
         #context.bot.send_message(chat_id=msg.chat_id, text="C'est finiiiiiiiit!!!!!!")
 
-########################################################################################################################################################
-#                                                                       INVENTORY                                                                      #
-########################################################################################################################################################
+#########################################################################################
+#                                      INVENTORY                                        #
+#########################################################################################
 
 inventory = []
 if not(TEST):
@@ -192,9 +186,9 @@ def find(contextual_bot):
         contextual_bot.replyText("Trop de résultats")
 
 
-########################################################################################################################################################
-#                                                        Telegram generic forward                                                                      #
-########################################################################################################################################################
+#########################################################################################
+#                               Telegram generic forward                                #
+#########################################################################################
 
 def telegram_handleText(update, context):
     handleText(TelegramBot(update, context), sh_core)
@@ -211,9 +205,9 @@ def telegram_info(update, context):
 def telegram_quote(update, context):
     quote(TelegramBot(update, context), sh_core)
 
-########################################################################################################################################################
-#                                                                       MAIN                                                                           #
-########################################################################################################################################################
+#########################################################################################
+#                                        MAIN                                           #
+#########################################################################################
 
 tokens = open("tokens", "r").read().split("\n")
 TELEGRAM_TOKEN=tokens[2] if TEST else tokens[0]
@@ -221,6 +215,7 @@ DISCORD_TOKEN = tokens[16]
 updater = Updater(TELEGRAM_TOKEN, use_context=True)
 sh_core = SharedCore(updater.bot)
 
+# Shutdown Telegram bot
 def shutdown():
     updater.stop()
     updater.is_idle = False
@@ -230,6 +225,8 @@ def stop(update, context):
         threading.Thread(target=shutdown).start()
 
 def main():
+
+    #####  TELEGRAM  #####
     dp = updater.dispatcher
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
     dp.add_handler(MessageHandler(Filters.text, telegram_handleText))
