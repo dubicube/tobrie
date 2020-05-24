@@ -5,6 +5,45 @@ Ce bot a avant tout été développé pour être déployé sur Telegram. Il a en
 
 Les fonctions non déployées sur Discord sont en fait des fonctions relativement propres à Telegram, qu'il serait difficle d'adapter facilement à Discord (InlineQuerry, stickers...). Les fonctions de réponses automatiques de texte, vidéo ou image ont en revanche été très facile à adapter, et seront facile à également déployer sur une autre plateforme de chat en ligne fournissant une API python.
 
+## Les fonctionnalités
+### Réponses automatiques
+Dans un chat, lorsqu'une personne écrit un mot contenant "di", le bot répête la fin du mot après "di". De même avec "cri", sauf que le texte renvoyé par le bot est en majuscules. Ce comportement est récursif, avec tout de même une limite fixe de profondeur de récursivité.
+
+Lorsqu'une phrase finit par "?", il y a une certaine probabilité que le bot réponde par une vidéo "oui" ou "non".
+
+Une matrice de messages associés à des pseudos et des probabilités permet d'envoyer un message lorsqu'un certaine personne parle, avec une certaine probabilité.
+
+Les fonctionnalités précédentes peuvent être désactivées par la commande /di.
+
+...
+
+WIP
+
+### Recherche de vidéos
+
+...
+
+WIP
+
+### Renvoi de contenu aléatoire
+La commande /meme renvoie un meme aléatoire parmi une collection d'images enregistrée en local.
+
+La commande /info renvoie une information inutile sous forme de texte. Les informations inutiles sont obtenues par une requête sur le site https://www.savoir-inutile.com/
+
+La commande /quote renvoie une phrase générée aléatoirement depuis le site http://generateur.vuzi.fr/
+
+### Génération de fichiers son
+La commande /calc permet de convertir une opération sous frome textuelle en son en utilisant les voix de Dupont et Dupond (c'est une référence à un ytp Tintin). La fonctionnalité ne supporte que les chiffres et les opérations de base. Les caractères autorisés sont les suivants: 0123456789\+\-\*/cr. Example: /calc 1+2-8\*4/0r6c
+
+La commande /croa N renvoie un son contenant N fois "croa". Example: /croa 12
+
+## Données annexes nécessaires au fonctionnement
+
+...
+
+WIP
+
+## Description des fichiers
 ### bot4.0.py
 C'est le fichier principal, à la racine de l'exécution. Il importe les fichiers auxiliaires, instancie les bots sur Telegram et Discord, définit les commandes et en implémente certaines.
 
