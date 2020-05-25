@@ -15,8 +15,6 @@ from zalgo_text import zalgo
 import urllib.parse
 import urllib.request
 
-import re
-
 import threading
 
 from config import *
@@ -74,7 +72,7 @@ def inlinequery(update, context):
 
     if txt[0] == 'z':
         zal = zalgo.zalgo().zalgofy(" ".join(txt[1:]))
-        results = [InlineQueryResultArticle(id=uuid4(), title=zal, input_message_content=InputTextMessageContent(zal), description=zal)]#zalgo.zalgo().zalgofy("Some text to zalgofy!")
+        results = [InlineQueryResultArticle(id=uuid4(), title=zal, input_message_content=InputTextMessageContent(zal), description=zal)]
         update.inline_query.answer(results)
     else:
         r = getResults(txt, video_names_out, 50)
