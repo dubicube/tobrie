@@ -134,15 +134,19 @@ def load_maps():
 load_maps()
 
 def check_for_stickers(contextual_bot, sh_core, msg):
+    results = []
     for s in sticker_map_regex:
         if not(re.search(regex_start+s[2]+regex_end, msg.lower()) is None):
-            if s[0] == "GIF":
-                contextual_bot.replyAnimation(s[1])
-            elif s[0] == "FILE":
-                contextual_bot.replyDocument(open(s[1], 'rb'))
-            else:
-                pack = sh_core.telegramBot.get_sticker_set(s[0])
-                contextual_bot.replySticker(pack.stickers[int(s[1])])
+            results+=[s]
+    if len(results) > 0:
+        s = results[random.randint(0, len(results)-1)]
+        if s[0] == "GIF":
+            contextual_bot.replyAnimation(s[1])
+        elif s[0] == "FILE":
+            contextual_bot.replyDocument(open(s[1], 'rb'))
+        else:
+            pack = sh_core.telegramBot.get_sticker_set(s[0])
+            contextual_bot.replySticker(pack.stickers[int(s[1])])
 
 def check_for_text(contextual_bot, msg):
     for s in text_map_regex:

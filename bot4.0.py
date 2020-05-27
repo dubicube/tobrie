@@ -213,6 +213,9 @@ DISCORD_TOKEN = tokens[16]
 updater = Updater(TELEGRAM_TOKEN, use_context=True)
 sh_core = SharedCore(updater.bot)
 
+
+client_discord = discord.Client()
+
 # Shutdown Telegram bot
 def shutdown():
     updater.stop()
@@ -257,10 +260,9 @@ def main():
 
 
     #####  DISCORD  #####
-    client = discord.Client()
-    @client.event
+    @client_discord.event
     async def on_message(message):
-        if message.author == client.user:
+        if message.author == client_discord.user:
             return
         contextual_bot = DiscordBot(message)
         if message.content[0] == '/':
@@ -274,13 +276,15 @@ def main():
                 info(contextual_bot, sh_core)
             if message.content[1:] == "quote":
                 quote(contextual_bot, sh_core)
+            if message.content[1:] == "stop":
+                await client_discord.close()
         else:
             handleText(contextual_bot, sh_core)
         await contextual_bot.outputMessages()
-    @client.event
+    @client_discord.event
     async def on_ready():
         print('Connected to Discord!')
-    client.run(DISCORD_TOKEN)
+    client_discord.run(DISCORD_TOKEN)
 
 if __name__ == '__main__':
     main()
