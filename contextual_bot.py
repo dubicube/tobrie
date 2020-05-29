@@ -3,6 +3,9 @@
 
 class ContextualBot:
     type = "None"
+    text_reply = []
+    document_reply = []
+    video_reply = []
     def __init__(self):
         self.type = "None"
     def getChatID(self):
@@ -14,17 +17,17 @@ class ContextualBot:
     def getUserFirstName(self):
         return ""
     def isChatPerso(self):
-        return True
+        return False
     def getText(self):
         return ""
     def getAbsoluteText(self):
         return ""
     def replyText(self, text):
-        print(text)
+        self.text_reply+=[text]
     def replyDocument(self, document_url):
-        print(gif_url)
+        self.document_reply+=[document_url]
     def replyVideo(self, video_url):
-        print(video_url)
+        self.video_reply+=[video_url]
     def replySticker(self, sticker):
         print("Sticker")
     def replyAnimation(self, animation):
@@ -76,9 +79,6 @@ class TelegramBot(ContextualBot):
 
 class DiscordBot(ContextualBot):
     message = None
-    text_reply = []
-    document_reply = []
-    video_reply = []
     def __init__(self, message):
         self.message = message
         self.text_reply = []
@@ -98,12 +98,6 @@ class DiscordBot(ContextualBot):
     def getAbsoluteText(self):
         return self.message.content
 
-    def replyText(self, text):
-        self.text_reply+=[text]
-    def replyDocument(self, document_url):
-        self.document_reply+=[document_url]
-    def replyVideo(self, video_url):
-        self.video_reply+=[video_url]
     def replySticker(self, sticker):
         print("Sticker")
     def replyAnimation(self, animation):
@@ -114,3 +108,37 @@ class DiscordBot(ContextualBot):
             await self.message.channel.send(text)
         for video in self.video_reply:
             await self.message.channel.send(video)
+
+
+class TweepyBot(ContextualBot):
+    api = None
+    tweet = None
+    def __init__(self, api, tweet):
+        self.api = api
+        self.tweet = tweet
+        self.text_reply = []
+        self.document_reply = []
+        self.video_reply = []
+    def getChatID(self):
+        return 0
+    def getUserID(self):
+        return self.tweet.user.id
+    def getUserName(self):
+        return self.tweet.user.name
+    def getText(self):
+        return self.tweet.text
+    def getAbsoluteText(self):
+        return self.tweet.text
+
+    def outputMessages(self):
+        count = len(self.getUserName())+1
+        i = 0
+        while i < len(self.text_reply) and count+len(self.text_reply[i])+1 < 280:
+            count+=len(self.text_reply[i])+1
+            i+=1
+        if i != 0:
+            txt = '\n'.join(self.text_reply[:i])
+            self.api.update_status("@"+self.getUserName()+" "+txt, self.tweet.id)
+            #print("@"+self.getUserName()+" "+txt)
+        #for video in self.video_reply:
+        #    await self.message.channel.send(video)

@@ -1,5 +1,7 @@
 import discord
 
+import tweepy
+
 from uuid import uuid4
 import telegram
 from telegram import InlineQueryResultArticle, InlineQueryResultVideo, InputTextMessageContent
@@ -203,6 +205,23 @@ def telegram_info(update, context):
 def telegram_quote(update, context):
     quote(TelegramBot(update, context), sh_core)
 
+
+def generic_handle_text(contextual_bot, sh_core):
+    msg = contextual_bot.getText()
+    if msg[0] == '/':
+        if msg[1:] == "di":
+            setDI(contextual_bot, sh_core)
+        if msg[1:] == "video":
+            setAutoReply(contextual_bot, sh_core)
+        if msg[1:5] == "find":
+            find(contextual_bot)
+        if msg[1:] == "info":
+            info(contextual_bot, sh_core)
+        if msg[1:] == "quote":
+            quote(contextual_bot, sh_core)
+    else:
+        handleText(contextual_bot, sh_core)
+
 #########################################################################################
 #                                        MAIN                                           #
 #########################################################################################
@@ -215,6 +234,30 @@ sh_core = SharedCore(updater.bot)
 
 
 client_discord = discord.Client()
+
+
+tweepy_auth = tweepy.OAuthHandler(tokens[20], tokens[21])
+tweepy_auth.set_access_token(tokens[22], tokens[23])
+
+tweepy_api = tweepy.API(tweepy_auth)
+def check_mentions(tweepy_api, since_id, output):
+    new_since_id = since_id
+    for tweet in tweepy.Cursor(tweepy_api.mentions_timeline, since_id=since_id).items():
+        new_since_id = max(tweet.id, new_since_id)
+        if output:
+            if tweet.in_reply_to_status_id is not None:
+                continue
+            contextual_bot = TweepyBot(tweepy_api, tweet)
+            generic_handle_text(contextual_bot, sh_core)
+            contextual_bot.outputMessages()
+    return new_since_id
+def tweepy_thread():
+    since_id = check_mentions(tweepy_api, 1, False)
+    while True:
+        since_id = check_mentions(tweepy_api, since_id, True)
+        time.sleep(30)
+threading.Thread(target=tweepy_thread).start()
+
 
 # Shutdown Telegram bot
 def shutdown():
@@ -265,21 +308,10 @@ def main():
         if message.author == client_discord.user:
             return
         contextual_bot = DiscordBot(message)
-        if message.content[0] == '/':
-            if message.content[1:] == "di":
-                setDI(contextual_bot, sh_core)
-            if message.content[1:] == "video":
-                setAutoReply(contextual_bot, sh_core)
-            if message.content[1:5] == "find":
-                find(contextual_bot)
-            if message.content[1:] == "info":
-                info(contextual_bot, sh_core)
-            if message.content[1:] == "quote":
-                quote(contextual_bot, sh_core)
-            if message.content[1:] == "stop":
-                await client_discord.close()
+        if message.content == "/stop":
+            await client_discord.close()
         else:
-            handleText(contextual_bot, sh_core)
+            generic_handle_text(contextual_bot, sh_core)
         await contextual_bot.outputMessages()
     @client_discord.event
     async def on_ready():
