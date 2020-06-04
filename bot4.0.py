@@ -177,7 +177,7 @@ def rapport(update, context):
 inventory = []
 if not(TEST):
     inventory = processInventoryHTML("base.html")
-def find(contextual_bot):
+def find(contextual_bot, sh_core):
     results = searchInventory(contextual_bot.getText()[6:], inventory)
     if len(results) < 10:
         for l in results:
@@ -185,40 +185,41 @@ def find(contextual_bot):
     else:
         contextual_bot.replyText("Trop de résultats")
 
+#########################################################################################
+#                                     CITATIONS                                         #
+#########################################################################################
+
+def getRandomLine(txt):
+    l = txt.split('\n')
+    return l[random.randint(0, len(l)-2)]
+def getCitation(contextual_bot, sh_core):
+    contextual_bot.replyText(getRandomLine(open("maps/citations", "r").read()))
+def addCitation(contextual_bot, sh_core):
+    txt = contextual_bot.getText()[6:].split('\n')[0]
+    if len(txt) > 1:
+        f = open("maps/citations", "a")
+        f.write(txt+"\n")
+        f.close()
+        contextual_bot.replyText("Ok")
+    else:
+        contextual_bot.replyText("Nop")
 
 #########################################################################################
-#                               Telegram generic forward                                #
+#                                       Forward                                         #
 #########################################################################################
 
-def telegram_handleText(update, context):
-    handleText(TelegramBot(update, context), sh_core)
-def telegram_setDI(update, context):
-    setDI(TelegramBot(update, context), sh_core)
-def telegram_setAutoReply(update, context):
-    setAutoReply(TelegramBot(update, context), sh_core)
 def telegram_conv(update, context):
     conv(TelegramBot(update, context))
-def telegram_find(update, context):
-    find(TelegramBot(update, context))
-def telegram_info(update, context):
-    info(TelegramBot(update, context), sh_core)
-def telegram_quote(update, context):
-    quote(TelegramBot(update, context), sh_core)
 
+def telegram_handle_command(update, context):
+    generic_handle_text(TelegramBot(update, context), sh_core)
 
 def generic_handle_text(contextual_bot, sh_core):
     msg = contextual_bot.getText()
     if msg[0] == '/':
-        if msg[1:] == "di":
-            setDI(contextual_bot, sh_core)
-        if msg[1:] == "video":
-            setAutoReply(contextual_bot, sh_core)
-        if msg[1:5] == "find":
-            find(contextual_bot)
-        if msg[1:] == "info":
-            info(contextual_bot, sh_core)
-        if msg[1:] == "quote":
-            quote(contextual_bot, sh_core)
+        for (fun_txt, fun) in commands:
+            if msg[1:].startswith(fun_txt):
+                fun(contextual_bot, sh_core)
     else:
         handleText(contextual_bot, sh_core)
 
@@ -226,15 +227,30 @@ def generic_handle_text(contextual_bot, sh_core):
 #                                        MAIN                                           #
 #########################################################################################
 
+
+commands = [("di", setDI), ("video", setAutoReply), ("find", find), ("info", info), ("quote", quote), ("citation", getCitation), ("addr", addCitation)]
+
+
 tokens = open("tokens", "r").read().split("\n")
 TELEGRAM_TOKEN=tokens[2] if TEST else tokens[0]
 DISCORD_TOKEN = tokens[16]
 updater = Updater(TELEGRAM_TOKEN, use_context=True)
 sh_core = SharedCore(updater.bot)
 
+# Shutdown Telegram bot
+def shutdown():
+    updater.stop()
+    updater.is_idle = False
+def stop(update, context):
+    if update.message.from_user.id == super_admin:
+        context.bot.send_message(update.message.chat_id, "Stopping...")
+        threading.Thread(target=shutdown).start()
+
 
 client_discord = discord.Client()
 
+
+#####  TWITTER  #####
 
 tweepy_auth = tweepy.OAuthHandler(tokens[20], tokens[21])
 tweepy_auth.set_access_token(tokens[22], tokens[23])
@@ -256,24 +272,15 @@ def tweepy_thread():
     while True:
         since_id = check_mentions(tweepy_api, since_id, True)
         time.sleep(30)
-threading.Thread(target=tweepy_thread).start()
-
-
-# Shutdown Telegram bot
-def shutdown():
-    updater.stop()
-    updater.is_idle = False
-def stop(update, context):
-    if update.message.from_user.id == super_admin:
-        context.bot.send_message(update.message.chat_id, "Stopping...")
-        threading.Thread(target=shutdown).start()
+if not TEST:
+    threading.Thread(target=tweepy_thread).start()
 
 def main():
 
     #####  TELEGRAM  #####
     dp = updater.dispatcher
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-    dp.add_handler(MessageHandler(Filters.text, telegram_handleText))
+    dp.add_handler(MessageHandler(Filters.text, telegram_handle_command))
     dp.add_handler(InlineQueryHandler(inlinequery))
     #dp.add_handler(CallbackQueryHandler(button))
 
@@ -283,11 +290,8 @@ def main():
     dp.add_handler(CommandHandler('calc',calc))
     dp.add_handler(CommandHandler('meme',meme))
 
-    dp.add_handler(CommandHandler('info', telegram_info))
-    dp.add_handler(CommandHandler('quote', telegram_quote))
-    dp.add_handler(CommandHandler('di', telegram_setDI))
-    dp.add_handler(CommandHandler('video', telegram_setAutoReply))
-    dp.add_handler(CommandHandler('find',telegram_find))
+    for (fun_txt, fun) in commands:
+        dp.add_handler(CommandHandler(fun_txt, telegram_handle_command))
 
     dp.add_handler(CommandHandler('rapport',rapport))
     dp.add_handler(CommandHandler('update',update_video_names_command))
@@ -299,24 +303,25 @@ def main():
     dp.add_handler(CommandHandler('stop', stop))
 
     updater.start_polling()
-    #updater.idle()
 
-
-    #####  DISCORD  #####
-    @client_discord.event
-    async def on_message(message):
-        if message.author == client_discord.user:
-            return
-        contextual_bot = DiscordBot(message)
-        if message.content == "/stop":
-            await client_discord.close()
-        else:
-            generic_handle_text(contextual_bot, sh_core)
-        await contextual_bot.outputMessages()
-    @client_discord.event
-    async def on_ready():
-        print('Connected to Discord!')
-    client_discord.run(DISCORD_TOKEN)
+    if TEST:
+        updater.idle()
+    else:
+        #####  DISCORD  #####
+        @client_discord.event
+        async def on_message(message):
+            if message.author == client_discord.user:
+                return
+            contextual_bot = DiscordBot(message)
+            if message.content == "/stop":
+                await client_discord.close()
+            else:
+                generic_handle_text(contextual_bot, sh_core)
+            await contextual_bot.outputMessages()
+        @client_discord.event
+        async def on_ready():
+            print('Connected to Discord!')
+        client_discord.run(DISCORD_TOKEN)
 
 if __name__ == '__main__':
     main()
