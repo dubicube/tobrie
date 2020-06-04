@@ -110,31 +110,30 @@ def dico(update, context):
 #                                        AUDIO                                          #
 #########################################################################################
 
-def calc(update, context):
-    sh_core.notifConsole(TelegramBot(update, context))
-    context.bot.send_chat_action(update.message.chat_id, 'upload_audio')
-    calculate(update.message.text[6:], soundPath)
-    context.bot.send_audio(chat_id=update.message.chat_id, audio=open(soundPath+"v.mp3", 'rb'))
+def calc(contextual_bot, sh_core):
+    sh_core.notifConsole(contextual_bot)
+    calculate(contextual_bot.getText()[6:], soundPath)
+    contextual_bot.replyAudio(open(soundPath+"v.mp3", 'rb'))
 
-def croa(update, context):
-    sh_core.notifConsole(TelegramBot(update, context))
-    context.bot.send_chat_action(update.message.chat_id, 'upload_audio')
+def croa(contextual_bot, sh_core):
+    sh_core.notifConsole(contextual_bot)
     v = 1
-    if len(update.message.text[6:]) > 0 and int(update.message.text[6:]) < 100:
-        v = int(update.message.text[6:])
+    txt = contextual_bot.getText()
+    if len(txt[6:]) > 0 and int(txt[6:]) < 100:
+        v = int(txt[6:])
     duplicateAudio(soundPath+"croa"+".wav", soundPath+"v.wav", v)
-    context.bot.send_audio(chat_id=update.message.chat_id, audio=open(soundPath+"v.mp3", 'rb'))
+    contextual_bot.replyAudio(open(soundPath+"v.mp3", 'rb'))
 
 
 #########################################################################################
 #                                   OTHER COMMANDS                                      #
 #########################################################################################
 
-def meme(update, context):
-    sh_core.notifConsole(TelegramBot(update, context))
+def meme(contextual_bot, sh_core):
+    sh_core.notifConsole(contextual_bot)
     memes = [f for f in os.listdir(memePath) if os.path.isfile(os.path.join(memePath, f))]
     m = memes[random.randint(0, len(memes)-1)]
-    context.bot.send_photo(update.message.chat_id, open(memePath+m, 'rb'))
+    contextual_bot.replyImage(open(memePath+m, 'rb'))
 
 def help(update, context):
     sh_core.notifConsole(TelegramBot(update, context))
@@ -228,7 +227,8 @@ def generic_handle_text(contextual_bot, sh_core):
 #########################################################################################
 
 
-commands = [("di", setDI), ("video", setAutoReply), ("find", find), ("info", info), ("quote", quote), ("citation", getCitation), ("addr", addCitation)]
+commands = [("di", setDI), ("video", setAutoReply), ("find", find), ("info", info), ("quote", quote),
+("citation", getCitation), ("addr", addCitation), ("meme", meme), ("calc", calc), ("croa", croa)]
 
 
 tokens = open("tokens", "r").read().split("\n")
@@ -282,21 +282,16 @@ def main():
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
     dp.add_handler(MessageHandler(Filters.text, telegram_handle_command))
     dp.add_handler(InlineQueryHandler(inlinequery))
-    #dp.add_handler(CallbackQueryHandler(button))
 
     dp.add_handler(CommandHandler('list',list))
     dp.add_handler(CommandHandler('dico',dico))
     dp.add_handler(CommandHandler('help',help))
-    dp.add_handler(CommandHandler('calc',calc))
-    dp.add_handler(CommandHandler('meme',meme))
 
     for (fun_txt, fun) in commands:
         dp.add_handler(CommandHandler(fun_txt, telegram_handle_command))
 
     dp.add_handler(CommandHandler('rapport',rapport))
     dp.add_handler(CommandHandler('update',update_video_names_command))
-
-    dp.add_handler(CommandHandler('croa',croa))
 
     #Personal commands
     dp.add_handler(CommandHandler('conv', telegram_conv))

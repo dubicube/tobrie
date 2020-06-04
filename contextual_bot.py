@@ -1,4 +1,4 @@
-
+from discord import File as DiscordFile
 
 
 class ContextualBot:
@@ -6,8 +6,15 @@ class ContextualBot:
     text_reply = []
     document_reply = []
     video_reply = []
+    image_reply = []
+    audio_reply = []
     def __init__(self):
         self.type = "None"
+        self.text_reply = []
+        self.document_reply = []
+        self.video_reply = []
+        self.image_reply = []
+        self.audio_reply = []
     def getChatID(self):
         return 0
     def getUserID(self):
@@ -28,6 +35,10 @@ class ContextualBot:
         self.document_reply+=[document_url]
     def replyVideo(self, video_url):
         self.video_reply+=[video_url]
+    def replyImage(self, img):
+        self.image_reply+=[img]
+    def replyAudio(self, audio):
+        self.audio_reply+=[audio]
     def replySticker(self, sticker):
         print("Sticker")
     def replyAnimation(self, animation):
@@ -74,16 +85,17 @@ class TelegramBot(ContextualBot):
         self.context.bot.send_sticker(self.update.message.chat_id, sticker)
     def replyAnimation(self, animation):
         self.context.bot.send_animation(self.update.message.chat_id, animation)
-
+    def replyImage(self, img):
+        self.context.bot.send_photo(self.update.message.chat_id, img)
+    def replyAudio(self, audio):
+        self.context.bot.send_audio(self.update.message.chat_id, audio)
 
 
 class DiscordBot(ContextualBot):
     message = None
     def __init__(self, message):
         self.message = message
-        self.text_reply = []
-        self.document_reply = []
-        self.video_reply = []
+        super(DiscordBot, self).__init__()
     def getChatID(self):
         return 0
     def getUserID(self):
@@ -108,6 +120,8 @@ class DiscordBot(ContextualBot):
             await self.message.channel.send(text)
         for video in self.video_reply:
             await self.message.channel.send(video)
+        for document in self.document_reply+self.image_reply+self.audio_reply:
+            await self.message.channel.send(file=DiscordFile(document))
 
 
 class TweepyBot(ContextualBot):

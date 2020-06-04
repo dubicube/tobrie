@@ -37,9 +37,9 @@ def removeAccents(text):
 
 def sendYesNo(contextual_bot):
     if random.randint(0, 1) == 0:
-        contextual_bot.replyDocument("https://media1.giphy.com/media/uXiGkGqG4ZQ6A/giphy.gif?cid=3640f6095c9b5bc04c6d737836068cde")
+        contextual_bot.replyVideo(dataServerAddress+"non.mp4")
     else:
-        contextual_bot.replyDocument("https://i.imgflip.com/19nqxs.gif")
+        contextual_bot.replyVideo(dataServerAddress+"oui.mp4")
 
 def recur(contextual_bot, msg):
     msg_lower = msg.lower()
