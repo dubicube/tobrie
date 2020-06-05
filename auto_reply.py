@@ -3,6 +3,7 @@ import random
 from config import *
 from shared_core import *
 from web_texts import getGoogleResponse
+from contextual_bot import ContextualBot
 
 messages_perso = [
     ['TudorEustache', 100, "C'est Ambre qui t'a dit ça?"],
@@ -21,7 +22,7 @@ def setDI(contextual_bot, sh_core):
     sh_core.notifConsole(contextual_bot)
     global di_enable
     di_enable = not(di_enable)
-    contextual_bot.replyText(str(di_enable))
+    contextual_bot.reply(ContextualBot.TEXT, str(di_enable))
 def conv(contextual_bot):
     global conv_out
     if contextual_bot.getUserID() == super_admin:
@@ -30,16 +31,16 @@ def setAutoReply(contextual_bot, sh_core):
     sh_core.notifConsole(contextual_bot)
     global auto_reply
     auto_reply = not(auto_reply)
-    contextual_bot.replyText(str(auto_reply))
+    contextual_bot.reply(ContextualBot.TEXT, str(auto_reply))
 
 def removeAccents(text):
     return text.replace('é', 'e').replace('è', 'e')
 
 def sendYesNo(contextual_bot):
     if random.randint(0, 1) == 0:
-        contextual_bot.replyVideo(dataServerAddress+"non.mp4")
+        contextual_bot.reply(ContextualBot.VIDEO, dataServerAddress+"non.mp4")
     else:
-        contextual_bot.replyVideo(dataServerAddress+"oui.mp4")
+        contextual_bot.reply(ContextualBot.VIDEO, dataServerAddress+"oui.mp4")
 
 def recur(contextual_bot, msg):
     msg_lower = msg.lower()
@@ -53,17 +54,17 @@ def recur(contextual_bot, msg):
     regex_r = re.search('(?<=di)\\w{3,}', msg_lower)
     if regex_r != None:
         txt_rep = regex_r.group(0)
-        contextual_bot.replyText(txt_rep)
+        contextual_bot.reply(ContextualBot.TEXT, txt_rep)
         recur(contextual_bot, txt_rep)
     regex_r = re.search('(?<=cri)\\w{3,}', msg_lower)
     if regex_r != None:
         txt_rep = regex_r.group(0)
-        contextual_bot.replyText(txt_rep.upper())
+        contextual_bot.reply(ContextualBot.TEXT, txt_rep.upper())
         recur(contextual_bot, txt_rep.upper())
 
     if msg[-1] == "?" and random.randint(0, 2) == 0:
         if "qui" in msg:
-            contextual_bot.replyText("C'est pas moi")
+            contextual_bot.reply(ContextualBot.TEXT, "C'est pas moi")
         else:
             sendYesNo(contextual_bot)
 
@@ -85,7 +86,7 @@ def handleText(contextual_bot, sh_core):
     if msg.lower()[0:7] == "brenda ":
         googleresp = getGoogleResponse(msg[7:])
         if len(googleresp) > 1:
-            contextual_bot.replyText(googleresp)
+            contextual_bot.reply(ContextualBot.TEXT, googleresp)
             return
 
     # Process text for responses
@@ -94,7 +95,7 @@ def handleText(contextual_bot, sh_core):
         depth = 0
         for i in messages_perso:
             if contextual_bot.getUserName() == i[0] and i[1]-1 >= 0 and random.randint(0, i[1]-1) == 0:
-                contextual_bot.replyText(i[2])
+                contextual_bot.reply(ContextualBot.TEXT, i[2])
         recur(contextual_bot, msg)
 
     # Video auto reply
@@ -111,7 +112,7 @@ def handleText(contextual_bot, sh_core):
             #for i in range(len(results)):
             #    urllib.request.urlretrieve(dataServerAddress+results[0], tempPath+'temp'+str(i)+'.mp4')
             #context.bot.send_video(chat_id=message.chat_id, video=dataServerAddress+results[random.randint(0, len(results)-1)], supports_streaming=True)
-            contextual_bot.replyVideo(dataServerAddress+results[random.randint(0, len(results)-1)])
+            contextual_bot.reply(ContextualBot.VIDEO, dataServerAddress+results[random.randint(0, len(results)-1)])
 
 ########################################################################################################################################################
 #                                                                     REGEX MAPS                                                                       #
@@ -141,14 +142,14 @@ def check_for_stickers(contextual_bot, sh_core, msg):
     if len(results) > 0:
         s = results[random.randint(0, len(results)-1)]
         if s[0] == "GIF":
-            contextual_bot.replyAnimation(s[1])
+            contextual_bot.reply(ContextualBot.ANIMATION, s[1])
         elif s[0] == "FILE":
-            contextual_bot.replyDocument(open(s[1], 'rb'))
+            contextual_bot.reply(ContextualBot.DOCUMENT, open(s[1], 'rb'))
         else:
             pack = sh_core.telegramBot.get_sticker_set(s[0])
-            contextual_bot.replySticker(pack.stickers[int(s[1])])
+            contextual_bot.reply(ContextualBot.STICKER, pack.stickers[int(s[1])])
 
 def check_for_text(contextual_bot, msg):
     for s in text_map_regex:
         if not(re.search(s[0], msg.lower()) is None):
-            contextual_bot.replyText(s[1])
+            contextual_bot.reply(ContextualBot.TEXT, s[1])

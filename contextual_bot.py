@@ -2,19 +2,19 @@ from discord import File as DiscordFile
 
 
 class ContextualBot:
+    TEXT = 0
+    DOCUMENT = 1
+    VIDEO = 2
+    IMAGE = 3
+    AUDIO = 4
+    STICKER = 5
+    ANIMATION = 6
+
     type = "None"
-    text_reply = []
-    document_reply = []
-    video_reply = []
-    image_reply = []
-    audio_reply = []
+    reply_queue = []
     def __init__(self):
         self.type = "None"
-        self.text_reply = []
-        self.document_reply = []
-        self.video_reply = []
-        self.image_reply = []
-        self.audio_reply = []
+        self.reply_queue = []
     def getChatID(self):
         return 0
     def getUserID(self):
@@ -29,26 +29,15 @@ class ContextualBot:
         return ""
     def getAbsoluteText(self):
         return ""
-    def replyText(self, text):
-        self.text_reply+=[text]
-    def replyDocument(self, document_url):
-        self.document_reply+=[document_url]
-    def replyVideo(self, video_url):
-        self.video_reply+=[video_url]
-    def replyImage(self, img):
-        self.image_reply+=[img]
-    def replyAudio(self, audio):
-        self.audio_reply+=[audio]
-    def replySticker(self, sticker):
-        print("Sticker")
-    def replyAnimation(self, animation):
-        print("Animation")
+    def reply(self, type, obj):
+        self.reply_queue+=[(type, obj)]
 
 class TelegramBot(ContextualBot):
     update = None
     context = None
     message = None
     def __init__(self, update, context):
+        super(TelegramBot, self).__init__()
         self.update = update
         self.context = context
         if not self.update.message is None:
@@ -75,20 +64,12 @@ class TelegramBot(ContextualBot):
             return ""
     def isChatPerso(self):
         return self.message.chat_id == self.message.from_user.id
-    def replyText(self, text):
-        self.context.bot.send_message(self.update.message.chat_id, text)
-    def replyDocument(self, document_url):
-        self.context.bot.send_document(self.update.message.chat_id, document_url)
-    def replyVideo(self, video_url):
-        self.context.bot.send_video(self.update.message.chat_id, video_url, supports_streaming=True)
-    def replySticker(self, sticker):
-        self.context.bot.send_sticker(self.update.message.chat_id, sticker)
-    def replyAnimation(self, animation):
-        self.context.bot.send_animation(self.update.message.chat_id, animation)
-    def replyImage(self, img):
-        self.context.bot.send_photo(self.update.message.chat_id, img)
-    def replyAudio(self, audio):
-        self.context.bot.send_audio(self.update.message.chat_id, audio)
+    def outputMessages(self):
+        b = self.context.bot
+        funs = [b.send_message, b.send_document, b.send_video, b.send_photo, b.send_audio, b.send_sticker, b.send_animation]
+        for (type, obj) in self.reply_queue:
+            if type < len(funs):
+                funs[type](self.update.message.chat_id, obj)
 
 
 class DiscordBot(ContextualBot):
@@ -102,7 +83,6 @@ class DiscordBot(ContextualBot):
         return self.message.author
     def getUserName(self):
         return self.message.author
-    #def getUserFirstName(self):
     def isChatPerso(self):
         return self.message.author=="dubicube#8553"
     def getText(self):
@@ -110,29 +90,24 @@ class DiscordBot(ContextualBot):
     def getAbsoluteText(self):
         return self.message.content
 
-    def replySticker(self, sticker):
-        print("Sticker")
-    def replyAnimation(self, animation):
-        print("Animation")
-
     async def outputMessages(self):
-        for text in self.text_reply:
-            await self.message.channel.send(text)
-        for video in self.video_reply:
-            await self.message.channel.send(video)
-        for document in self.document_reply+self.image_reply+self.audio_reply:
-            await self.message.channel.send(file=DiscordFile(document))
+        for (type, obj) in self.reply_queue:
+            if type==ContextualBot.TEXT or type==ContextualBot.VIDEO:
+                await self.message.channel.send(obj)
+            if type==ContextualBot.DOCUMENT or type==ContextualBot.IMAGE or type==ContextualBot.AUDIO:
+                await self.message.channel.send(file=DiscordFile(obj))
+            if type==ContextualBot.STICKER:
+                obj.get_file().download("sticker.webp")
+                await self.message.channel.send(file=DiscordFile("sticker.webp"))
 
 
 class TweepyBot(ContextualBot):
     api = None
     tweet = None
     def __init__(self, api, tweet):
+        super(TweepyBot, self).__init__()
         self.api = api
         self.tweet = tweet
-        self.text_reply = []
-        self.document_reply = []
-        self.video_reply = []
     def getChatID(self):
         return 0
     def getUserID(self):
@@ -145,13 +120,17 @@ class TweepyBot(ContextualBot):
         return self.tweet.text
 
     def outputMessages(self):
+        txt_rep = []
+        for (type, obj) in self.reply_queue:
+            if type == ContextualBot.TEXT or type == ContextualBot.VIDEO:
+                txt_rep+=[obj]
         count = len(self.getUserName())+1
         i = 0
-        while i < len(self.text_reply) and count+len(self.text_reply[i])+1 < 280:
-            count+=len(self.text_reply[i])+1
+        while i < len(txt_rep) and count+len(txt_rep[i])+1 < 280:
+            count+=len(txt_rep[i])+1
             i+=1
         if i != 0:
-            txt = '\n'.join(self.text_reply[:i])
+            txt = '\n'.join(txt_rep[:i])
             self.api.update_status("@"+self.getUserName()+" "+txt, self.tweet.id)
             #print("@"+self.getUserName()+" "+txt)
         #for video in self.video_reply:

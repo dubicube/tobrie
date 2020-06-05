@@ -113,7 +113,7 @@ def dico(update, context):
 def calc(contextual_bot, sh_core):
     sh_core.notifConsole(contextual_bot)
     calculate(contextual_bot.getText()[6:], soundPath)
-    contextual_bot.replyAudio(open(soundPath+"v.mp3", 'rb'))
+    contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+"v.mp3", 'rb'))
 
 def croa(contextual_bot, sh_core):
     sh_core.notifConsole(contextual_bot)
@@ -122,7 +122,7 @@ def croa(contextual_bot, sh_core):
     if len(txt[6:]) > 0 and int(txt[6:]) < 100:
         v = int(txt[6:])
     duplicateAudio(soundPath+"croa"+".wav", soundPath+"v.wav", v)
-    contextual_bot.replyAudio(open(soundPath+"v.mp3", 'rb'))
+    contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+"v.mp3", 'rb'))
 
 
 #########################################################################################
@@ -133,7 +133,7 @@ def meme(contextual_bot, sh_core):
     sh_core.notifConsole(contextual_bot)
     memes = [f for f in os.listdir(memePath) if os.path.isfile(os.path.join(memePath, f))]
     m = memes[random.randint(0, len(memes)-1)]
-    contextual_bot.replyImage(open(memePath+m, 'rb'))
+    contextual_bot.reply(ContextualBot.IMAGE, open(memePath+m, 'rb'))
 
 def help(update, context):
     sh_core.notifConsole(TelegramBot(update, context))
@@ -146,10 +146,10 @@ def help(update, context):
 
 def info(contextual_bot, sh_core):
     sh_core.notifConsole(contextual_bot)
-    contextual_bot.replyText(getInfo())
+    contextual_bot.reply(ContextualBot.TEXT, getInfo())
 def quote(contextual_bot, sh_core):
     sh_core.notifConsole(contextual_bot)
-    contextual_bot.replyText(getQuote())
+    contextual_bot.reply(ContextualBot.TEXT, getQuote())
 
 #########################################################################################
 #                                       RAPPORT                                         #
@@ -180,9 +180,9 @@ def find(contextual_bot, sh_core):
     results = searchInventory(contextual_bot.getText()[6:], inventory)
     if len(results) < 10:
         for l in results:
-            contextual_bot.replyText((("Référence: "+l[0]+"\n")if l[0]!=""else"")+("Nom: "+l[1]+"\n"if l[1]!=""else"")+("Emplacement: "+l[2]+"\n"if l[2]!=""else"")+("Caractéristique: "+l[3]if l[3]!=""else""))
+            contextual_bot.reply(ContextualBot.TEXT, (("Référence: "+l[0]+"\n")if l[0]!=""else"")+("Nom: "+l[1]+"\n"if l[1]!=""else"")+("Emplacement: "+l[2]+"\n"if l[2]!=""else"")+("Caractéristique: "+l[3]if l[3]!=""else""))
     else:
-        contextual_bot.replyText("Trop de résultats")
+        contextual_bot.reply(ContextualBot.TEXT, "Trop de résultats")
 
 #########################################################################################
 #                                     CITATIONS                                         #
@@ -192,16 +192,16 @@ def getRandomLine(txt):
     l = txt.split('\n')
     return l[random.randint(0, len(l)-2)]
 def getCitation(contextual_bot, sh_core):
-    contextual_bot.replyText(getRandomLine(open("maps/citations", "r").read()))
+    contextual_bot.reply(ContextualBot.TEXT, getRandomLine(open("maps/citations", "r").read()))
 def addCitation(contextual_bot, sh_core):
     txt = contextual_bot.getText()[6:].split('\n')[0]
     if len(txt) > 1:
         f = open("maps/citations", "a")
         f.write(txt+"\n")
         f.close()
-        contextual_bot.replyText("Ok")
+        contextual_bot.reply(ContextualBot.TEXT, "Ok")
     else:
-        contextual_bot.replyText("Nop")
+        contextual_bot.reply(ContextualBot.TEXT, "Nop")
 
 #########################################################################################
 #                                       Forward                                         #
@@ -211,7 +211,9 @@ def telegram_conv(update, context):
     conv(TelegramBot(update, context))
 
 def telegram_handle_command(update, context):
-    generic_handle_text(TelegramBot(update, context), sh_core)
+    contextual_bot = TelegramBot(update, context)
+    generic_handle_text(contextual_bot, sh_core)
+    contextual_bot.outputMessages()
 
 def generic_handle_text(contextual_bot, sh_core):
     msg = contextual_bot.getText()
@@ -302,6 +304,7 @@ def main():
     if TEST:
         updater.idle()
     else:
+        #threading.Thread(target=shutdown).start()
         #####  DISCORD  #####
         @client_discord.event
         async def on_message(message):
