@@ -1,4 +1,6 @@
 import discord
+from discord import FFmpegPCMAudio
+from discord.utils import get
 
 import tweepy
 
@@ -124,6 +126,9 @@ def croa(contextual_bot, sh_core):
     duplicateAudio(soundPath+"croa"+".wav", soundPath+"v.wav", v)
     contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+"v.mp3", 'rb'))
 
+def sayText(contextual_bot, sh_core):
+    getVoice(contextual_bot.getText()[5:], soundPath+'v.mp3')
+    contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+'v.mp3', 'rb'))
 
 #########################################################################################
 #                                   OTHER COMMANDS                                      #
@@ -202,6 +207,17 @@ def addCitation(contextual_bot, sh_core):
         contextual_bot.reply(ContextualBot.TEXT, "Ok")
     else:
         contextual_bot.reply(ContextualBot.TEXT, "Nop")
+def get1AProject(contextual_bot, sh_core):
+    contextual_bot.reply(ContextualBot.TEXT, open("maps/projets1A", "r").read())
+def add1AProject(contextual_bot, sh_core):
+    txt = contextual_bot.getText()[6:].split('\n')[0]
+    if len(txt) > 1:
+        f = open("maps/projets1A", "a")
+        f.write(txt+"\n")
+        f.close()
+        contextual_bot.reply(ContextualBot.TEXT, "Ok")
+    else:
+        contextual_bot.reply(ContextualBot.TEXT, "Nop")
 
 #########################################################################################
 #                                       Forward                                         #
@@ -225,12 +241,37 @@ def generic_handle_text(contextual_bot, sh_core):
         handleText(contextual_bot, sh_core)
 
 #########################################################################################
+#                                       DISCORD                                         #
+#########################################################################################
+
+async def discordPlay(message):
+    global discord_voice
+    getVoice(message.content[6:], 'sound/v.mp3')
+    channel = message.author.voice.channel
+    if not channel:
+        print("You are not connected to a voice channel")
+        return
+    discord_voice = get(client_discord.voice_clients, guild=message.guild)
+    if discord_voice and discord_voice.is_connected():
+        await discord_voice.move_to(channel)
+    else:
+        discord_voice = await channel.connect()
+    ffmpag_path = "/usr/bin/ffmpeg" if not TEST else "C:/Users/dubicube/Desktop/bot/ffmpeg/bin/ffmpeg.exe"
+    source = FFmpegPCMAudio(executable=ffmpag_path, source='sound/v.mp3')
+    player = await discord_voice.play(source)
+async def discordDisconnect(message):
+    global discord_voice
+    await discord_voice.disconnect()
+
+
+#########################################################################################
 #                                        MAIN                                           #
 #########################################################################################
 
 
 commands = [("di", setDI), ("video", setAutoReply), ("find", find), ("info", info), ("quote", quote),
-("citation", getCitation), ("addr", addCitation), ("meme", meme), ("calc", calc), ("croa", croa)]
+("citation", getCitation), ("addc", addCitation), ("projet", get1AProject), ("addp", add1AProject), 
+("meme", meme), ("calc", calc), ("croa", croa), ("say", sayText)]
 
 
 tokens = open("tokens", "r").read().split("\n")
@@ -311,10 +352,14 @@ def main():
             if message.author == client_discord.user:
                 return
             contextual_bot = DiscordBot(message)
-            if message.content == "/stop":
-                await client_discord.close()
-            else:
-                generic_handle_text(contextual_bot, sh_core)
+            if contextual_bot.isChatPerso():
+                if message.content == "/stop":
+                    await client_discord.close()
+            if message.content.startswith("/sayd"):
+                await discordPlay(message)
+            if message.content.startswith("/quit"):
+                await discordDisconnect(message)
+            generic_handle_text(contextual_bot, sh_core)
             await contextual_bot.outputMessages()
         @client_discord.event
         async def on_ready():

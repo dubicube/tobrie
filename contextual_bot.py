@@ -84,7 +84,7 @@ class DiscordBot(ContextualBot):
     def getUserName(self):
         return self.message.author
     def isChatPerso(self):
-        return self.message.author=="dubicube#8553"
+        return str(self.message.author)=="dubicube#8553"
     def getText(self):
         return self.message.content
     def getAbsoluteText(self):

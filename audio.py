@@ -4,6 +4,23 @@
 
 import wave
 import subprocess
+import requests
+from urllib.request import urlopen
+import time
+
+# Generate MP3 from text
+def getVoice(text, file, language = "fr-FR"):
+        url = "http://api.soundoftext.com/sounds"
+        data = {"engine":"Google","data":{"text": text,"voice":language}}
+        headers = {'Content-type': 'application/json', 'Accept': 'text/plain', 'User-Agent': 'Mozilla/5.0'}
+        req = requests.post(url, json=data, headers=headers)
+        id = req.json()['id']
+        url = 'https://soundoftext.nyc3.digitaloceanspaces.com/' + id + '.mp3'
+        time.sleep(1)
+        filedata = urlopen(url)
+        datatowrite = filedata.read()
+        with open(file, 'wb') as f:
+                f.write(datatowrite)
 
 # Concatenate audio files to convert text operation to audio (from ytp Tintin)
 def calculate(input_data, soundPath):
