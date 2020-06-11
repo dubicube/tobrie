@@ -125,10 +125,17 @@ def croa(contextual_bot, sh_core):
         v = int(txt[6:])
     duplicateAudio(soundPath+"croa"+".wav", soundPath+"v.wav", v)
     contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+"v.mp3", 'rb'))
-
+voiceLanguage = "fr-FR"
 def sayText(contextual_bot, sh_core):
-    getVoice(contextual_bot.getText()[5:], soundPath+'v.mp3')
+    getVoice(contextual_bot.getText()[5:], soundPath+'v.mp3', voiceLanguage)
     contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+'v.mp3', 'rb'))
+
+def setVoiceLanguage(contextual_bot, sh_core):
+    global voiceLanguage
+    t = contextual_bot.getText()[6:]
+    if len(t) >= 1:
+        voiceLanguage = t
+
 
 #########################################################################################
 #                                   OTHER COMMANDS                                      #
@@ -270,8 +277,8 @@ async def discordDisconnect(message):
 
 
 commands = [("di", setDI), ("video", setAutoReply), ("find", find), ("info", info), ("quote", quote),
-("citation", getCitation), ("addc", addCitation), ("projet", get1AProject), ("addp", add1AProject), 
-("meme", meme), ("calc", calc), ("croa", croa), ("say", sayText)]
+("citation", getCitation), ("addc", addCitation), ("projet", get1AProject), ("addp", add1AProject),
+("meme", meme), ("calc", calc), ("croa", croa), ("say", sayText), ("lang", setVoiceLanguage)]
 
 
 tokens = open("tokens", "r").read().split("\n")
