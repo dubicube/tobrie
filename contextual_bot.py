@@ -97,8 +97,8 @@ class DiscordBot(ContextualBot):
             if type==ContextualBot.DOCUMENT or type==ContextualBot.IMAGE or type==ContextualBot.AUDIO:
                 await self.message.channel.send(file=DiscordFile(obj))
             if type==ContextualBot.STICKER:
-                obj.get_file().download("sticker.webp")
-                await self.message.channel.send(file=DiscordFile("sticker.webp"))
+                obj.get_file().download("temp/sticker.webp")
+                await self.message.channel.send(file=DiscordFile("temp/sticker.webp"))
 
 
 class TweepyBot(ContextualBot):
