@@ -1,6 +1,7 @@
 __pycache__
 maps/
 sound/
+temp/
 tokens
 ctrl_bot.py
 *.webp

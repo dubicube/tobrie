@@ -17,7 +17,7 @@ import os
 import requests
 from zalgo_text import zalgo
 import urllib.parse
-import urllib.request
+from urllib import request
 
 import threading
 
@@ -162,6 +162,12 @@ def info(contextual_bot, sh_core):
 def quote(contextual_bot, sh_core):
     sh_core.notifConsole(contextual_bot)
     contextual_bot.reply(ContextualBot.TEXT, getQuote())
+def search_image(contextual_bot, sh_core):
+    sh_core.notifConsole(contextual_bot)
+    url = getGoogleImage(contextual_bot.getText()[5:])
+    image_name = "temp/out."+url.split(".")[-1]
+    download_image(url, image_name)
+    contextual_bot.reply(ContextualBot.IMAGE, open(image_name, "rb"))
 
 #########################################################################################
 #                                       RAPPORT                                         #
@@ -278,7 +284,8 @@ async def discordDisconnect(message):
 
 commands = [("di", setDI), ("video", setAutoReply), ("find", find), ("info", info), ("quote", quote),
 ("citation", getCitation), ("addc", addCitation), ("projet", get1AProject), ("addp", add1AProject),
-("meme", meme), ("calc", calc), ("croa", croa), ("say", sayText), ("lang", setVoiceLanguage)]
+("meme", meme), ("calc", calc), ("croa", croa), ("say", sayText), ("lang", setVoiceLanguage),
+("img", search_image)]
 
 
 tokens = open("tokens", "r").read().split("\n")
