@@ -170,7 +170,6 @@ def search_image(contextual_bot, sh_core):
         contextual_bot.reply(ContextualBot.ANIMATION, url)
     else:
         image_name = "temp/out."+extension
-        print(url, image_name)
         download_image(url, image_name)
         contextual_bot.reply(ContextualBot.IMAGE, open(image_name, "rb"))
 

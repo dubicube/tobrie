@@ -92,7 +92,7 @@ class DiscordBot(ContextualBot):
 
     async def outputMessages(self):
         for (type, obj) in self.reply_queue:
-            if type==ContextualBot.TEXT or type==ContextualBot.VIDEO:
+            if type==ContextualBot.TEXT or type==ContextualBot.VIDEO or type==ContextualBot.ANIMATION:
                 await self.message.channel.send(obj)
             if type==ContextualBot.DOCUMENT or type==ContextualBot.IMAGE or type==ContextualBot.AUDIO:
                 await self.message.channel.send(file=DiscordFile(obj))
