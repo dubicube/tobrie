@@ -45,14 +45,23 @@ def getGoogleImage(msg):
         l+=[text[i+9:k]]
 
     # Eventually, more images ID are available in l
-    image_id = l[1]
-    data = data+"#imgrc="+image_id
-    text = requests.get("https://www.google.fr/search?hl=en&tbm=isch&q="+data, headers=headers).text
-    pattern = ",\""+image_id+"\",["
-    i = text.find(pattern)
-    j = text.find("[", i+len(pattern)+1)
-    k = text.find("\"", j+2)
-    url = text[j+2:k]
+    li = 0
+    loop = True
+    url = ""
+    while li<len(l) and loop:
+        li+=1
+        image_id = l[li]
+        data2 = data+"#imgrc="+image_id
+        text = requests.get("https://www.google.fr/search?hl=en&tbm=isch&q="+data2, headers=headers).text
+        pattern = ",\""+image_id+"\",["
+        i = text.find(pattern)
+        j = text.find("[", i+len(pattern)+1)
+        k = text.find("\"", j+2)
+        url = text[j+2:k]
+        if url.split(".")[-1] in ["png", "jpg", "gif"]:
+            loop = False
+    if li==len(l):return ""
+
     return url
 
 # Download image fropm url

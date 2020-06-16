@@ -165,9 +165,14 @@ def quote(contextual_bot, sh_core):
 def search_image(contextual_bot, sh_core):
     sh_core.notifConsole(contextual_bot)
     url = getGoogleImage(contextual_bot.getText()[5:])
-    image_name = "temp/out."+url.split(".")[-1]
-    download_image(url, image_name)
-    contextual_bot.reply(ContextualBot.IMAGE, open(image_name, "rb"))
+    extension = url.split(".")[-1]
+    if extension == "gif":
+        contextual_bot.reply(ContextualBot.ANIMATION, url)
+    else:
+        image_name = "temp/out."+extension
+        print(url, image_name)
+        download_image(url, image_name)
+        contextual_bot.reply(ContextualBot.IMAGE, open(image_name, "rb"))
 
 #########################################################################################
 #                                       RAPPORT                                         #
