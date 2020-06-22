@@ -431,9 +431,9 @@ def main():
     dp.add_handler(CommandHandler('conv', telegram_conv))
     dp.add_handler(CommandHandler('stopall', stop))
 
-    #updater.start_polling()
+    updater.start_polling()
 
-    if not TEST:
+    if TEST:
         updater.idle()
     else:
         #threading.Thread(target=shutdown).start()

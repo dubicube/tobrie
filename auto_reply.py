@@ -61,6 +61,12 @@ def recur(contextual_bot, msg):
         txt_rep = regex_r.group(0)
         contextual_bot.reply(ContextualBot.TEXT, txt_rep.upper())
         recur(contextual_bot, txt_rep.upper())
+    regex_r = re.search('\\w{1,}ines?(?!\\w)', msg_lower)
+    if regex_r != None:
+        txt_rep = regex_r.group(0)
+        txt_rep = txt_rep[:-3-(txt_rep[-1]=='s')]
+        contextual_bot.reply(ContextualBot.TEXT, "C'est pain au "+txt_rep+", pas "+txt_rep+"ine")
+        recur(contextual_bot, txt_rep)
 
     if msg[-1] == "?" and random.randint(0, 2) == 0:
         if "qui" in msg:
