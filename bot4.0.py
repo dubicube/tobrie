@@ -28,6 +28,7 @@ from web_texts import *
 from inventory import *
 from audio import *
 from auto_reply import handleText, load_maps, setDI, setAutoReply, conv
+from youtube import *
 
 sticker_map_regex = []
 text_map_regex = []
@@ -237,6 +238,40 @@ def add1AProject(contextual_bot, sh_core):
         contextual_bot.reply(ContextualBot.TEXT, "Nop")
 
 #########################################################################################
+#                                       MUSIC                                           #
+#########################################################################################
+
+musicQueue = MusicQueue()
+def addMusic(contextual_bot, sh_core):#/addm
+    data = contextual_bot.getText()
+    i = data.find(' ')
+    contextual_bot.reply(ContextualBot.TEXT, "Adding data...")
+    contextual_bot.outputMessages()
+    (updated, size) = musicQueue.add(data[i+1:])
+    if not updated:
+        contextual_bot.reply(ContextualBot.TEXT, str(size)+"  videos loaded from local cache\nType /fetch to update cache")
+    else:
+        contextual_bot.reply(ContextualBot.TEXT, str(size)+"  video(s) loaded")
+    contextual_bot.reply(ContextualBot.TEXT, str(len(musicQueue.queue))+"  video(s) in total")
+def shuffleMusic(contextual_bot, sh_core):#/shuffle
+    musicQueue.shuffle()
+    contextual_bot.reply(ContextualBot.TEXT, "Done")
+def clearMusic(contextual_bot, sh_core):#/clear
+    musicQueue.clear()
+    contextual_bot.reply(ContextualBot.TEXT, "Done")
+def updateMusic(contextual_bot, sh_core):#/fetch
+    if musicQueue.playlist == None:
+        contextual_bot.reply(ContextualBot.TEXT, "No playlist to update")
+    else:
+        contextual_bot.reply(ContextualBot.TEXT, "Updating playlist cache...")
+        contextual_bot.outputMessages()
+        old_size = musicQueue.playlist.size
+        musicQueue.updatePlaylist()
+        contextual_bot.reply(ContextualBot.TEXT, "Playlist updated ("+str(musicQueue.playlist.size-old_size)+" new videos)")
+def infoMusic(contextual_bot, sh_core):#/queue
+    contextual_bot.reply(ContextualBot.TEXT, str(len(musicQueue.queue))+"  video(s)")
+
+#########################################################################################
 #                                       Forward                                         #
 #########################################################################################
 
@@ -261,9 +296,24 @@ def generic_handle_text(contextual_bot, sh_core):
 #                                       DISCORD                                         #
 #########################################################################################
 
+#https://discord.com/api/oauth2/authorize?client_id=693578928777854986&permissions=3197504&scope=bot
+
+ffmpag_path = "/usr/bin/ffmpeg" if not TEST else "C:/Users/dubicube/Desktop/bot/ffmpeg/bin/ffmpeg.exe"
+
 async def discordPlay(message):
+    if len(musicQueue.queue) == 0:return
+    musicQueue.queue[0].download('temp/v.mp3')
+    musicQueue.queue = musicQueue.queue[1:]
+    await discordPlayFile(message, 'temp/v.mp3', discordPlayNext)
+def discordPlayNext(err):
     global discord_voice
-    getVoice(message.content[6:], 'sound/v.mp3')
+    musicQueue.queue[0].download('temp/v.mp3')
+    musicQueue.queue = musicQueue.queue[1:]
+    source = FFmpegPCMAudio(executable=ffmpag_path, source='temp/v.mp3')
+    discord_voice.play(source, after=discordPlayNext)
+
+async def discordPlayMic(message):
+    global discord_voice
     channel = message.author.voice.channel
     if not channel:
         print("You are not connected to a voice channel")
@@ -273,10 +323,30 @@ async def discordPlay(message):
         await discord_voice.move_to(channel)
     else:
         discord_voice = await channel.connect()
-    ffmpag_path = "/usr/bin/ffmpeg" if not TEST else "C:/Users/dubicube/Desktop/bot/ffmpeg/bin/ffmpeg.exe"
-    source = FFmpegPCMAudio(executable=ffmpag_path, source='sound/v.mp3')
-    player = await discord_voice.play(source)
-async def discordDisconnect(message):
+    source = discord.FFmpegAudio(source="audio=\"Réseau de microphones (Realtek High Definition Audio)\"", executable=ffmpag_path, before_options="-f dshow")
+    discord_voice.play(source)
+
+#ffmpeg -f dshow -i audio="Réseau de microphones (Realtek High Definition Audio)" -acodec libmp3lame  -t 10 out.mp3
+
+async def discordSay(message):
+    getVoice(message.content[6:], 'temp/v.mp3')
+    await discordPlayFile(message, 'temp/v.mp3')
+def default_discord_end(err):
+    a = 42*10
+async def discordPlayFile(message, file, after_playing=default_discord_end):
+    global discord_voice
+    channel = message.author.voice.channel
+    if not channel:
+        print("You are not connected to a voice channel")
+        return
+    discord_voice = get(client_discord.voice_clients, guild=message.guild)
+    if discord_voice and discord_voice.is_connected():
+        await discord_voice.move_to(channel)
+    else:
+        discord_voice = await channel.connect()
+    source = FFmpegPCMAudio(executable=ffmpag_path, source=file)
+    discord_voice.play(source, after=after_playing)
+async def discordDisconnect():
     global discord_voice
     await discord_voice.disconnect()
 
@@ -286,10 +356,13 @@ async def discordDisconnect(message):
 #########################################################################################
 
 
-commands = [("di", setDI), ("video", setAutoReply), ("find", find), ("info", info), ("quote", quote),
-("citation", getCitation), ("addc", addCitation), ("projet", get1AProject), ("addp", add1AProject),
-("meme", meme), ("calc", calc), ("croa", croa), ("say", sayText), ("lang", setVoiceLanguage),
-("img", search_image)]
+commands = [
+("di", setDI),("video", setAutoReply),("find", find),("info", info),
+("quote", quote),("citation", getCitation), ("addc", addCitation), ("projet", get1AProject),
+("addp", add1AProject),("meme", meme),("calc", calc), ("croa", croa),
+("say", sayText), ("lang", setVoiceLanguage),("img", search_image),("addm", addMusic),
+("shuffle", shuffleMusic),("clear", clearMusic),("fetch", updateMusic),("queue", infoMusic)
+]
 
 
 tokens = open("tokens", "r").read().split("\n")
@@ -333,8 +406,8 @@ def tweepy_thread():
     while True:
         since_id = check_mentions(tweepy_api, since_id, True)
         time.sleep(30)
-if not TEST:
-    threading.Thread(target=tweepy_thread).start()
+#if not TEST:
+#    threading.Thread(target=tweepy_thread).start()
 
 def main():
 
@@ -356,11 +429,11 @@ def main():
 
     #Personal commands
     dp.add_handler(CommandHandler('conv', telegram_conv))
-    dp.add_handler(CommandHandler('stop', stop))
+    dp.add_handler(CommandHandler('stopall', stop))
 
-    updater.start_polling()
+    #updater.start_polling()
 
-    if TEST:
+    if not TEST:
         updater.idle()
     else:
         #threading.Thread(target=shutdown).start()
@@ -371,12 +444,16 @@ def main():
                 return
             contextual_bot = DiscordBot(message)
             if contextual_bot.isChatPerso():
-                if message.content == "/stop":
+                if message.content == "/stopall":
                     await client_discord.close()
-            if message.content.startswith("/sayd"):
+            if message.content.startswith("/dsay"):
+                await discordSay(message)
+            if message.content.startswith("/play"):
                 await discordPlay(message)
+            if message.content.startswith("/mic"):
+                await discordPlayMic(message)
             if message.content.startswith("/quit"):
-                await discordDisconnect(message)
+                await discordDisconnect()
             generic_handle_text(contextual_bot, sh_core)
             await contextual_bot.outputMessages()
         @client_discord.event

@@ -70,6 +70,7 @@ class TelegramBot(ContextualBot):
         for (type, obj) in self.reply_queue:
             if type < len(funs):
                 funs[type](self.update.message.chat_id, obj)
+        self.reply_queue = []
 
 
 class DiscordBot(ContextualBot):
@@ -99,6 +100,7 @@ class DiscordBot(ContextualBot):
             if type==ContextualBot.STICKER:
                 obj.get_file().download("temp/sticker.webp")
                 await self.message.channel.send(file=DiscordFile("temp/sticker.webp"))
+        self.reply_queue = []
 
 
 class TweepyBot(ContextualBot):
@@ -135,3 +137,4 @@ class TweepyBot(ContextualBot):
             #print("@"+self.getUserName()+" "+txt)
         #for video in self.video_reply:
         #    await self.message.channel.send(video)
+        self.reply_queue = []
