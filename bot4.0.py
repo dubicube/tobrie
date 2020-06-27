@@ -29,6 +29,7 @@ from inventory import *
 from audio import *
 from auto_reply import handleText, load_maps, setDI, setAutoReply, conv
 from youtube import *
+from mail_manager import *
 
 sticker_map_regex = []
 text_map_regex = []
@@ -285,6 +286,7 @@ def telegram_handle_command(update, context):
 
 def generic_handle_text(contextual_bot, sh_core):
     msg = contextual_bot.getText()
+    if len(msg)==0:return
     if msg[0] == '/':
         for (fun_txt, fun) in commands:
             if msg[1:].startswith(fun_txt):
@@ -378,14 +380,32 @@ def shutdown():
 def stop(update, context):
     if update.message.from_user.id == super_admin:
         context.bot.send_message(update.message.chat_id, "Stopping...")
+        global stop_periodic_thread
+        stop_periodic_thread = True
         threading.Thread(target=shutdown).start()
 
 
 client_discord = discord.Client()
 
 
-#####  TWITTER  #####
+#########[MAIL]########
 
+mail_manager = MailManager("brenda.tobrie@gmail.com", tokens[26])
+def runMailBot():
+    mails = mail_manager.getAllMails()
+    for m in mails:
+        print(m)
+        contextual_bot = MailBot(mail_manager, m)
+        generic_handle_text(contextual_bot, sh_core)
+        contextual_bot.outputMessages()
+def forceMailUpdate(update, context):
+    if update.message.from_user.id == super_admin:
+        context.bot.send_message(update.message.chat_id, "Updating mails...")
+        runMailBot()
+
+#######[TWITTER]#######
+
+tweepy_since_id = 999999999
 tweepy_auth = tweepy.OAuthHandler(tokens[20], tokens[21])
 tweepy_auth.set_access_token(tokens[22], tokens[23])
 
@@ -401,13 +421,50 @@ def check_mentions(tweepy_api, since_id, output):
             generic_handle_text(contextual_bot, sh_core)
             contextual_bot.outputMessages()
     return new_since_id
-def tweepy_thread():
-    since_id = check_mentions(tweepy_api, 1, False)
+def startTweepy():
+    global tweepy_since_id
+    tweepy_since_id = check_mentions(tweepy_api, 1, False)
+def runTweepy():
+    global tweepy_since_id
+    tweepy_since_id = check_mentions(tweepy_api, tweepy_since_id, True)
+
+
+#########[Periodic thread]########
+
+stop_periodic_thread = False
+periodic_thread_watchdog = 0
+def periodic_thread_wait(t):
+    global stop_periodic_thread
+    global periodic_thread_watchdog
+    for i in range(t//5):
+        time.sleep(5)
+        if stop_periodic_thread:
+            break
+        periodic_thread_watchdog = (periodic_thread_watchdog+1)%256
+def periodic_thread():
     while True:
-        since_id = check_mentions(tweepy_api, since_id, True)
-        time.sleep(30)
-#if not TEST:
-#    threading.Thread(target=tweepy_thread).start()
+        runMailBot()
+        periodic_thread_wait(10 if TEST else 300)
+def start_periodic_thread():
+    global stop_periodic_thread
+    stop_periodic_thread = False
+    threading.Thread(target=periodic_thread).start()
+def stop_periodic_thread():
+    global stop_periodic_thread
+    stop_periodic_thread = True
+def telegram_periodic_thread(update, context):
+    if update.message.from_user.id == super_admin:
+        arg=update.message.text[5:]
+        if arg == "a":
+            context.bot.send_message(update.message.chat_id, "Starting periodic thread")
+            start_periodic_thread()
+        if arg == "o":
+            context.bot.send_message(update.message.chat_id, "Stoping periodic thread")
+            stop_periodic_thread()
+        if arg == "c":
+            context.bot.send_message(update.message.chat_id, "Watchdog: "+str(periodic_thread_watchdog))
+start_periodic_thread()
+
 
 def main():
 
@@ -430,6 +487,8 @@ def main():
     #Personal commands
     dp.add_handler(CommandHandler('conv', telegram_conv))
     dp.add_handler(CommandHandler('stopall', stop))
+    dp.add_handler(CommandHandler('mail', forceMailUpdate))
+    dp.add_handler(CommandHandler('per', telegram_periodic_thread))
 
     updater.start_polling()
 

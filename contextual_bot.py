@@ -138,3 +138,28 @@ class TweepyBot(ContextualBot):
         #for video in self.video_reply:
         #    await self.message.channel.send(video)
         self.reply_queue = []
+
+class MailBot(ContextualBot):
+    manager = None
+    mail = None
+    def __init__(self, manager, mail):
+        self.manager = manager
+        self.mail = mail
+        super(MailBot, self).__init__()
+    def getUserID(self):
+        return self.mail[0]
+    def getUserName(self):
+        return self.mail[0]
+    def getText(self):
+        return self.mail[2]
+    def getAbsoluteText(self):
+        return self.mail[2]
+
+    def outputMessages(self):
+        data = ""
+        for (type, obj) in self.reply_queue:
+            if type==ContextualBot.TEXT or type==ContextualBot.VIDEO or type==ContextualBot.ANIMATION:
+                data+=obj+"\n"
+        if len(data) != 0:
+            self.manager.send_email(self.manager.getAddressesToReply(self.mail), '', self.mail[3], data)
+        self.reply_queue = []
