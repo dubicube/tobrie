@@ -2,7 +2,8 @@
 Plus d'aide sur une commande:
 /help commande
 Liste des commandes:
-@eir_bot, /list, /dico, /di, /video, /calc, /meme, /quote, /info, /img, /say, /lang, Brenda
+@eir_bot, Brenda, /list, /dico, /di, /video, /calc, /meme, /quote, /info, /img, /say, /lang,
+/addm, /shuffle, /clear, /play, /stop, /pause, /resume, /next, /pn
 Code source:
 https://github.com/dubicube/tobrie
 
@@ -112,5 +113,38 @@ Langues disponibles:
 "uk-UA">Ukrainian
 "vi-VN">Vietnamese
 "cy">Welsh
+
+Commande: /play
+Lance la playlist dernièrement chargée
+Seulement supporté sur Discord
+
+Commande: /stop
+Arrête la musique en cours
+Seulement supporté sur Discord
+
+Commande: /pause
+Met en pause la musique en cours
+Seulement supporté sur Discord
+
+Commande: /resume
+Relance la musique mise en pause
+Seulement supporté sur Discord
+
+Commande: /next
+Passe à la musique suivante
+Seulement supporté sur Discord
+
+Commande: /pn
+Renvoie le lien de la musique en cours
+Seulement supporté sur Discord
+
+Commande: /addm param
+Ajoute "param" à la playlist courante, où "param" peut être un lien vers une playlist youtube, un lien vers une vidéo youtube, "eirbot", "eirboom" ou encore "weabot"
+
+Commande: /shuffle
+Mélange la playlist courante
+
+Commande: /clear
+Efface la playlist courante
 
 Dummy text
