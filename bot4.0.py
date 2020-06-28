@@ -159,7 +159,7 @@ def getHelp(data):
     help_data_file = open("help.txt", "r")
     help_data = help_data_file.read().split('\n\n')
     help_data_file.close()
-    if len(data) == 7:
+    if len(data) == 0:
         return help_data[0]
     else:
         param = data.lower()
