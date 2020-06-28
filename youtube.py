@@ -226,7 +226,7 @@ class Playlist:
         self.id_list = l
         self.updated = True
     def __loadYTPlaylist2(self, playlist_url):
-        os.system("youtube-dl -j --flat-playlist --ignore-errors "+playlist_url+" | jq -r '.id' > temp/rawplaylist")
+        os.system("youtube-dl -j --flat-playlist --ignore-errors "+playlist_url+" | sed '/Private video/d' | jq -r '.id' > temp/rawplaylist")
         f = open("temp/rawplaylist", "r")
         self.id_list = f.read().split('\n')[:-1]
         f.close()
