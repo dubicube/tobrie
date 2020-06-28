@@ -317,18 +317,38 @@ def generic_handle_text(contextual_bot, sh_core):
 #########################################################################################
 
 #https://discord.com/api/oauth2/authorize?client_id=693578928777854986&permissions=3197504&scope=bot
-
+now_playing = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 async def discordPlay(message):
+    global now_playing
     if len(musicQueue.queue) == 0:return
     musicQueue.queue[0].download('temp/v.mp3')
+    now_playing = musicQueue.queue[0].getURL()
     musicQueue.queue = musicQueue.queue[1:]
     await discordPlayFile(message, 'temp/v.mp3', discordPlayNext)
-def discordPlayNext(err):
+async def discordPlayNext(err):
+    global now_playing
     global discord_voice
     musicQueue.queue[0].download('temp/v.mp3')
+    now_playing = musicQueue.queue[0].getURL()
     musicQueue.queue = musicQueue.queue[1:]
     source = FFmpegPCMAudio(executable=ffmpeg_path, source='temp/v.mp3')
     discord_voice.play(source, after=discordPlayNext)
+async def discordPause(message):
+    global discord_voice
+    discord_voice.pause()
+async def discordResume(message):
+    global discord_voice
+    discord_voice.resume()
+async def discordStop(message):
+    global discord_voice
+    discord_voice.stop()
+async def discordNext(message):
+    global discord_voice
+    discord_voice.stop()
+    await discordPlay(message)
+async def discordInfo(message):
+    global now_playing
+    await message.channel.send(now_playing)
 
 async def discordPlayMic(message):
     global discord_voice
@@ -554,6 +574,16 @@ def main():
                 await discordSay(message)
             if message.content.startswith("/play"):
                 await discordPlay(message)
+            if message.content.startswith("/pause"):
+                await discordPause(message)
+            if message.content.startswith("/resume"):
+                await discordResume(message)
+            if message.content.startswith("/next"):
+                await discordNext(message)
+            if message.content.startswith("/stop"):
+                await discordStop(message)
+            if message.content.startswith("/pn"):
+                await discordInfo(message)
             if message.content.startswith("/mic"):
                 await discordPlayMic(message)
             if message.content.startswith("/quit"):
