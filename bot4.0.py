@@ -302,14 +302,6 @@ def infoMusic(contextual_bot, sh_core):#/queue
 #                                       Forward                                         #
 #########################################################################################
 
-def telegram_conv(update, context):
-    conv(TelegramBot(update, context))
-
-def telegram_handle_command(update, context):
-    contextual_bot = TelegramBot(update, context)
-    generic_handle_text(contextual_bot, sh_core)
-    contextual_bot.outputMessages()
-
 def generic_handle_text(contextual_bot, sh_core):
     msg = contextual_bot.getText()
     if len(msg)==0:return
@@ -326,8 +318,6 @@ def generic_handle_text(contextual_bot, sh_core):
 
 #https://discord.com/api/oauth2/authorize?client_id=693578928777854986&permissions=3197504&scope=bot
 
-ffmpag_path = "/usr/bin/ffmpeg" if not TEST else "C:/Users/dubicube/Desktop/bot/ffmpeg/bin/ffmpeg.exe"
-
 async def discordPlay(message):
     if len(musicQueue.queue) == 0:return
     musicQueue.queue[0].download('temp/v.mp3')
@@ -337,7 +327,7 @@ def discordPlayNext(err):
     global discord_voice
     musicQueue.queue[0].download('temp/v.mp3')
     musicQueue.queue = musicQueue.queue[1:]
-    source = FFmpegPCMAudio(executable=ffmpag_path, source='temp/v.mp3')
+    source = FFmpegPCMAudio(executable=ffmpeg_path, source='temp/v.mp3')
     discord_voice.play(source, after=discordPlayNext)
 
 async def discordPlayMic(message):
@@ -351,7 +341,7 @@ async def discordPlayMic(message):
         await discord_voice.move_to(channel)
     else:
         discord_voice = await channel.connect()
-    source = discord.FFmpegAudio(source="audio=\"Réseau de microphones (Realtek High Definition Audio)\"", executable=ffmpag_path, before_options="-f dshow")
+    source = discord.FFmpegAudio(source="audio=\"Réseau de microphones (Realtek High Definition Audio)\"", executable=ffmpeg_path, before_options="-f dshow")
     discord_voice.play(source)
 
 #ffmpeg -f dshow -i audio="Réseau de microphones (Realtek High Definition Audio)" -acodec libmp3lame  -t 10 out.mp3
@@ -372,7 +362,7 @@ async def discordPlayFile(message, file, after_playing=default_discord_end):
         await discord_voice.move_to(channel)
     else:
         discord_voice = await channel.connect()
-    source = FFmpegPCMAudio(executable=ffmpag_path, source=file)
+    source = FFmpegPCMAudio(executable=ffmpeg_path, source=file)
     discord_voice.play(source, after=after_playing)
 async def discordDisconnect():
     global discord_voice
@@ -380,25 +370,16 @@ async def discordDisconnect():
 
 
 #########################################################################################
-#                                        MAIN                                           #
+#                                      TELEGRAM                                         #
 #########################################################################################
 
+def telegram_conv(update, context):
+    conv(TelegramBot(update, context))
 
-commands = [
-("di", setDI),("video", setAutoReply),("find", find),("info", info),
-("quote", quote),("citation", getCitation), ("addc", addCitation), ("projet", get1AProject),
-("addp", add1AProject),("meme", meme),("calc", calc), ("croa", croa),
-("say", sayText), ("lang", setVoiceLanguage),("img", search_image),("addm", addMusic),
-("shuffle", shuffleMusic),("clear", clearMusic),("fetch", updateMusic),("queue", infoMusic),
-("help", help)
-]
-
-
-tokens = open("tokens", "r").read().split("\n")
-TELEGRAM_TOKEN=tokens[2] if TEST else tokens[0]
-DISCORD_TOKEN = tokens[16]
-updater = Updater(TELEGRAM_TOKEN, use_context=True)
-sh_core = SharedCore(updater.bot)
+def telegram_handle_command(update, context):
+    contextual_bot = TelegramBot(update, context)
+    generic_handle_text(contextual_bot, sh_core)
+    contextual_bot.outputMessages()
 
 # Shutdown Telegram bot
 def shutdown():
@@ -412,12 +393,13 @@ def stop(update, context):
         threading.Thread(target=shutdown).start()
 
 
-client_discord = discord.Client()
+#########################################################################################
+#                                        MAIL                                           #
+#########################################################################################
 
-
-#########[MAIL]########
-
-mail_manager = MailManager("brenda.tobrie@gmail.com", tokens[26])
+def initMailBot():
+    global mail_manager
+    mail_manager = MailManager("brenda.tobrie@gmail.com", tokens[26])
 def runMailBot():
     mails = mail_manager.getAllMails()
     for m in mails:
@@ -430,13 +412,17 @@ def forceMailUpdate(update, context):
         context.bot.send_message(update.message.chat_id, "Updating mails...")
         runMailBot()
 
-#######[TWITTER]#######
+#########################################################################################
+#                                      TWITTER                                          #
+#########################################################################################
 
-tweepy_since_id = 999999999
-tweepy_auth = tweepy.OAuthHandler(tokens[20], tokens[21])
-tweepy_auth.set_access_token(tokens[22], tokens[23])
-
-tweepy_api = tweepy.API(tweepy_auth)
+def initTweepy():
+    global tweepy_since_id
+    global tweepy_api
+    tweepy_since_id = 999999999
+    tweepy_auth = tweepy.OAuthHandler(tokens[20], tokens[21])
+    tweepy_auth.set_access_token(tokens[22], tokens[23])
+    tweepy_api = tweepy.API(tweepy_auth)
 def check_mentions(tweepy_api, since_id, output):
     new_since_id = since_id
     for tweet in tweepy.Cursor(tweepy_api.mentions_timeline, since_id=since_id).items():
@@ -456,10 +442,10 @@ def runTweepy():
     tweepy_since_id = check_mentions(tweepy_api, tweepy_since_id, True)
 
 
-#########[Periodic thread]########
+#########################################################################################
+#                                  PERIODIC THREAD                                      #
+#########################################################################################
 
-stop_periodic_thread = False
-periodic_thread_watchdog = 0
 def periodic_thread_wait(t):
     global stop_periodic_thread
     global periodic_thread_watchdog
@@ -471,10 +457,13 @@ def periodic_thread_wait(t):
 def periodic_thread():
     while True:
         runMailBot()
+        #runTweepy()
         periodic_thread_wait(10 if TEST else 300)
 def start_periodic_thread():
     global stop_periodic_thread
+    global periodic_thread_watchdog
     stop_periodic_thread = False
+    periodic_thread_watchdog = 0
     threading.Thread(target=periodic_thread).start()
 def stop_periodic_thread():
     global stop_periodic_thread
@@ -490,39 +479,68 @@ def telegram_periodic_thread(update, context):
             stop_periodic_thread()
         if arg == "c":
             context.bot.send_message(update.message.chat_id, "Watchdog: "+str(periodic_thread_watchdog))
-start_periodic_thread()
 
+
+#########################################################################################
+#                                        MAIN                                           #
+#########################################################################################
+
+
+TELEGRAM_ENABLE = True or not(TEST)
+DISCORD_ENABLE  = False or not(TEST)
+PERIODIC_ENABLE = False
+
+tokens = open("tokens", "r").read().split("\n")
+TELEGRAM_TOKEN=tokens[2] if TEST else tokens[0]
+DISCORD_TOKEN = tokens[16]
+updater = Updater(TELEGRAM_TOKEN, use_context=True)
+sh_core = SharedCore(updater.bot)
+client_discord = discord.Client()
+
+commands = [
+("di", setDI),("video", setAutoReply),("find", find),("info", info),
+("quote", quote),("citation", getCitation), ("addc", addCitation), ("projet", get1AProject),
+("addp", add1AProject),("meme", meme),("calc", calc), ("croa", croa),
+("say", sayText), ("lang", setVoiceLanguage),("img", search_image),("addm", addMusic),
+("shuffle", shuffleMusic),("clear", clearMusic),("fetch", updateMusic),("queue", infoMusic),
+("help", help)
+]
 
 def main():
 
-    #####  TELEGRAM  #####
+    #####[ MAIL & TWITTER ]#####
+    initMailBot()
+    initTweepy()
+    if PERIODIC_ENABLE:
+        start_periodic_thread()
+
+    #####[ TELEGRAM ]#####
     dp = updater.dispatcher
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-    dp.add_handler(MessageHandler(Filters.text, telegram_handle_command))
-    dp.add_handler(InlineQueryHandler(inlinequery))
+    if TELEGRAM_ENABLE:
+        dp.add_handler(MessageHandler(Filters.text, telegram_handle_command))
+        dp.add_handler(InlineQueryHandler(inlinequery))
 
-    dp.add_handler(CommandHandler('list',list))
-    dp.add_handler(CommandHandler('dico',dico))
+        for (fun_txt, fun) in commands:
+            dp.add_handler(CommandHandler(fun_txt, telegram_handle_command))
 
-    for (fun_txt, fun) in commands:
-        dp.add_handler(CommandHandler(fun_txt, telegram_handle_command))
+        dp.add_handler(CommandHandler('list',list))
+        dp.add_handler(CommandHandler('dico',dico))
+        dp.add_handler(CommandHandler('rapport',rapport))
+        dp.add_handler(CommandHandler('update',update_video_names_command))
 
-    dp.add_handler(CommandHandler('rapport',rapport))
-    dp.add_handler(CommandHandler('update',update_video_names_command))
+        #Personal commands
+        dp.add_handler(CommandHandler('conv', telegram_conv))
+        dp.add_handler(CommandHandler('stopall', stop))
+        dp.add_handler(CommandHandler('mail', forceMailUpdate))
+        dp.add_handler(CommandHandler('per', telegram_periodic_thread))
 
-    #Personal commands
-    dp.add_handler(CommandHandler('conv', telegram_conv))
-    dp.add_handler(CommandHandler('stopall', stop))
-    dp.add_handler(CommandHandler('mail', forceMailUpdate))
-    dp.add_handler(CommandHandler('per', telegram_periodic_thread))
+        updater.start_polling()
+        if not DISCORD_ENABLE:
+            updater.idle()
 
-    updater.start_polling()
-
-    if TEST:
-        updater.idle()
-    else:
-        #threading.Thread(target=shutdown).start()
-        #####  DISCORD  #####
+    #####[ DISCORD ]#####
+    if DISCORD_ENABLE:
         @client_discord.event
         async def on_message(message):
             if message.author == client_discord.user:

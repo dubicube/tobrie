@@ -38,3 +38,5 @@ id_console = 479998987
 conv_perso = 479998987
 
 TEST = not os.path.isdir(logPath)
+
+ffmpeg_path = "/usr/bin/ffmpeg" if not TEST else "C:/Users/dubicube/Desktop/bot/ffmpeg/bin/ffmpeg.exe"
