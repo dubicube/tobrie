@@ -1,13 +1,116 @@
 >>>>>  EIR_BOT V4.0  <<<<<
+Plus d'aide sur une commande:
+/help commande
+Liste des commandes:
+@eir_bot, /list, /dico, /di, /video, /calc, /meme, /quote, /info, /img, /say, /lang, Brenda
+Code source:
+https://github.com/dubicube/tobrie
 
-/list : liste les vidéos disponibles
-/dico : dictionnaire des tags des vidéos disponibles
-@eir_bot tag1 tag2 tag3... : lance une recherche de vidéo basée sur les tags
-/di : active/désactive le di/cri
-/video : active/désactive les réponses automatiques de vidéos
-/calc expr : Dicte l'opération $expr. Caractères autorisées: 0123456789+-*/cr
-/meme : Renvoie un meme random
-/quote : Renvoie une phrase random
-/info : Renvoie une info inutile
-@eirbot z Mon texte : Ecrit "Mon texte" en zalgo
-Brenda question : renvoie un résultat d'une recherche google sur "question"
+Commande: /help
+https://www.youtube.com/watch?v=dQw4w9WgXcQ
+
+Commande: /list
+Liste les vidéos disponibles
+
+Commande: /dico
+Dictionnaire des tags des vidéos disponibles
+
+Commande: @eir_bot tag1 tag2 tag3...
+Lance une recherche de vidéo basée sur les tags
+Si le premier tag est "z", renvoie le 2ème tag en zalgo
+Exemple:
+@eirbot z issou
+
+Commande: /di
+Active/désactive le di/cri (et bien plus...)
+
+Commande: /video
+Active/désactive les réponses automatiques de vidéos
+
+Commande: /calc expr
+Dicte l'opération $expr
+Caractères autorisées: 0123456789+-*/cr
+
+Commande: /meme
+Renvoie un meme aléatoire
+
+Commande: /quote
+Renvoie une phrase aléatoire
+
+Commande: /info
+Renvoie une info inutile
+
+Commande: brenda question
+Renvoie un résultat d'une recherche google sur "question"
+/!\ Ne pas mettre le / pour cette commande
+Le message doit seulement commencer par "Brenda" (avec ou sans majuscule)
+
+Commande: /img termes
+Renvoie un résultat d'une recherche image google sur "termes"
+
+Commande: /say phrase
+Renvoie un fichier audio qui dicte la phrase
+Ne pas envoyer des phrases trop longues, sinon ça plante
+
+Commande: /lang param
+Change la langue de la voix du /say
+Exemple:
+/lang fr-CA
+Langues disponibles:
+"af-ZA">Afrikaans
+"sq">Albanian
+"ar-AE">Arabic
+"hy">Armenian
+"bn-BD">Bengali (Bangladesh)
+"bn-IN">Bengali (India)
+"bs">Bosnian
+"my">Burmese (Myanmar)
+"ca-ES">Catalan
+"cmn-Hant-TW">Chinese
+"hr-HR">Croatian
+"cs-CZ">Czech
+"da-DK">Danish
+"nl-NL">Dutch
+"en-AU">English (Australia)
+"en-GB">English (United Kingdom)
+"en-US">English (United States)
+"eo">Esperanto
+"fil-PH">Filipino
+"fi-FI">Finnish
+"fr-FR">French
+"fr-CA">French (Canada)
+"de-DE">German
+"el-GR">Greek
+"hi-IN">Hindi
+"hu-HU">Hungarian
+"is-IS">Icelandic
+"id-ID">Indonesian
+"it-IT">Italian
+"ja-JP">Japanese (Japan)
+"km">Khmer
+"ko-KR">Korean
+"la">Latin
+"lv">Latvian
+"mk">Macedonian
+"ne">Nepali
+"nb-NO">Norwegian
+"pl-PL">Polish
+"pt-BR">Portuguese
+"ro-RO">Romanian
+"ru-RU">Russian
+"sr-RS">Serbian
+"si">Sinhala
+"sk-SK">Slovak
+"es-MX">Spanish (Mexico)
+"es-ES">Spanish (Spain)
+"sw">Swahili
+"sv-SE">Swedish
+"ta">Tamil
+"te">Telugu
+"th-TH">Thai
+"tr-TR">Turkish
+"uk-UA">Ukrainian
+"vi-VN">Vietnamese
+"cy">Welsh
+
+Dummy text

@@ -135,9 +135,15 @@ def sayText(contextual_bot, sh_core):
 def setVoiceLanguage(contextual_bot, sh_core):
     global voiceLanguage
     t = contextual_bot.getText()[6:]
-    if len(t) >= 1:
+    h = [i[1:].split("\">") for i in getHelp("lang").split('\n')[5:-1]]
+    value = [i[0] for i in h]
+    text = [i[1] for i in h]
+    if t in value:
+        i = value.index(t)
         voiceLanguage = t
-
+        contextual_bot.reply(ContextualBot.TEXT, "Language selected:\n"+text[i])
+    else:
+        contextual_bot.reply(ContextualBot.TEXT, "Language not found\nType \"/help lang\" for more information")
 
 #########################################################################################
 #                                   OTHER COMMANDS                                      #
@@ -149,9 +155,29 @@ def meme(contextual_bot, sh_core):
     m = memes[random.randint(0, len(memes)-1)]
     contextual_bot.reply(ContextualBot.IMAGE, open(memePath+m, 'rb'))
 
-def help(update, context):
-    sh_core.notifConsole(TelegramBot(update, context))
-    context.bot.send_message(chat_id=update.message.chat_id, text=open("help.txt", "r").read())
+def getHelp(data):
+    help_data_file = open("help.txt", "r")
+    help_data = help_data_file.read().split('\n\n')
+    help_data_file.close()
+    if len(data) == 7:
+        return help_data[0]
+    else:
+        param = data.lower()
+        if param[0]=='/' or param[0]=='@':
+            param = param[1:]
+        i=0
+        while i<len(help_data) and help_data[i].split('\n')[0].split(' ')[1].replace('/', '').replace('@', '') != param:
+            i+=1
+        if i<len(help_data):
+            return help_data[i]
+        else:
+            return help_data[0]
+def help(contextual_bot, sh_core):
+    sh_core.notifConsole(contextual_bot)
+    if len(contextual_bot.getText()) <= 7:
+        contextual_bot.reply(ContextualBot.TEXT, getHelp(""))
+    else:
+        contextual_bot.reply(ContextualBot.TEXT, getHelp(contextual_bot.getText()[6:]))
 
 
 #########################################################################################
@@ -289,7 +315,7 @@ def generic_handle_text(contextual_bot, sh_core):
     if len(msg)==0:return
     if msg[0] == '/':
         for (fun_txt, fun) in commands:
-            if msg[1:].startswith(fun_txt):
+            if msg[1:].startswith(fun_txt) and (len(msg[1:])==len(fun_txt) or msg[len(fun_txt)+1]==' '):
                 fun(contextual_bot, sh_core)
     else:
         handleText(contextual_bot, sh_core)
@@ -363,7 +389,8 @@ commands = [
 ("quote", quote),("citation", getCitation), ("addc", addCitation), ("projet", get1AProject),
 ("addp", add1AProject),("meme", meme),("calc", calc), ("croa", croa),
 ("say", sayText), ("lang", setVoiceLanguage),("img", search_image),("addm", addMusic),
-("shuffle", shuffleMusic),("clear", clearMusic),("fetch", updateMusic),("queue", infoMusic)
+("shuffle", shuffleMusic),("clear", clearMusic),("fetch", updateMusic),("queue", infoMusic),
+("help", help)
 ]
 
 
@@ -476,7 +503,6 @@ def main():
 
     dp.add_handler(CommandHandler('list',list))
     dp.add_handler(CommandHandler('dico',dico))
-    dp.add_handler(CommandHandler('help',help))
 
     for (fun_txt, fun) in commands:
         dp.add_handler(CommandHandler(fun_txt, telegram_handle_command))
