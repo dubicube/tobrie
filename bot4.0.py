@@ -518,7 +518,6 @@ def main():
     dp = updater.dispatcher
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
     if TELEGRAM_ENABLE:
-        dp.add_handler(MessageHandler(Filters.text, telegram_handle_command))
         dp.add_handler(InlineQueryHandler(inlinequery))
 
         for (fun_txt, fun) in commands:
@@ -534,6 +533,8 @@ def main():
         dp.add_handler(CommandHandler('stopall', stop))
         dp.add_handler(CommandHandler('mail', forceMailUpdate))
         dp.add_handler(CommandHandler('per', telegram_periodic_thread))
+
+        dp.add_handler(MessageHandler(Filters.text, telegram_handle_command))
 
         updater.start_polling()
         if not DISCORD_ENABLE:
