@@ -123,7 +123,7 @@ class Playlist:
             self.__loadFromFile(self.repo_path+id)
 
     def update(self):
-        self.__loadYTPlaylist(self.url)
+        self.__loadYTPlaylist2(self.url)
         self.__saveToFile(self.repo_path+self.__getPlaylistID())
 
     def __saveToFile(self, file):
@@ -225,3 +225,12 @@ class Playlist:
                 print(l[-1])
         self.id_list = l
         self.updated = True
+    def __loadYTPlaylist2(self, playlist_url):
+        os.system("youtube-dl -j --flat-playlist --ignore-errors "+playlist_url+" | jq -r '.id' > temp/rawplaylist")
+        f = open("temp/rawplaylist", "r")
+        self.id_list = f.read().split('\n')[:-1]
+        f.close()
+        os.remove("temp/rawplaylist")
+        self.updated = True
+        self.size = len(self.id_list)
+        self.title = "Titre"
