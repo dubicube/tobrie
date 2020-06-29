@@ -42,7 +42,7 @@ def sendYesNo(contextual_bot):
     else:
         contextual_bot.reply(ContextualBot.VIDEO, dataServerAddress+"oui.mp4")
 
-def recur(contextual_bot, msg):
+def recur(contextual_bot, msg, level):
     msg_lower = msg.lower()
 
     # Anti spam
@@ -55,18 +55,18 @@ def recur(contextual_bot, msg):
     if regex_r != None:
         txt_rep = regex_r.group(0)
         contextual_bot.reply(ContextualBot.TEXT, txt_rep)
-        recur(contextual_bot, txt_rep)
+        recur(contextual_bot, txt_rep, level)
     regex_r = re.search('(?<=cri)\\w{3,}', msg_lower)
     if regex_r != None:
         txt_rep = regex_r.group(0)
         contextual_bot.reply(ContextualBot.TEXT, txt_rep.upper())
-        recur(contextual_bot, txt_rep.upper())
+        recur(contextual_bot, txt_rep.upper(), level)
     regex_r = re.search('\\w{1,}ines?(?!\\w)', msg_lower)
     if regex_r != None:
         txt_rep = regex_r.group(0)
         txt_rep = txt_rep[:-3-(txt_rep[-1]=='s')]
         contextual_bot.reply(ContextualBot.TEXT, "C'est pain au "+txt_rep+", pas "+txt_rep+"ine")
-        recur(contextual_bot, txt_rep)
+        recur(contextual_bot, txt_rep, level)
 
     if msg[-1] == "?" and random.randint(0, 2) == 0:
         if "qui" in msg:
@@ -74,7 +74,7 @@ def recur(contextual_bot, msg):
         else:
             sendYesNo(contextual_bot)
 
-def handleText(contextual_bot, sh_core):
+def handleText(contextual_bot, sh_core, level=0):
     if len(contextual_bot.getAbsoluteText()) == 0:
         return
 
@@ -102,7 +102,7 @@ def handleText(contextual_bot, sh_core):
         for i in messages_perso:
             if contextual_bot.getUserName() == i[0] and i[1]-1 >= 0 and random.randint(0, i[1]-1) == 0:
                 contextual_bot.reply(ContextualBot.TEXT, i[2])
-        recur(contextual_bot, msg)
+        recur(contextual_bot, msg, level)
 
     # Video auto reply
     if auto_reply:
@@ -151,6 +151,8 @@ def check_for_stickers(contextual_bot, sh_core, msg):
             contextual_bot.reply(ContextualBot.ANIMATION, s[1])
         elif s[0] == "FILE":
             contextual_bot.reply(ContextualBot.DOCUMENT, open(s[1], 'rb'))
+        elif s[0] == "IMAGE":
+            contextual_bot.reply(ContextualBot.IMAGE, open(s[1], 'rb'))
         else:
             pack = sh_core.telegramBot.get_sticker_set(s[0])
             contextual_bot.reply(ContextualBot.STICKER, pack.stickers[int(s[1])])
