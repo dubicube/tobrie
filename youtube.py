@@ -33,7 +33,8 @@ class YTVideo:
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         }],
-        'outtmpl': file
+        'outtmpl': file,
+        'nooverwrites': True
         }
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download([self.getURL()])
@@ -59,11 +60,13 @@ class YTVideo:
             return video
 
 class MusicQueue:
+    cursor = -1
     queue = []
     playlist = None
     def __init__(self):
         self.queue = []
         self.playlist = None
+        self.cursor = -1
     def add(self, data):
         data_l = data.lower()
         if data_l == 'eirbot':
@@ -78,9 +81,9 @@ class MusicQueue:
             self.playlist = Playlist(data)
             self.queue+=[YTVideo(i) for i in self.playlist.id_list]
             return (self.playlist.updated, self.playlist.size)
-        else:
+        elif data.startswith('https://www.youtube.com/watch?v='):
             self.playlist = None
-            self.queue+=[YTVideo(data)]
+            self.queue+=[YTVideo(data[32:43])]
             return (True, 1)
     def updatePlaylist(self):
         if self.playlist != None:
@@ -90,13 +93,30 @@ class MusicQueue:
     def clear(self):
         self.queue = []
         self.playlist = None
+        self.cursor = -1
     def shuffle(self):
         self.playlist = None
-        for i in range(len(self.queue)-2):
+        if self.cursor != -1:
+            v = self.queue[0]
+            self.queue[0] = self.queue[self.cursor]
+            self.queue[self.cursor] = v
+            self.cursor = 0
+        for i in range(0 if self.cursor==-1 else 1, len(self.queue)-2):
             j = randint(i+1, len(self.queue)-1)
             v = self.queue[i]
             self.queue[i] = self.queue[j]
             self.queue[j] = v
+    def getCurrentURL(self):
+        if self.cursor == -1:
+            return "Rien"
+        else:
+            return self.queue[self.cursor].getURL()
+    def playNext(self, path):
+        self.cursor = (self.cursor+1)%len(self.queue)
+        self.queue[self.cursor].download(path)
+    def playPrevious(self, path):
+        self.cursor = (self.cursor+len(self.queue)-1)%len(self.queue)
+        self.queue[self.cursor].download(path)
 
 class Playlist:
     EIRBOT = 'https://www.youtube.com/playlist?list=PLCQolDsR1jjGI_ZPwxH9uJIvjECZ1-pDA'

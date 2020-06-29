@@ -3,7 +3,7 @@ Plus d'aide sur une commande:
 /help commande
 Liste des commandes:
 @eir_bot, Brenda, /list, /dico, /di, /video, /calc, /meme, /quote, /info, /img, /say, /lang,
-/addm, /shuffle, /clear, /play, /stop, /pause, /resume, /next, /pn
+/addm, /shuffle, /clear, /play, /stop, /pause, /resume, /next, /previous, /pn, /queue
 Code source:
 https://github.com/dubicube/tobrie
 
@@ -134,6 +134,10 @@ Commande: /next
 Passe à la musique suivante
 Seulement supporté sur Discord
 
+Commande: /previous
+Passe à la musique précédente
+Seulement supporté sur Discord
+
 Commande: /pn
 Renvoie le lien de la musique en cours
 Seulement supporté sur Discord
@@ -146,5 +150,8 @@ Mélange la playlist courante
 
 Commande: /clear
 Efface la playlist courante
+
+Commande: /queue
+Renvoie la taille de la playlist en cours, et le curseur d'avancement
 
 Dummy text

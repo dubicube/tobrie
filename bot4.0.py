@@ -265,21 +265,36 @@ def add1AProject(contextual_bot, sh_core):
         contextual_bot.reply(ContextualBot.TEXT, "Nop")
 
 #########################################################################################
+#                                       Forward                                         #
+#########################################################################################
+
+def generic_handle_text(contextual_bot, sh_core):
+    msg = contextual_bot.getText()
+    if len(msg)==0:return
+    if msg[0] == '/':
+        for (fun_txt, fun) in commands:
+            if msg[1:].startswith(fun_txt) and (len(msg[1:])==len(fun_txt) or msg[len(fun_txt)+1]==' '):
+                fun(contextual_bot, sh_core)
+    else:
+        handleText(contextual_bot, sh_core)
+
+#########################################################################################
 #                                       MUSIC                                           #
 #########################################################################################
 
 musicQueue = MusicQueue()
 def addMusic(contextual_bot, sh_core):#/addm
-    data = contextual_bot.getText()
-    i = data.find(' ')
+    data = contextual_bot.getText().split(' ')
     contextual_bot.reply(ContextualBot.TEXT, "Adding data...")
     contextual_bot.outputMessages()
-    (updated, size) = musicQueue.add(data[i+1:])
+    (updated, size) = musicQueue.add(data[1])
     if not updated:
-        contextual_bot.reply(ContextualBot.TEXT, str(size)+"  videos loaded from local cache\nType /fetch to update cache")
+        contextual_bot.reply(ContextualBot.TEXT, str(size)+"  videos added from local cache\nType /fetch to update cache")
     else:
-        contextual_bot.reply(ContextualBot.TEXT, str(size)+"  video(s) loaded")
+        contextual_bot.reply(ContextualBot.TEXT, str(size)+"  video(s) added")
     contextual_bot.reply(ContextualBot.TEXT, str(len(musicQueue.queue))+"  video(s) in total")
+    if "shuffle" in data:
+        musicQueue.shuffle()
 def shuffleMusic(contextual_bot, sh_core):#/shuffle
     musicQueue.shuffle()
     contextual_bot.reply(ContextualBot.TEXT, "Done")
@@ -296,41 +311,29 @@ def updateMusic(contextual_bot, sh_core):#/fetch
         musicQueue.updatePlaylist()
         contextual_bot.reply(ContextualBot.TEXT, "Playlist updated ("+str(musicQueue.playlist.size-old_size)+" new videos)")
 def infoMusic(contextual_bot, sh_core):#/queue
-    contextual_bot.reply(ContextualBot.TEXT, str(len(musicQueue.queue))+"  video(s)")
-
-#########################################################################################
-#                                       Forward                                         #
-#########################################################################################
-
-def generic_handle_text(contextual_bot, sh_core):
-    msg = contextual_bot.getText()
-    if len(msg)==0:return
-    if msg[0] == '/':
-        for (fun_txt, fun) in commands:
-            if msg[1:].startswith(fun_txt) and (len(msg[1:])==len(fun_txt) or msg[len(fun_txt)+1]==' '):
-                fun(contextual_bot, sh_core)
-    else:
-        handleText(contextual_bot, sh_core)
+    contextual_bot.reply(ContextualBot.TEXT, str(len(musicQueue.queue))+"  video(s)\nCursor: "+str(musicQueue.cursor))
 
 #########################################################################################
 #                                       DISCORD                                         #
 #########################################################################################
 
 #https://discord.com/api/oauth2/authorize?client_id=693578928777854986&permissions=3197504&scope=bot
-now_playing = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+music_increment = 1
 async def discordPlay(message):
-    global now_playing
     if len(musicQueue.queue) == 0:return
-    musicQueue.queue[0].download('temp/v.mp3')
-    now_playing = musicQueue.queue[0].getURL()
-    musicQueue.queue = musicQueue.queue[1:]
+    musicQueue.playNext('temp/v.mp3')
     await discordPlayFile(message, 'temp/v.mp3', discordPlayNext)
-async def discordPlayNext(err):
-    global now_playing
+def discordPlayNext(err):
     global discord_voice
-    musicQueue.queue[0].download('temp/v.mp3')
-    now_playing = musicQueue.queue[0].getURL()
-    musicQueue.queue = musicQueue.queue[1:]
+    global music_increment
+    if music_increment == 0:
+        music_increment = 1
+        return
+    elif music_increment == 1:
+        musicQueue.playNext('temp/v.mp3')
+    elif music_increment == -1:
+        musicQueue.playPrevious('temp/v.mp3')
+        music_increment = 1
     source = FFmpegPCMAudio(executable=ffmpeg_path, source='temp/v.mp3')
     discord_voice.play(source, after=discordPlayNext)
 async def discordPause(message):
@@ -340,15 +343,20 @@ async def discordResume(message):
     global discord_voice
     discord_voice.resume()
 async def discordStop(message):
+    global music_increment
     global discord_voice
+    music_increment = 0
     discord_voice.stop()
 async def discordNext(message):
     global discord_voice
     discord_voice.stop()
-    await discordPlay(message)
+async def discordPrevious(message):
+    global discord_voice
+    global music_increment
+    music_increment = -1
+    discord_voice.stop()
 async def discordInfo(message):
-    global now_playing
-    await message.channel.send(now_playing)
+    await message.channel.send(musicQueue.getCurrentURL())
 
 async def discordPlayMic(message):
     global discord_voice
@@ -580,6 +588,8 @@ def main():
                 await discordResume(message)
             if message.content.startswith("/next"):
                 await discordNext(message)
+            if message.content.startswith("/previous"):
+                await discordPrevious(message)
             if message.content.startswith("/stop"):
                 await discordStop(message)
             if message.content.startswith("/pn"):
