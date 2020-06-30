@@ -312,6 +312,8 @@ def updateMusic(contextual_bot, sh_core):#/fetch
         contextual_bot.reply(ContextualBot.TEXT, "Playlist updated ("+str(musicQueue.playlist.size-old_size)+" new videos)")
 def infoMusic(contextual_bot, sh_core):#/queue
     contextual_bot.reply(ContextualBot.TEXT, str(len(musicQueue.queue))+"  video(s)\nCursor: "+str(musicQueue.cursor))
+def setCursorMusic(contextual_bot, sh_core):
+    musicQueue.setCursor(int(contextual_bot.getText().split(' ')[1]))
 
 #########################################################################################
 #                                       DISCORD                                         #
@@ -431,14 +433,12 @@ def initMailBot():
 def runMailBot():
     mails = mail_manager.getAllMails()
     for m in mails:
-        print(m)
         contextual_bot = MailBot(mail_manager, m)
         generic_handle_text(contextual_bot, sh_core)
         contextual_bot.outputMessages()
 def forceMailUpdate(update, context):
-    if update.message.from_user.id == super_admin:
-        context.bot.send_message(update.message.chat_id, "Updating mails...")
-        runMailBot()
+    context.bot.send_message(update.message.chat_id, "Updating mails...")
+    runMailBot()
 
 #########################################################################################
 #                                      TWITTER                                          #
@@ -516,7 +516,7 @@ def telegram_periodic_thread(update, context):
 
 TELEGRAM_ENABLE = True or not(TEST)
 DISCORD_ENABLE  = False or not(TEST)
-PERIODIC_ENABLE = False
+PERIODIC_ENABLE = True
 
 tokens = open("tokens", "r").read().split("\n")
 TELEGRAM_TOKEN=tokens[2] if TEST else tokens[0]
@@ -531,6 +531,7 @@ commands = [
 ("addp", add1AProject),("meme", meme),("calc", calc), ("croa", croa),
 ("say", sayText), ("lang", setVoiceLanguage),("img", search_image),("addm", addMusic),
 ("shuffle", shuffleMusic),("clear", clearMusic),("fetch", updateMusic),("queue", infoMusic),
+("cursor", setCursorMusic),
 ("help", help)
 ]
 
@@ -540,7 +541,9 @@ def main():
     initMailBot()
     initTweepy()
     if PERIODIC_ENABLE:
+        print("Start periodic")
         start_periodic_thread()
+        print("Periodic ok")
 
     #####[ TELEGRAM ]#####
     dp = updater.dispatcher

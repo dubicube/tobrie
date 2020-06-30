@@ -36,8 +36,12 @@ class YTVideo:
         'outtmpl': file,
         'nooverwrites': True
         }
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([self.getURL()])
+        try:
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([self.getURL()])
+            return True
+        except:
+            return False
     def getStreamURL(self):
         with youtube_dl.YoutubeDL(YTDL_OPTS) as ydl:
             video = self._get_info(self.getURL())
@@ -112,11 +116,18 @@ class MusicQueue:
         else:
             return self.queue[self.cursor].getURL()
     def playNext(self, path):
-        self.cursor = (self.cursor+1)%len(self.queue)
-        self.queue[self.cursor].download(path)
+        flag = False
+        while not flag:
+            self.cursor = (self.cursor+1)%len(self.queue)
+            flag = self.queue[self.cursor].download(path)
     def playPrevious(self, path):
-        self.cursor = (self.cursor+len(self.queue)-1)%len(self.queue)
-        self.queue[self.cursor].download(path)
+        flag = False
+        while not flag:
+            self.cursor = (self.cursor+len(self.queue)-1)%len(self.queue)
+            flag = self.queue[self.cursor].download(path)
+    def setCursor(self, c):
+        if c >= 0 and c < len(self.queue):
+            self.cursor = c
 
 class Playlist:
     EIRBOT = 'https://www.youtube.com/playlist?list=PLCQolDsR1jjGI_ZPwxH9uJIvjECZ1-pDA'
