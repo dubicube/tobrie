@@ -1,9 +1,14 @@
 # Tobrie
-Le magnifique bot de l'asso Eirbot, sur Telegram et Discord.
+Le magnifique bot de l'asso Eirbot, actuellement déployé sur 4 plateformes:
++ Telegram: @eir_bot
++ Discord: https://discord.com/api/oauth2/authorize?client_id=693578928777854986&permissions=3197504&scope=bot
++ Mail: brenda.tobrie@gmail.com
++ Twitter: @BrendaTobrie
+Déploiements futurs potentiels (non garanti lol):
++ Messenger
++ Youtube (live 24h/24)
 
-Ce bot a avant tout été développé pour être déployé sur Telegram. Il a ensuite été remodelé dans une forme relativement adaptative pour supporter facilement l'ajout d'une nouvelle API pour le déploiement sur une autre plateforme. Il est ainsi partiellement supporté simultanément sur Discord.
-
-Les fonctions non déployées sur Discord sont en fait des fonctions relativement propres à Telegram, qu'il serait difficle d'adapter facilement à Discord (InlineQuerry, stickers...). Les fonctions de réponses automatiques de texte, vidéo ou image ont en revanche été très facile à adapter, et seront facile à également déployer sur une autre plateforme de chat en ligne fournissant une API python.
+Ce bot a avant tout été développé autour de l'API Telegram. Il a ensuite été remodelé dans une forme relativement adaptative pour supporter facilement l'ajout de nouvelles API pour le déploiement sur d'autres plateformes. Certaines fonctionnalités ne peuvent cependant pas être déployées sur toutes les plateformes, .
 
 ## Les fonctionnalités
 ### Réponses automatiques

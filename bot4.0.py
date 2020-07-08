@@ -433,6 +433,7 @@ def initMailBot():
 def runMailBot():
     mails = mail_manager.getAllMails()
     for m in mails:
+        #print(m)
         contextual_bot = MailBot(mail_manager, m)
         generic_handle_text(contextual_bot, sh_core)
         contextual_bot.outputMessages()

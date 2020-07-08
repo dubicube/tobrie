@@ -38,7 +38,7 @@ class MailManager:
     def _getMailText_aux(self, mail):
         lines = mail.split('\n')
         i = 0
-        r = ["", "", "", ""]
+        r = ["", "", "", "", ""]
         while i < len(lines):
             if lines[i].startswith("From: ") and r[0] == "":
                 r[0] = lines[i][6:-1]
@@ -46,6 +46,8 @@ class MailManager:
                 r[1] = lines[i][4:-1]
             if lines[i].startswith("Subject: ") and r[3] == "":
                 r[3] = lines[i][9:-1]
+            if lines[i].startswith("CC: ") and r[4] == "":
+                r[4] = lines[i][4:-1]
             if lines[i][:-1] == "Content-Type: text/plain; charset=\"UTF-8\"":
                 boundary = lines[i-1]
                 i+=1
@@ -70,16 +72,19 @@ class MailManager:
         mail[2] = unquote(mail[2].replace('=\n', '').replace('=', '%'))
         return mail
 
-    def getAddressesToReply(self, mail):
-        addr = (mail[0]+","+mail[1]).split(',')
+    def removeSelfAddress(self, liste):
         # Remove self address to avoid loopback
         i=0
-        while i<len(addr):
-            if self.email_user in addr[i]:
-                del addr[i]
+        while i<len(liste):
+            if self.email_user in liste[i]:
+                del liste[i]
             else:
                 i+=1
-        return ",".join(addr)
+        return ",".join(liste)
+    def getAddressesToReply(self, mail):
+        addr = self.removeSelfAddress((mail[0]+","+mail[1]).split(','))
+        addr_cc = self.removeSelfAddress(mail[4].split(','))
+        return [addr, addr_cc]
 
     def send_email(self, receiver_email, cc_emails, subject, message):
         context = ssl.create_default_context()

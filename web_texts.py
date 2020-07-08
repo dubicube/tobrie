@@ -15,7 +15,8 @@ def getGoogleResponse(msg):
     keys = msg.split(' ')
     keys = [urllib.parse.quote(k) for k in keys]
     data = '+'.join(keys)
-    text = html.unescape(requests.get('https://www.google.com/search?q='+data).text)
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+    text = html.unescape(requests.get('https://www.google.com/search?q='+data, headers=headers).text)
     regex_r = re.search('(?<=<div class="BNeawe iBp4i AP7Wnd">)(?:(?!<div>).)*?(?=</div>)', text)
     if regex_r != None:
         txt_rep = regex_r.group(0)

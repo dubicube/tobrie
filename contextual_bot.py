@@ -161,5 +161,7 @@ class MailBot(ContextualBot):
             if type==ContextualBot.TEXT or type==ContextualBot.VIDEO or type==ContextualBot.ANIMATION:
                 data+=obj+"\n"
         if len(data) != 0:
-            self.manager.send_email(self.manager.getAddressesToReply(self.mail), '', self.mail[3], data)
+            addrs = self.manager.getAddressesToReply(self.mail)
+            #print(addrs[0], addrs[1], self.mail[3], data)
+            self.manager.send_email(addrs[0], addrs[1], self.mail[3], data)
         self.reply_queue = []
