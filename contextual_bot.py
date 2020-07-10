@@ -165,3 +165,35 @@ class MailBot(ContextualBot):
             #print(addrs[0], addrs[1], self.mail[3], data)
             self.manager.send_email(addrs[0], addrs[1], self.mail[3], data)
         self.reply_queue = []
+
+
+class BrendapiBot(ContextualBot):
+    data = None
+    brendapi = None
+    clientsocket = None
+    addr = None
+    def __init__(self, data, brendapi, clientsocket, addr):
+        self.data = data
+        self.brendapi = brendapi
+        self.clientsocket = clientsocket
+        (self.addr, _) = addr
+        super(BrendapiBot, self).__init__()
+    def getChatID(self):
+        return 0
+    def getUserID(self):
+        return self.addr
+    def getUserName(self):
+        return self.addr
+    def getText(self):
+        return self.data
+    def getAbsoluteText(self):
+        return self.data
+
+    def outputMessages(self):
+        resp = ""
+        for (type, obj) in self.reply_queue:
+            if type==ContextualBot.TEXT or type==ContextualBot.VIDEO or type==ContextualBot.ANIMATION:
+                resp+=obj+"\n"
+        if len(resp) != 0:
+            self.brendapi.send_text(resp, self.clientsocket)
+        self.reply_queue = []

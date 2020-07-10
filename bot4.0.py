@@ -14,6 +14,7 @@ import random
 from datetime import datetime
 import time
 import os
+import signal
 import requests
 from zalgo_text import zalgo
 import urllib.parse
@@ -30,6 +31,7 @@ from audio import *
 from auto_reply import handleText, load_maps, setDI, setAutoReply, conv
 from youtube import *
 from mail_manager import *
+from brendapi import *
 
 sticker_map_regex = []
 text_map_regex = []
@@ -418,9 +420,20 @@ def shutdown():
 def stop(update, context):
     if update.message.from_user.id == super_admin:
         context.bot.send_message(update.message.chat_id, "Stopping...")
-        global stop_periodic_thread
-        stop_periodic_thread = True
+        brendapi.stop()
+        stop_periodic_thread_fun()
+        #os.kill(os.getpid(), signal.SIGINT)
         threading.Thread(target=shutdown).start()
+
+#########################################################################################
+#                                     BRENDAPI                                          #
+#########################################################################################
+
+def brendapiCallbackOnText(text, brendapi, clientsocket, addr):
+    print("Received text:", text)
+    contextual_bot = BrendapiBot(text, brendapi, clientsocket, addr)
+    generic_handle_text(contextual_bot, sh_core)
+    contextual_bot.outputMessages()
 
 
 #########################################################################################
@@ -481,22 +494,26 @@ def periodic_thread_wait(t):
     for i in range(t//5):
         time.sleep(5)
         if stop_periodic_thread:
-            break
+            return True
         periodic_thread_watchdog = (periodic_thread_watchdog+1)%256
+    return False
 def periodic_thread():
     while True:
         runMailBot()
         #runTweepy()
-        periodic_thread_wait(10 if TEST else 300)
+        if periodic_thread_wait(10 if TEST else 300):
+            break
 def start_periodic_thread():
     global stop_periodic_thread
     global periodic_thread_watchdog
     stop_periodic_thread = False
     periodic_thread_watchdog = 0
     threading.Thread(target=periodic_thread).start()
-def stop_periodic_thread():
+def stop_periodic_thread_fun():
     global stop_periodic_thread
-    stop_periodic_thread = True
+    if not stop_periodic_thread:
+        stop_periodic_thread = True
+        time.sleep(5)
 def telegram_periodic_thread(update, context):
     if update.message.from_user.id == super_admin:
         arg=update.message.text[5:]
@@ -505,7 +522,7 @@ def telegram_periodic_thread(update, context):
             start_periodic_thread()
         if arg == "o":
             context.bot.send_message(update.message.chat_id, "Stoping periodic thread")
-            stop_periodic_thread()
+            stop_periodic_thread_fun()
         if arg == "c":
             context.bot.send_message(update.message.chat_id, "Watchdog: "+str(periodic_thread_watchdog))
 
@@ -518,6 +535,7 @@ def telegram_periodic_thread(update, context):
 TELEGRAM_ENABLE = True or not(TEST)
 DISCORD_ENABLE  = False or not(TEST)
 PERIODIC_ENABLE = True
+BRENDAPI_ENABLE = True
 
 tokens = open("tokens", "r").read().split("\n")
 TELEGRAM_TOKEN=tokens[2] if TEST else tokens[0]
@@ -537,6 +555,12 @@ commands = [
 ]
 
 def main():
+
+    #####[ BRENDAPI ]#####
+    global brendapi
+    brendapi = Brendapi(brendapiCallbackOnText)
+    if BRENDAPI_ENABLE:
+        brendapi.start()
 
     #####[ MAIL & TWITTER ]#####
     initMailBot()
