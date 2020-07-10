@@ -265,6 +265,15 @@ def add1AProject(contextual_bot, sh_core):
         contextual_bot.reply(ContextualBot.TEXT, "Ok")
     else:
         contextual_bot.reply(ContextualBot.TEXT, "Nop")
+def addNewVideo(contextual_bot, sh_core):
+    txt = contextual_bot.getText()[6:].split('\n')[0]
+    if len(txt) > 1:
+        f = open("maps/new_videos", "a")
+        f.write(txt+"\n")
+        f.close()
+        contextual_bot.reply(ContextualBot.TEXT, "Ok")
+    else:
+        contextual_bot.reply(ContextualBot.TEXT, "Nop")
 
 #########################################################################################
 #                                       Forward                                         #
@@ -551,7 +560,8 @@ commands = [
 ("say", sayText), ("lang", setVoiceLanguage),("img", search_image),("addm", addMusic),
 ("shuffle", shuffleMusic),("clear", clearMusic),("fetch", updateMusic),("queue", infoMusic),
 ("cursor", setCursorMusic),
-("help", help)
+("help", help),
+("addv", addNewVideo)
 ]
 
 def main():
