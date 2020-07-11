@@ -443,6 +443,8 @@ def brendapiCallbackOnText(text, brendapi, clientsocket, addr):
     contextual_bot = BrendapiBot(text, brendapi, clientsocket, addr)
     generic_handle_text(contextual_bot, sh_core)
     contextual_bot.outputMessages()
+def brendapiCallbackOnPermission(ip_a):
+    print("IP not allowed:", ip_a)
 
 
 #########################################################################################
@@ -568,7 +570,7 @@ def main():
 
     #####[ BRENDAPI ]#####
     global brendapi
-    brendapi = Brendapi(brendapiCallbackOnText)
+    brendapi = Brendapi(brendapiCallbackOnText, brendapiCallbackOnPermission, 65432)
     if BRENDAPI_ENABLE:
         brendapi.start()
 
