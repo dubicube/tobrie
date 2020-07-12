@@ -414,35 +414,49 @@ async def discordDisconnect():
 #                                      TELEGRAM                                         #
 #########################################################################################
 
+# Target chat
 def telegram_conv(update, context):
     conv(TelegramBot(update, context))
-
+# Forward incoming text from Telegram to global core
 def telegram_handle_command(update, context):
     contextual_bot = TelegramBot(update, context)
     generic_handle_text(contextual_bot, sh_core)
     contextual_bot.outputMessages()
 
-# Shutdown Telegram bot
+# Shutdown all system
 def shutdown():
-    updater.stop()
+    brendapi.stop() # Kill BrendAPI
+    stop_periodic_thread_fun() # Kill Mail and Twitter
+    updater.stop() # Kill Telegram
     updater.is_idle = False
-def stop(update, context):
+    os.kill(os.getpid(), signal.SIGINT) # Kill Discord
+def stopAll():
+    threading.Thread(target=shutdown).start()
+# Shutdown command from Telegram
+def telegram_stop(update, context):
     if update.message.from_user.id == super_admin:
         context.bot.send_message(update.message.chat_id, "Stopping...")
-        brendapi.stop()
-        stop_periodic_thread_fun()
-        #os.kill(os.getpid(), signal.SIGINT)
-        threading.Thread(target=shutdown).start()
+        stopAll()
 
 #########################################################################################
 #                                     BRENDAPI                                          #
 #########################################################################################
 
+# Callback on received packets from BrendAPI
 def brendapiCallbackOnText(text, brendapi, clientsocket, addr):
-    print("Received text:", text)
     contextual_bot = BrendapiBot(text, brendapi, clientsocket, addr)
-    generic_handle_text(contextual_bot, sh_core)
-    contextual_bot.outputMessages()
+    if text[:8] == "/monitor":
+        # Monitor commands
+        commands = text.split(' ')
+        if commands[1] == "stop": # Stop system
+            contextual_bot.reply(ContextualBot.TEXT, "STOP")
+            contextual_bot.outputMessages()
+            stopAll()
+    else:
+        # Call global core
+        generic_handle_text(contextual_bot, sh_core)
+        contextual_bot.outputMessages()
+# Callback to detect not allowed IP connections
 def brendapiCallbackOnPermission(ip_a):
     print("IP not allowed:", ip_a)
 
@@ -456,6 +470,7 @@ def initMailBot():
     mail_manager = MailManager("brenda.tobrie@gmail.com", tokens[26])
 def runMailBot():
     mails = mail_manager.getAllMails()
+    # Call global core with each new mail
     for m in mails:
         #print(m)
         contextual_bot = MailBot(mail_manager, m)
@@ -545,8 +560,8 @@ def telegram_periodic_thread(update, context):
 
 TELEGRAM_ENABLE = True or not(TEST)
 DISCORD_ENABLE  = False or not(TEST)
-PERIODIC_ENABLE = True
-BRENDAPI_ENABLE = True
+PERIODIC_ENABLE = False or not(TEST)
+BRENDAPI_ENABLE = True or not(TEST)
 
 tokens = open("tokens", "r").read().split("\n")
 TELEGRAM_TOKEN=tokens[2] if TEST else tokens[0]
@@ -570,7 +585,7 @@ def main():
 
     #####[ BRENDAPI ]#####
     global brendapi
-    brendapi = Brendapi(brendapiCallbackOnText, brendapiCallbackOnPermission, 65432)
+    brendapi = Brendapi(65432, brendapiCallbackOnText, brendapiCallbackOnPermission)
     if BRENDAPI_ENABLE:
         brendapi.start()
 
@@ -598,7 +613,7 @@ def main():
 
         #Personal commands
         dp.add_handler(CommandHandler('conv', telegram_conv))
-        dp.add_handler(CommandHandler('stopall', stop))
+        dp.add_handler(CommandHandler('stopall', telegram_stop))
         dp.add_handler(CommandHandler('mail', forceMailUpdate))
         dp.add_handler(CommandHandler('per', telegram_periodic_thread))
 
@@ -615,9 +630,6 @@ def main():
             if message.author == client_discord.user:
                 return
             contextual_bot = DiscordBot(message)
-            if contextual_bot.isChatPerso():
-                if message.content == "/stopall":
-                    await client_discord.close()
             if message.content.startswith("/dsay"):
                 await discordSay(message)
             if message.content.startswith("/play"):

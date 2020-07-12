@@ -81,8 +81,8 @@ def handleText(contextual_bot, sh_core, level=0):
     msg = contextual_bot.getText()
 
     # Log + forward
-    if not contextual_bot.isChatPerso():
-        sh_core.saveToLog(contextual_bot);
+    #if not contextual_bot.isChatPerso():
+    #    sh_core.saveToLog(contextual_bot);
     if contextual_bot.getChatID() == conv_perso:
         sh_core.telegramBot.send_message(chat_id=conv_out, text=contextual_bot.getText())
     else:

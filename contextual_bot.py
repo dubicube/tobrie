@@ -190,10 +190,10 @@ class BrendapiBot(ContextualBot):
         return self.data
 
     def outputMessages(self):
-        resp = ""
+        resp = []
         for (type, obj) in self.reply_queue:
             if type==ContextualBot.TEXT or type==ContextualBot.VIDEO or type==ContextualBot.ANIMATION:
-                resp+=obj+"\n"
+                resp+=[obj]
         if len(resp) != 0:
-            self.brendapi.send_text(resp, self.clientsocket)
+            self.brendapi.send_text('\n'.join(resp), self.clientsocket)
         self.reply_queue = []

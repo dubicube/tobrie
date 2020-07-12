@@ -9,7 +9,7 @@ class Brendapi:
     port = 65432
     ip_white_list = []
 
-    def __init__(self, callbackOnText, callbackOnPermission, port):
+    def __init__(self, port, callbackOnText=lambda a,b,c,d:None, callbackOnPermission=lambda a,b,c,d:None):
         self.callbackOnText = callbackOnText
         self.callbackOnPermission = callbackOnPermission
         self.started = False
@@ -29,9 +29,13 @@ class Brendapi:
         return bytes([3, s_u, s_l]+l+[s_l])
     def _build_packet_text(self, text):
         return self._build_packet([ord(i) for i in text])
-    def send_data(self, data, clientsocket):
+    def send_data(self, data, clientsocket=None):
+        if clientsocket==None:
+            clientsocket = self.common_socket
         clientsocket.send(data)
-    def send_text(self, text, clientsocket):
+    def send_text(self, text, clientsocket=None):
+        if clientsocket==None:
+            clientsocket = self.common_socket
         clientsocket.send(self._build_packet_text(text))
 
     def _process_client(self, clientsocket, addr):
@@ -94,6 +98,44 @@ class Brendapi:
             s.close()
 
 
+    # Functions on client side
+    def receiveText(self):
+        header_size = -1
+        data_size = -1
+        pointer = -1
+        data = []
+        while True:
+            msg = self.common_socket.recv(1024)
+            if len(msg) == 0:
+                return ""
+            for i in msg:
+                v = int(i)
+                if header_size == -1:
+                    header_size = v
+                    pointer = 0
+                    data_size = 0
+                    data = []
+                else:
+                    pointer+=1
+                    if pointer==header_size-2 or pointer==header_size-1:
+                        data_size = (data_size<<8) | v
+                    elif pointer == header_size+data_size:
+                        if data_size&0xFF != v:
+                            print("Bad packet received")
+                            return ""
+                        else:
+                            header_size = -1
+                            return data
+                    else:
+                        data+=[v]
+        return ""
+    def connect(self):
+        self.common_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.common_socket.connect(('127.0.0.1', self.port))
+    def disconnect(self):
+        self.common_socket.close()
+
+
 #Example
 
 #import time
@@ -103,7 +145,7 @@ class Brendapi:
 #def brendapiCallbackOnPermission(ip_a):
 #    print("IP not allowed:", ip_a)
 
-#brendapi = Brendapi(brendapiCallbackOnText, brendapiCallbackOnPermission, 65432)
+#brendapi = Brendapi(65432, brendapiCallbackOnText, brendapiCallbackOnPermission)
 #brendapi.start()
 #while True:
 #    print("Timer")
