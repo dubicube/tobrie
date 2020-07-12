@@ -4,7 +4,9 @@ Le magnifique bot de l'asso Eirbot, actuellement déployé sur 4 plateformes:
 + Discord: https://discord.com/api/oauth2/authorize?client_id=693578928777854986&permissions=3197504&scope=bot
 + Mail: brenda.tobrie@gmail.com
 + Twitter: @BrendaTobrie
+
 Déploiements futurs potentiels (non garanti lol):
++ Application mobile (en cours de développement)
 + Messenger
 + Youtube (live 24h/24)
 
