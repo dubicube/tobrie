@@ -1,4 +1,5 @@
 from discord import File as DiscordFile
+from audio import *
 
 
 class ContextualBot:
@@ -196,4 +197,42 @@ class BrendapiBot(ContextualBot):
                 resp+=[obj]
         if len(resp) != 0:
             self.brendapi.send_text('\n'.join(resp), self.clientsocket)
+        self.reply_queue = []
+
+
+class SpeechBot(ContextualBot):
+    update = None
+    context = None
+    data = None
+    def __init__(self, update, context, data):
+        self.update = update
+        self.context = context
+        self.data = data
+        super(SpeechBot, self).__init__()
+    def getChatID(self):
+        return self.update.message.chat_id
+    def getUserID(self):
+        return self.update.message.from_user.id
+    def getUserName(self):
+        return self.update.message.from_user.username
+    def getUserFirstName(self):
+        return self.update.message.from_user.first_name
+    def getAbsoluteText(self):
+        return self.data
+    def getText(self):
+        return self.data
+    def isChatPerso(self):
+        return self.update.message.chat_id == self.update.message.from_user.id
+    def outputMessages(self):
+        b = self.context.bot
+        funs = [b.send_message, b.send_document, b.send_video, b.send_photo, b.send_audio, b.send_sticker, b.send_animation]
+        #all_text = []
+        for (type, obj) in self.reply_queue:
+            #if type == ContextualBot.TEXT:
+            #        all_text+=[obj]
+            if type < len(funs):
+                funs[type](self.update.message.chat_id, obj)
+        #all_text = " ".join(all_text)
+        #getVoice(all_text, "temp/out.mp3")
+        #b.send_audio(self.update.message.chat_id, open("temp/out.mp3", 'rb'))
         self.reply_queue = []

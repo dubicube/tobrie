@@ -32,6 +32,7 @@ from auto_reply import handleText, load_maps, setDI, setAutoReply, conv
 from youtube import *
 from mail_manager import *
 from brendapi import *
+from remote_service_server import *
 
 sticker_map_regex = []
 text_map_regex = []
@@ -426,6 +427,7 @@ def telegram_handle_command(update, context):
 # Shutdown all system
 def shutdown():
     brendapi.stop() # Kill BrendAPI
+    sh_core.remote_service.stop() # Kill remote service
     stop_periodic_thread_fun() # Kill Mail and Twitter
     updater.stop() # Kill Telegram
     updater.is_idle = False
@@ -438,6 +440,12 @@ def telegram_stop(update, context):
         context.bot.send_message(update.message.chat_id, "Stopping...")
         stopAll()
 
+def voice_handler(update, context):
+    update.message.voice.get_file().download("temp/out.ogg")
+    contextual_bot = SpeechBot(update, context, speechToText("temp/out.ogg"))
+    generic_handle_text(contextual_bot, sh_core)
+    contextual_bot.outputMessages()
+
 #########################################################################################
 #                                     BRENDAPI                                          #
 #########################################################################################
@@ -445,13 +453,15 @@ def telegram_stop(update, context):
 # Callback on received packets from BrendAPI
 def brendapiCallbackOnText(text, brendapi, clientsocket, addr):
     contextual_bot = BrendapiBot(text, brendapi, clientsocket, addr)
-    if text[:8] == "/monitor":
-        # Monitor commands
-        commands = text.split(' ')
-        if commands[1] == "stop": # Stop system
-            contextual_bot.reply(ContextualBot.TEXT, "STOP")
-            contextual_bot.outputMessages()
-            stopAll()
+    # Allow monitoring only if requests are local
+    (ip_a, _) = addr
+    if ip_a == "127.0.0.1":
+        if text[:8] == "/monitor": # Monitor commands
+            commands = text.split(' ')
+            if commands[1] == "stop": # Stop system
+                contextual_bot.reply(ContextualBot.TEXT, "STOP")
+                contextual_bot.outputMessages()
+                stopAll()
     else:
         # Call global core
         generic_handle_text(contextual_bot, sh_core)
@@ -561,13 +571,13 @@ def telegram_periodic_thread(update, context):
 TELEGRAM_ENABLE = True or not(TEST)
 DISCORD_ENABLE  = False or not(TEST)
 PERIODIC_ENABLE = False or not(TEST)
-BRENDAPI_ENABLE = True or not(TEST)
+BRENDAPI_ENABLE = False or not(TEST)
 
 tokens = open("tokens", "r").read().split("\n")
 TELEGRAM_TOKEN=tokens[2] if TEST else tokens[0]
 DISCORD_TOKEN = tokens[16]
 updater = Updater(TELEGRAM_TOKEN, use_context=True)
-sh_core = SharedCore(updater.bot)
+sh_core = SharedCore(updater.bot, RemoteServiceServer(65332))
 client_discord = discord.Client()
 
 commands = [
@@ -588,6 +598,10 @@ def main():
     brendapi = Brendapi(65432, brendapiCallbackOnText, brendapiCallbackOnPermission)
     if BRENDAPI_ENABLE:
         brendapi.start()
+
+    #####[ REMOTE SERVICE ]#####
+    if not TEST:
+        sh_core.remote_service.start()
 
     #####[ MAIL & TWITTER ]#####
     initMailBot()
@@ -618,6 +632,8 @@ def main():
         dp.add_handler(CommandHandler('per', telegram_periodic_thread))
 
         dp.add_handler(MessageHandler(Filters.text, telegram_handle_command))
+
+        dp.add_handler(MessageHandler(Filters.voice, voice_handler))
 
         updater.start_polling()
         if not DISCORD_ENABLE:

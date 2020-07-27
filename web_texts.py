@@ -8,7 +8,42 @@ import urllib.parse
 import html
 import re
 
-# Infinite regex poweeeerrrrr
+
+
+def getLocalData(data, i0):
+    p = 1
+    while(data[i0] != '<'):
+        i0+=1
+    i = i0+1
+    while p > 0:
+        if data[i:i+4] == "<div" or data[i:i+5] == "<span":
+            p+=1
+        elif data[i:i+5] == "</div" or data[i:i+6] == "</span":
+            p-=1
+        i+=1
+    i1 = data.find('>', i)
+    return data[i0:i1]
+def removeStructure(data):
+    r = ""
+    keep = True
+    string = False
+    for d in data:
+        if (not keep) and d == '"':
+            string = True
+        if string and d == '"':
+            string = False
+        if not string:
+            if keep and d == '<':
+                keep = False
+            if (not keep) and d == '>':
+                keep = True
+        if keep:
+            if d != '>':
+                r+=d
+            #elif len(r) == 0 or r[-1] != '\n':
+            #    r+='\n'
+    return ' '.join([e for e in r.split(' ') if e != ''])
+
 # Requests google with "msg" as researched text
 # Return the first important result found
 def getGoogleResponse(msg):
@@ -17,18 +52,88 @@ def getGoogleResponse(msg):
     data = '+'.join(keys)
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
     text = html.unescape(requests.get('https://www.google.com/search?q='+data, headers=headers).text)
-    regex_r = re.search('(?<=<div class="BNeawe iBp4i AP7Wnd">)(?:(?!<div>).)*?(?=</div>)', text)
-    if regex_r != None:
-        txt_rep = regex_r.group(0)
-        return txt_rep
-    regex_r = re.search('(?<=<div class="BNeawe s3v9rd AP7Wnd">)(?!<div>)(?:(?!<div>).)*?(?=</div>)', text)
-    if regex_r != None:
-        txt_rep = regex_r.group(0)
-        while "<" in txt_rep:
-            a = txt_rep.index("<")
-            b = txt_rep.index(">")
-            txt_rep = txt_rep[0:a]+txt_rep[b+1:]
-        return txt_rep
+
+
+    results = []
+
+    # Big responses on top
+    i = 0
+    while i != -1:
+        i = text.find('aria-level="3" role="heading"', i)
+        if i != -1:
+            while(text[i] != '<'):
+                i-=1
+            if text[i:i+31] == '<div class="HwtpBd gsrt PZPZlf"':
+                s = removeStructure(getLocalData(text, i))
+                print(7, s)
+                results += [["Top", s]]
+            while(text[i] != '>'):
+                i+=1
+
+    # Detect interesting blocs
+    il = [text.find('<h2 class="Uo8X3b"')]
+    while il[-1] != -1:
+        il += [text.find("<h2", il[-1]+1)]
+    responses = []
+    for i in il:
+        if i != -1:
+            j = text.find('</h2>', i)
+            if j != -1:
+                responses += [text[i:j+5]+"\n"+getLocalData(text, j+5)]
+
+    calc_result = ""
+    for r in responses:
+        # Title of bloc
+        a = r.find('>')
+        b = r.find('</h2>')
+        title = r[a+1:b]
+        #print("\n"+title)
+        # Huge text
+        i = r.find('aria-level="3"')
+        if i != -1:
+            i = r.find('>', i)
+            j = r.find('<', i)
+            #print(4, r[i+1:j])
+            results += [[title, r[i+1:j]]]
+        # Text between span
+        i = 0
+        while i != -1:
+            i = r.find('<span', i)
+            if i != -1:
+                i = r.find('>', i)
+                j = r.find('</span', i)
+                s = r[i+1:j].strip()
+                #print(6, s)
+                results += [[title, s]]
+                if title == "Résultat de calculatrice":
+                    calc_result = s
+
+    #print(results)
+    local_time = []
+    for r in results:
+        if r[0] == "Heure locale":
+            local_time+=[r[1]]
+    local_time = "\n".join(local_time)
+
+    if len(local_time) > 0:
+        return local_time
+    if len(calc_result) > 0:
+        return calc_result
+
+    for r in results:
+        if r[0] == "Description":
+            return r[1]
+
+    for r in results:
+        if r[0] == "Extrait optimisé sur le Web":
+            return r[1]
+
+    if len(results) > 0:
+        return results[0][1]
+
+    # Description
+    # Extrait optimisé sur le Web
+    # Résultat de calculatrice
     return ""
 
 # Return URL of an image based on msg, using google

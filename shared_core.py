@@ -2,9 +2,9 @@ from datetime import datetime
 from config import *
 
 class SharedCore:
-    telegramBot = None
-    def __init__(self, telegramBot):
+    def __init__(self, telegramBot, remote_service):
         self.telegramBot = telegramBot
+        self.remote_service = remote_service
     def saveToLog(self, contextual_bot):
         if not TEST:
             file = open(logPath+str(contextual_bot.getChatID()),"a")
