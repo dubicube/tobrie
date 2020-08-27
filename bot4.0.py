@@ -211,15 +211,18 @@ def search_image(contextual_bot, sh_core):
 def rapport(update, context):
     msg = update.message
     today = datetime.now()
-    d = datetime(2020, 2, 12, 23, 59, 59, 999999)
+    d = datetime(2020, 8, 27, 21, 59, 59, 999999)
     reste = d-today
     sec = reste.seconds
     if reste.days >= 0 and sec//3600>=0 and ((sec%3600)//60)>=0 and (sec%3600)%60>=0:
-        context.bot.send_message(chat_id=msg.chat_id, text="Dépêche toi, il te reste "+str(reste.days)+" jours, "+str(sec//3600)+" heures, "+str((sec%3600)//60)+" minutes et "+str((sec%3600)%60)+" secondes pour finir ton rapport !")
+        context.bot.send_message(chat_id=msg.chat_id, text="Il reste "+str(reste.days)+" jours, "+str(sec//3600)+" heures, "+str((sec%3600)//60)+" minutes et "+str((sec%3600)%60)+" secondes pour finir le rapport (ou le commencer...)")
     else:
-        reste = today-d
-        sec = reste.seconds
-        context.bot.send_message(chat_id=msg.chat_id, text="Trop tard, il fallait rendre le rapport de projet robot il y a "+str(reste.days)+" jours, "+str(sec//3600)+" heures, "+str((sec%3600)//60)+" minutes et "+str((sec%3600)%60)+" secondes !")
+
+        context.bot.send_message(chat_id=msg.chat_id, text="Il reste "+str(sec//3600)+" heures, "+str((sec%3600)//60)+" minutes et "+str((sec%3600)%60)+" secondes pour finir le rapport avec "+str(24*-reste.days)+"h de retard")
+
+        #reste = today-d
+        #sec = reste.seconds
+        #context.bot.send_message(chat_id=msg.chat_id, text="Trop tard, il fallait rendre le rapport il y a "+str(reste.days)+" jours, "+str(sec//3600)+" heures, "+str((sec%3600)//60)+" minutes et "+str((sec%3600)%60)+" secondes !")
         #context.bot.send_message(chat_id=msg.chat_id, text="C'est finiiiiiiiit!!!!!!")
 
 #########################################################################################
