@@ -203,6 +203,19 @@ def search_image(contextual_bot, sh_core):
         image_name = "temp/out."+extension
         download_image(url, image_name)
         contextual_bot.reply(ContextualBot.IMAGE, open(image_name, "rb"))
+def getAlie(contextual_bot, sh_core):
+    sh_core.notifConsole(contextual_bot)
+    #product = getFirstAlie(contextual_bot.getText()[5:])
+    product = sh_core.remote_service.sendToClient('1'+contextual_bot.getText()[5:]).split('///')
+    if len(product) != 2:
+        contextual_bot.reply(ContextualBot.TEXT, "Connection failed")
+        return
+    url = product[1]
+    extension = url.split(".")[-1]
+    image_name = "temp/out."+extension
+    download_image(url, image_name)
+    contextual_bot.reply(ContextualBot.TEXT, product[0])
+    contextual_bot.reply(ContextualBot.IMAGE, open(image_name, "rb"))
 
 #########################################################################################
 #                                       RAPPORT                                         #
@@ -219,7 +232,7 @@ def rapport(update, context):
     else:
 
         context.bot.send_message(chat_id=msg.chat_id, text="Il reste "+str(sec//3600)+" heures, "+str((sec%3600)//60)+" minutes et "+str((sec%3600)%60)+" secondes pour finir le rapport avec "+str(24*-reste.days)+"h de retard")
-
+        context.bot.send_animation(msg.chat_id, "https://tenor.com/view/fine-this-is-fine-fine-dog-shaking-intensifies-im-ok-gif-15733726")
         #reste = today-d
         #sec = reste.seconds
         #context.bot.send_message(chat_id=msg.chat_id, text="Trop tard, il fallait rendre le rapport il y a "+str(reste.days)+" jours, "+str(sec//3600)+" heures, "+str((sec%3600)//60)+" minutes et "+str((sec%3600)%60)+" secondes !")
@@ -273,6 +286,18 @@ def addNewVideo(contextual_bot, sh_core):
     txt = contextual_bot.getText()[6:].split('\n')[0]
     if len(txt) > 1:
         f = open("maps/new_videos", "a")
+        f.write(txt+"\n")
+        f.close()
+        contextual_bot.reply(ContextualBot.TEXT, "Ok")
+    else:
+        contextual_bot.reply(ContextualBot.TEXT, "Nop")
+
+def getOrders(contextual_bot, sh_core):
+    contextual_bot.reply(ContextualBot.TEXT, open("maps/orders", "r").read())
+def addOrder(contextual_bot, sh_core):
+    txt = contextual_bot.getText()[10:].split('\n')[0]
+    if len(txt) > 1:
+        f = open("maps/orders", "a")
         f.write(txt+"\n")
         f.close()
         contextual_bot.reply(ContextualBot.TEXT, "Ok")
@@ -591,7 +616,9 @@ commands = [
 ("shuffle", shuffleMusic),("clear", clearMusic),("fetch", updateMusic),("queue", infoMusic),
 ("cursor", setCursorMusic),
 ("help", help),
-("addv", addNewVideo)
+("addv", addNewVideo),
+("panier", getOrders), ("commande", addOrder),
+("ali", getAlie)
 ]
 
 def main():

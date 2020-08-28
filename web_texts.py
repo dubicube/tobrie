@@ -191,3 +191,35 @@ def getInfo():
     i = text.index('<h2 id="phrase"')
     j = text.index('</h2>', i)
     return text[i+39:j]
+
+
+# Aliexpress
+
+def parseAlieContent(p, key):
+    i = p.find('"'+key+'":"', 0)+4+len(key)
+    j = p.find('"', i)
+    return p[i:j]
+def parseAlieProduct(p):
+    title = parseAlieContent(p, 'title')
+    imageUrl = 'https:' + parseAlieContent(p, 'imageUrl')
+    return [title, imageUrl]
+def parseAlie(msg):
+    keys = msg.split(' ')
+    keys = [urllib.parse.quote(k) for k in keys]
+    data = '+'.join(keys)
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+    text = requests.get('https://fr.aliexpress.com/wholesale?catId=0&initiative_id=SB_20200827111753&SearchText='+data, headers=headers).text
+    i = text.find('"items"', 0)+9
+    j = i
+    p = 1
+    while p != 0:
+        if text[j] == '[':
+            p+=1
+        if text[j] == ']':
+            p-=1
+        j+=1
+    data = text[i+1:j-2].split('},{')
+    return data
+def getFirstAlie(msg):
+    d = parseAlie(msg)
+    return parseAlieProduct(d[0])

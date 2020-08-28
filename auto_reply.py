@@ -91,7 +91,7 @@ def handleText(contextual_bot, sh_core, level=0):
     # Auto response from google. Terminate if response provided
     if msg.lower()[0:7] == "brenda ":
         #googleresp = getGoogleResponse(msg[7:])
-        googleresp = sh_core.remote_service.sendToClient(msg[7:])
+        googleresp = sh_core.remote_service.sendToClient('0'+msg[7:])
         if len(googleresp) > 1:
             contextual_bot.reply(ContextualBot.TEXT, googleresp)
             return
