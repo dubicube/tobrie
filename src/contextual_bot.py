@@ -197,6 +197,8 @@ class BrendapiBot(ContextualBot):
                 resp+=[obj]
         if len(resp) != 0:
             self.brendapi.send_text('\n'.join(resp), self.clientsocket)
+        else:
+            self.brendapi.send_text("", self.clientsocket)
         self.reply_queue = []
 
 

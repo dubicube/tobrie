@@ -483,20 +483,17 @@ def brendapiCallbackOnText(text, brendapi, clientsocket, addr):
     contextual_bot = BrendapiBot(text, brendapi, clientsocket, addr)
     # Allow monitoring only if requests are local
     (ip_a, _) = addr
-    if ip_a == "127.0.0.1":
-        if text[:8] == "/monitor": # Monitor commands
-            commands = text.split(' ')
-            if commands[1] == "stop": # Stop system
-                contextual_bot.reply(ContextualBot.TEXT, "STOP")
-                contextual_bot.outputMessages()
-                stopAll()
-    else:
-        # Call global core
-        generic_handle_text(contextual_bot, sh_core)
-        contextual_bot.outputMessages()
-# Callback to detect not allowed IP connections
-def brendapiCallbackOnPermission(ip_a):
-    print("IP not allowed:", ip_a)
+    # if ip_a == "127.0.1.1":
+    #     if text[:8] == "/monitor": # Monitor commands
+    #         commands = text.split(' ')
+    #         if commands[1] == "stop": # Stop system
+    #             contextual_bot.reply(ContextualBot.TEXT, "STOP")
+    #             contextual_bot.outputMessages()
+    #             stopAll()
+    # else:
+    # Call global core
+    generic_handle_text(contextual_bot, sh_core)
+    contextual_bot.outputMessages()
 
 
 #########################################################################################
@@ -598,8 +595,8 @@ def telegram_periodic_thread(update, context):
 
 TELEGRAM_ENABLE = True or not(TEST)
 DISCORD_ENABLE  = False or not(TEST)
-PERIODIC_ENABLE = False or not(TEST)
-BRENDAPI_ENABLE = False or not(TEST)
+PERIODIC_ENABLE = False# or not(TEST)
+BRENDAPI_ENABLE = True or not(TEST)
 
 tokens = open("tokens", "r").read().split("\n")
 TELEGRAM_TOKEN=tokens[2] if TEST else tokens[0]
@@ -625,7 +622,7 @@ def main():
 
     #####[ BRENDAPI ]#####
     global brendapi
-    brendapi = Brendapi(65432, brendapiCallbackOnText, brendapiCallbackOnPermission)
+    brendapi = Brendapi(53720, brendapiCallbackOnText)
     if BRENDAPI_ENABLE:
         brendapi.start()
 
