@@ -156,8 +156,12 @@ def check_for_stickers(contextual_bot, sh_core, msg):
             contextual_bot.reply(ContextualBot.IMAGE, open(s[1], 'rb'))
         else:
             pack = sh_core.telegramBot.get_sticker_set(s[0])
-            for index in s[1].split(','):
-                contextual_bot.reply(ContextualBot.STICKER, pack.stickers[int(index)])
+            if '~' in s[1]:
+                l = s[1].split('~')
+                contextual_bot.reply(ContextualBot.STICKER, pack.stickers[random.randint(int(l[0]), int(l[1]))])
+            else:
+                for index in s[1].split(','):
+                    contextual_bot.reply(ContextualBot.STICKER, pack.stickers[int(index)])
 
 def check_for_text(contextual_bot, msg):
     for s in text_map_regex:
