@@ -1,13 +1,15 @@
 import os
 
 #videoPath = 'video/'
-soundPath = 'sound/'
-memePath = 'meme/'
-logPath = 'log/'
-tempPath = 'temp/'
-stickers_map_file = 'maps/sticker_map'
-text_map_file = 'maps/text_map'
-video_map_file = 'maps/video_map'
+tempPath = '../temp/'
+soundPath = '../sound/'
+memePath = '../meme/'
+logPath = '../log/'
+tempPath = '../temp/'
+mapPath = '../maps/'
+stickers_map_file = '../maps/sticker_map'
+text_map_file = '../maps/text_map'
+video_map_file = '../maps/video_map'
 
 dataServerAddress = 'http://copperbot.fr/tobrie_uploader/videos/'
 thumbnailsServerAddress = 'http://copperbot.fr/tobrie_uploader/thumbnails/'
@@ -16,7 +18,7 @@ regex_start = "(^| |\')("
 regex_end = ")($| |,|\\.|!|\\?)"
 
 
-dataPath = 'data/old/'
+dataPath = '../data/old/'
 
 users = {'Alban':470589955, 'Mathieu':400322253, 'Vincent':479998987,
         'Emile':938620840, 'Tristan':427032387, 'Leo':936261629,

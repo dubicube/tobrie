@@ -1,5 +1,5 @@
 from discord import File as DiscordFile
-from audio import *
+from generic.audio import *
 
 
 class ContextualBot:

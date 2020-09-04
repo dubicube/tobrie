@@ -25,14 +25,14 @@ import threading
 from config import *
 from contextual_bot import *
 from shared_core import *
-from web_texts import *
-from inventory import *
-from audio import *
+from generic.web_texts import *
+from eirbot.inventory import *
+from generic.audio import *
 from auto_reply import handleText, load_maps, setDI, setAutoReply, conv
-from youtube import *
-from mail_manager import *
-from brendapi import *
-from remote_service_server import *
+from generic.youtube import *
+from generic.mail_manager import *
+from service.brendapi import *
+from service.remote_service_server import *
 
 sticker_map_regex = []
 text_map_regex = []
@@ -200,7 +200,7 @@ def search_image(contextual_bot, sh_core):
     if extension == "gif":
         contextual_bot.reply(ContextualBot.ANIMATION, url)
     else:
-        image_name = "temp/out."+extension
+        image_name = tempPath+"out."+extension
         download_image(url, image_name)
         contextual_bot.reply(ContextualBot.IMAGE, open(image_name, "rb"))
 def getAlie(contextual_bot, sh_core):
@@ -212,7 +212,7 @@ def getAlie(contextual_bot, sh_core):
         return
     url = product[1]
     extension = url.split(".")[-1]
-    image_name = "temp/out."+extension
+    image_name = tempPath+"out."+extension
     download_image(url, image_name)
     contextual_bot.reply(ContextualBot.TEXT, product[0])
     contextual_bot.reply(ContextualBot.IMAGE, open(image_name, "rb"))
@@ -244,7 +244,7 @@ def rapport(update, context):
 
 inventory = []
 if not(TEST):
-    inventory = processInventoryHTML("base.html")
+    inventory = processInventoryHTML("eirbot/base.html")
 def find(contextual_bot, sh_core):
     results = searchInventory(contextual_bot.getText()[6:], inventory)
     if len(results) < 10:
@@ -261,22 +261,22 @@ def getRandomLine(txt):
     l = txt.split('\n')
     return l[random.randint(0, len(l)-2)]
 def getCitation(contextual_bot, sh_core):
-    contextual_bot.reply(ContextualBot.TEXT, getRandomLine(open("maps/citations", "r").read()))
+    contextual_bot.reply(ContextualBot.TEXT, getRandomLine(open(mapPath+"citations", "r").read()))
 def addCitation(contextual_bot, sh_core):
     txt = contextual_bot.getText()[6:].split('\n')[0]
     if len(txt) > 1:
-        f = open("maps/citations", "a")
+        f = open(mapPath+"citations", "a")
         f.write(txt+"\n")
         f.close()
         contextual_bot.reply(ContextualBot.TEXT, "Ok")
     else:
         contextual_bot.reply(ContextualBot.TEXT, "Nop")
 def get1AProject(contextual_bot, sh_core):
-    contextual_bot.reply(ContextualBot.TEXT, open("maps/projets1A", "r").read())
+    contextual_bot.reply(ContextualBot.TEXT, open(mapPath+"projets1A", "r").read())
 def add1AProject(contextual_bot, sh_core):
     txt = contextual_bot.getText()[6:].split('\n')[0]
     if len(txt) > 1:
-        f = open("maps/projets1A", "a")
+        f = open(mapPath+"projets1A", "a")
         f.write(txt+"\n")
         f.close()
         contextual_bot.reply(ContextualBot.TEXT, "Ok")
@@ -285,7 +285,7 @@ def add1AProject(contextual_bot, sh_core):
 def addNewVideo(contextual_bot, sh_core):
     txt = contextual_bot.getText()[6:].split('\n')[0]
     if len(txt) > 1:
-        f = open("maps/new_videos", "a")
+        f = open(mapPath+"new_videos", "a")
         f.write(txt+"\n")
         f.close()
         contextual_bot.reply(ContextualBot.TEXT, "Ok")
@@ -293,11 +293,11 @@ def addNewVideo(contextual_bot, sh_core):
         contextual_bot.reply(ContextualBot.TEXT, "Nop")
 
 def getOrders(contextual_bot, sh_core):
-    contextual_bot.reply(ContextualBot.TEXT, open("maps/orders", "r").read())
+    contextual_bot.reply(ContextualBot.TEXT, open(mapPath+"orders", "r").read())
 def addOrder(contextual_bot, sh_core):
     txt = contextual_bot.getText()[10:].split('\n')[0]
     if len(txt) > 1:
-        f = open("maps/orders", "a")
+        f = open(mapPath+"orders", "a")
         f.write(txt+"\n")
         f.close()
         contextual_bot.reply(ContextualBot.TEXT, "Ok")
@@ -363,8 +363,8 @@ def setCursorMusic(contextual_bot, sh_core):
 music_increment = 1
 async def discordPlay(message):
     if len(musicQueue.queue) == 0:return
-    musicQueue.playNext('temp/v.mp3')
-    await discordPlayFile(message, 'temp/v.mp3', discordPlayNext)
+    musicQueue.playNext(tempPath+'v.mp3')
+    await discordPlayFile(message, tempPath+'v.mp3', discordPlayNext)
 def discordPlayNext(err):
     global discord_voice
     global music_increment
@@ -372,11 +372,11 @@ def discordPlayNext(err):
         music_increment = 1
         return
     elif music_increment == 1:
-        musicQueue.playNext('temp/v.mp3')
+        musicQueue.playNext(tempPath+'v.mp3')
     elif music_increment == -1:
-        musicQueue.playPrevious('temp/v.mp3')
+        musicQueue.playPrevious(tempPath+'v.mp3')
         music_increment = 1
-    source = FFmpegPCMAudio(executable=ffmpeg_path, source='temp/v.mp3')
+    source = FFmpegPCMAudio(executable=ffmpeg_path, source=tempPath+'v.mp3')
     discord_voice.play(source, after=discordPlayNext)
 async def discordPause(message):
     global discord_voice
@@ -417,8 +417,8 @@ async def discordPlayMic(message):
 #ffmpeg -f dshow -i audio="Réseau de microphones (Realtek High Definition Audio)" -acodec libmp3lame  -t 10 out.mp3
 
 async def discordSay(message):
-    getVoice(message.content[6:], 'temp/v.mp3')
-    await discordPlayFile(message, 'temp/v.mp3')
+    getVoice(message.content[6:], tempPath+'v.mp3')
+    await discordPlayFile(message, tempPath+'v.mp3')
 def default_discord_end(err):
     a = 42*10
 async def discordPlayFile(message, file, after_playing=default_discord_end):
@@ -469,8 +469,8 @@ def telegram_stop(update, context):
         stopAll()
 
 def voice_handler(update, context):
-    update.message.voice.get_file().download("temp/out.ogg")
-    contextual_bot = SpeechBot(update, context, speechToText("temp/out.ogg"))
+    update.message.voice.get_file().download(tempPath+"out.ogg")
+    contextual_bot = SpeechBot(update, context, speechToText(tempPath+"out.ogg"))
     generic_handle_text(contextual_bot, sh_core)
     contextual_bot.outputMessages()
 

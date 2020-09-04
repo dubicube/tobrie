@@ -12,12 +12,12 @@ import speech_recognition as sr
 from config import *
 
 def speechToText(file, language = "fr-FR"):
-    if os.path.isfile("temp/out.wav"):
-        os.remove("temp/out.wav")
-    os.system(ffmpeg_path+" -i "+file+" temp/out.wav")
+    if os.path.isfile(tempPath+"out.wav"):
+        os.remove(tempPath+"out.wav")
+    os.system(ffmpeg_path+" -i "+file+" "+tempPath+"out.wav")
     r = sr.Recognizer()
     # open the file
-    with sr.AudioFile("temp/out.wav") as source:
+    with sr.AudioFile(tempPath+"out.wav") as source:
         # listen for the data (load audio to memory)
         audio_data = r.record(source)
         # recognize (convert from speech to text)

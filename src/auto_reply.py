@@ -2,7 +2,7 @@ import re
 import random
 from config import *
 from shared_core import *
-from web_texts import getGoogleResponse
+from generic.web_texts import getGoogleResponse
 from contextual_bot import ContextualBot
 
 messages_perso = [

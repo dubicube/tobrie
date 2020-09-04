@@ -5,3 +5,4 @@ temp/
 tokens
 ctrl_bot.py
 file_service.py
+base.html
