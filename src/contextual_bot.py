@@ -1,5 +1,6 @@
 from discord import File as DiscordFile
 from generic.audio import *
+import random
 
 
 class ContextualBot:
@@ -10,12 +11,12 @@ class ContextualBot:
     AUDIO = 4
     STICKER = 5
     ANIMATION = 6
+    PIC_LIST = [VIDEO, IMAGE, STICKER, ANIMATION]
 
-    type = "None"
-    reply_queue = []
     def __init__(self):
         self.type = "None"
         self.reply_queue = []
+        self.reply_queue_pic = []
     def getChatID(self):
         return 0
     def getUserID(self):
@@ -30,8 +31,21 @@ class ContextualBot:
         return ""
     def getAbsoluteText(self):
         return ""
-    def reply(self, type, obj):
-        self.reply_queue+=[(type, obj)]
+    def reply(self, type, obj, proba=100):
+        self.reply_queue+=[(type, obj, proba)]
+        if type in ContextualBot.PIC_LIST:
+            self.reply_queue_pic+=[(type, obj, proba)]
+    def clearQueue(self):
+        self.reply_queue = []
+        self.reply_queue_pic = []
+    def purge(self):
+        q = []
+        for (type, obj, proba) in self.reply_queue:
+            if not type in ContextualBot.PIC_LIST:
+                q+=[(type, obj, proba)]
+        if len(self.reply_queue_pic) > 0:
+            q+=self.reply_queue_pic[random.randint(0, len(self.reply_queue_pic-1))]
+        self.reply_queue = q
 
 class TelegramBot(ContextualBot):
     update = None
@@ -68,10 +82,24 @@ class TelegramBot(ContextualBot):
     def outputMessages(self):
         b = self.context.bot
         funs = [b.send_message, b.send_document, b.send_video, b.send_photo, b.send_audio, b.send_sticker, b.send_animation]
-        for (type, obj) in self.reply_queue:
-            if type < len(funs):
+        for (type, obj, proba) in self.reply_queue:
+            if type < len(funs) and not type in ContextualBot.PIC_LIST:
                 funs[type](self.update.message.chat_id, obj)
-        self.reply_queue = []
+        if len(self.reply_queue_pic) > 0:
+            proba_total = 0
+            for (type, obj, proba) in self.reply_queue_pic:
+                proba_total+=proba
+            target_proba = random.randint(0, proba_total + (100*len(self.reply_queue_pic)-proba_total)//len(self.reply_queue_pic) - 1)
+            if target_proba < proba_total:
+                i = 0
+                proba_total = 0
+                while proba_total <= target_proba:
+                    (_, _, proba) = self.reply_queue_pic[i]
+                    proba_total+=proba
+                    i+=1
+                (type, obj, proba) = self.reply_queue_pic[i-1]
+                funs[type](self.update.message.chat_id, obj)
+        super().clearQueue()
 
 
 class DiscordBot(ContextualBot):
@@ -93,7 +121,8 @@ class DiscordBot(ContextualBot):
         return self.message.content
 
     async def outputMessages(self):
-        for (type, obj) in self.reply_queue:
+        super().purge()
+        for (type, obj, proba) in self.reply_queue:
             if type==ContextualBot.TEXT or type==ContextualBot.VIDEO or type==ContextualBot.ANIMATION:
                 await self.message.channel.send(obj)
             if type==ContextualBot.DOCUMENT or type==ContextualBot.IMAGE or type==ContextualBot.AUDIO:
@@ -101,7 +130,7 @@ class DiscordBot(ContextualBot):
             if type==ContextualBot.STICKER:
                 obj.get_file().download("temp/sticker.webp")
                 await self.message.channel.send(file=DiscordFile("temp/sticker.webp"))
-        self.reply_queue = []
+        super().clearQueue()
 
 
 class TweepyBot(ContextualBot):
@@ -123,8 +152,9 @@ class TweepyBot(ContextualBot):
         return self.tweet.text
 
     def outputMessages(self):
+        super().purge()
         txt_rep = []
-        for (type, obj) in self.reply_queue:
+        for (type, obj, proba) in self.reply_queue:
             if type == ContextualBot.TEXT or type == ContextualBot.VIDEO:
                 txt_rep+=[obj]
         count = len(self.getUserName())+1
@@ -138,7 +168,7 @@ class TweepyBot(ContextualBot):
             #print("@"+self.getUserName()+" "+txt)
         #for video in self.video_reply:
         #    await self.message.channel.send(video)
-        self.reply_queue = []
+        super().clearQueue()
 
 class MailBot(ContextualBot):
     manager = None
@@ -157,15 +187,16 @@ class MailBot(ContextualBot):
         return self.mail[2]
 
     def outputMessages(self):
+        super().purge()
         data = ""
-        for (type, obj) in self.reply_queue:
+        for (type, obj, proba) in self.reply_queue:
             if type==ContextualBot.TEXT or type==ContextualBot.VIDEO or type==ContextualBot.ANIMATION:
                 data+=obj+"\n"
         if len(data) != 0:
             addrs = self.manager.getAddressesToReply(self.mail)
             #print(addrs[0], addrs[1], self.mail[3], data)
             self.manager.send_email(addrs[0], addrs[1], self.mail[3], data)
-        self.reply_queue = []
+        super().clearQueue()
 
 
 class BrendapiBot(ContextualBot):
@@ -191,15 +222,16 @@ class BrendapiBot(ContextualBot):
         return self.data
 
     def outputMessages(self):
+        super().purge()
         resp = []
-        for (type, obj) in self.reply_queue:
+        for (type, obj, proba) in self.reply_queue:
             if type==ContextualBot.TEXT or type==ContextualBot.VIDEO or type==ContextualBot.ANIMATION:
                 resp+=[obj]
         if len(resp) != 0:
             self.brendapi.send_text('\n'.join(resp), self.clientsocket)
         else:
             self.brendapi.send_text("", self.clientsocket)
-        self.reply_queue = []
+        super().clearQueue()
 
 
 class SpeechBot(ContextualBot):
@@ -226,10 +258,11 @@ class SpeechBot(ContextualBot):
     def isChatPerso(self):
         return self.update.message.chat_id == self.update.message.from_user.id
     def outputMessages(self):
+        super().purge()
         b = self.context.bot
         funs = [b.send_message, b.send_document, b.send_video, b.send_photo, b.send_audio, b.send_sticker, b.send_animation]
         #all_text = []
-        for (type, obj) in self.reply_queue:
+        for (type, obj, proba) in self.reply_queue:
             #if type == ContextualBot.TEXT:
             #        all_text+=[obj]
             if type < len(funs):
@@ -237,4 +270,4 @@ class SpeechBot(ContextualBot):
         #all_text = " ".join(all_text)
         #getVoice(all_text, "temp/out.mp3")
         #b.send_audio(self.update.message.chat_id, open("temp/out.mp3", 'rb'))
-        self.reply_queue = []
+        super().clearQueue()

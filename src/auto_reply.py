@@ -134,7 +134,11 @@ def load_maps():
         if len(l) > 2:
             a = l.index(' ')
             b = l.index(' ', a+1)
-            sticker_map_regex+=[[l[:a], l[a+1:b], l[b+1:]]]
+            if l[a+1] == '@':
+                c = l.index(' ', b+1)
+                sticker_map_regex+=[[l[:a], l[b+1:c], l[c+1:], int(l[a+2:b])]]
+            else:
+                sticker_map_regex+=[[l[:a], l[a+1:b], l[b+1:], 100]]
     #sticker_map_regex=[i.split('\n') for i in open(stickers_map_file, "r").read().split('\n\n')]
     text_map_regex=[i.split('\n') for i in open(text_map_file, "r").read().split('\n\n')]
     video_map_regex=[i.split('\n') for i in open(video_map_file, "r").read().split('\n\n')]
@@ -146,22 +150,23 @@ def check_for_stickers(contextual_bot, sh_core, msg):
     for s in sticker_map_regex:
         if not(re.search(regex_start+s[2]+regex_end, msg.lower()) is None):
             results+=[s]
-    if len(results) > 0:
-        s = results[random.randint(0, len(results)-1)]
+    #if len(results) > 0:
+    for s in results:
+        #s = results[random.randint(0, len(results)-1)]
         if s[0] == "GIF":
-            contextual_bot.reply(ContextualBot.ANIMATION, s[1])
+            contextual_bot.reply(ContextualBot.ANIMATION, s[1], s[3])
         elif s[0] == "FILE":
-            contextual_bot.reply(ContextualBot.DOCUMENT, open(s[1], 'rb'))
+            contextual_bot.reply(ContextualBot.DOCUMENT, open(s[1], 'rb'), s[3])
         elif s[0] == "IMAGE":
-            contextual_bot.reply(ContextualBot.IMAGE, open(s[1], 'rb'))
+            contextual_bot.reply(ContextualBot.IMAGE, open(s[1], 'rb'), s[3])
         else:
             pack = sh_core.telegramBot.get_sticker_set(s[0])
             if '~' in s[1]:
                 l = s[1].split('~')
-                contextual_bot.reply(ContextualBot.STICKER, pack.stickers[random.randint(int(l[0]), int(l[1]))])
+                contextual_bot.reply(ContextualBot.STICKER, pack.stickers[random.randint(int(l[0]), int(l[1]))], s[3])
             else:
                 for index in s[1].split(','):
-                    contextual_bot.reply(ContextualBot.STICKER, pack.stickers[int(index)])
+                    contextual_bot.reply(ContextualBot.STICKER, pack.stickers[int(index)], s[3])
 
 def check_for_text(contextual_bot, msg):
     for s in text_map_regex:
