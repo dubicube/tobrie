@@ -2,7 +2,7 @@
 Plus d'aide sur une commande:
 /help commande
 Liste des commandes:
-@eir_bot, Brenda, /list, /dico, /di, /video, /calc, /meme, /quote, /info, /img, /say, /lang,
+@eir_bot, /on, /off, /config, /proba, /list, /dico, /calc, /meme, /quote, /info, /img, /say, /lang,
 /addm, /shuffle, /clear, /play, /stop, /pause, /resume, /next, /previous, /pn, /queue
 Code source:
 https://github.com/dubicube/tobrie
@@ -22,11 +22,35 @@ Si le premier tag est "z", renvoie le 2ème tag en zalgo
 Exemple:
 @eirbot z issou
 
-Commande: /di
-Active/désactive le di/cri (et bien plus...)
+Commande: /on
+Active les réponses automatiques configurées
 
-Commande: /video
-Active/désactive les réponses automatiques de vidéos
+Commande: /off
+Désactive toutes les réponses automatiques
+
+Commande: /config param
+Sans paramètre: renvoie la configuration actuelle.
+Avec paramètres: configure le bot dans la conversation avec les paramètres donnés.
+Il doit y avoir 4 paramètres séparés par des espaces. Chaque paramètre peut prendre la valeur 1/0 ou true/false pour activer/désactiver la fonctionnalité correspondante.
+Le "auto reply" correspond à toutes les réponses automatiques. Ce paramètre peut également être directement modifié avec les commandes /ono et /off.
+Le "sticker enable" contrôle les réponses sous forme de stickers, images et gif.
+Le "text enable" contrôle les réponses sous forme de texte, dont le di, cri, ine...
+Le "video enable" contrôle les réponses sous forme de vidéo.
+Voir la commande /proba pour configurer les probabilités.
+Exemple:
+/config 1 1 0 0
+
+Commande: /proba param
+Sans paramètre: renvoie les probabilités en cours.
+Avec paramètres: configure le bot dans la conversation avec les paramètres donnés.
+Il doit y avoir 4 paramètres séparés par des espaces. Chaque paramètre peut prendre une valeur comprise entre 0 et 100 pour contrôler la probabilité de la fonctionnalité correspondante.
+La probabilité "auto reply" agit sur toutes les réponses automatiques.
+Le "sticker enable" contrôle les réponses sous forme de stickers, images et gif.
+Le "text enable" contrôle les réponses sous forme de texte, dont le di, cri, ine...
+Le "video enable" contrôle les réponses sous forme de vidéo.
+Voir aussi la commande /config.
+Exemple:
+/proba 50 100 25 0
 
 Commande: /calc expr
 Dicte l'opération $expr

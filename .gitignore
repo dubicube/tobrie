@@ -2,6 +2,7 @@ __pycache__
 maps/
 sound/
 temp/
+data/
 tokens
 ctrl_bot.py
 file_service.py

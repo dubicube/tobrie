@@ -28,7 +28,7 @@ from shared_core import *
 from generic.web_texts import *
 from eirbot.inventory import *
 from generic.audio import *
-from auto_reply import handleText, load_maps, setDI, setAutoReply, conv
+from auto_reply import handleText, load_maps, configureParameters, configureProba, setAutoReplyOn, setAutoReplyOff, conv
 from generic.youtube import *
 from generic.mail_manager import *
 from service.brendapi import *
@@ -253,6 +253,16 @@ def find(contextual_bot, sh_core):
     else:
         contextual_bot.reply(ContextualBot.TEXT, "Trop de résultats")
 
+
+
+def deprecatedCommand(contextual_bot, sh_core):
+    contextual_bot.reply(ContextualBot.TEXT, "Cette commande n'est plus supportée")
+    contextual_bot.outputMessages()
+    contextual_bot.reply(ContextualBot.VIDEO, dataServerAddress+'tintin_c\'est_con_capitaine.mp4')
+    contextual_bot.outputMessages()
+    contextual_bot.reply(ContextualBot.TEXT, "Consultez l'aide (/help) pour découvrir les commandes alternatives")
+    contextual_bot.outputMessages()
+
 #########################################################################################
 #                                     CITATIONS                                         #
 #########################################################################################
@@ -474,6 +484,34 @@ def voice_handler(update, context):
     generic_handle_text(contextual_bot, sh_core)
     contextual_bot.outputMessages()
 
+
+def telegram_new_member(update, context):
+    contextual_bot = TelegramBot(update, context)
+    members = update.message.new_chat_members
+    ptdrtki = False
+    for m in members:
+        print(str(m))
+        if m.id == id_bot:
+            # Bot has been added to the chat
+            contextual_bot.reply(ContextualBot.VIDEO, dataServerAddress+'eddy_malou_bonjour.mp4')
+            contextual_bot.outputMessages()
+            contextual_bot.reply(ContextualBot.TEXT, "Aide: /help\nConfiguration: /on, /off, /config, /proba")
+            contextual_bot.outputMessages()
+        else:
+            ptdrtki = True
+        if m.id == conv_perso:
+            ptdrtki = False
+            pack = sh_core.telegramBot.get_sticker_set("EIRBOTO")
+            contextual_bot.reply(ContextualBot.STICKER, pack.stickers[12])
+            contextual_bot.outputMessages()
+    if ptdrtki:
+        pack = sh_core.telegramBot.get_sticker_set("EIRBOTO")
+        contextual_bot.reply(ContextualBot.STICKER, pack.stickers[47])
+        contextual_bot.outputMessages()
+
+
+
+
 #########################################################################################
 #                                     BRENDAPI                                          #
 #########################################################################################
@@ -606,7 +644,9 @@ sh_core = SharedCore(updater.bot, RemoteServiceServer(65332))
 client_discord = discord.Client()
 
 commands = [
-("di", setDI),("video", setAutoReply),("find", find),("info", info),
+("di", deprecatedCommand), ("video", deprecatedCommand),
+("config", configureParameters),("proba", configureProba),
+("on", setAutoReplyOn),("off", setAutoReplyOff),("find", find),("info", info),
 ("quote", quote),("citation", getCitation), ("addc", addCitation), ("projet", get1AProject),
 ("addp", add1AProject),("meme", meme),("calc", calc), ("croa", croa),
 ("say", sayText), ("lang", setVoiceLanguage),("img", search_image),("addm", addMusic),
@@ -661,6 +701,8 @@ def main():
         dp.add_handler(MessageHandler(Filters.text, telegram_handle_command))
 
         dp.add_handler(MessageHandler(Filters.voice, voice_handler))
+
+        dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, telegram_new_member))
 
         updater.start_polling()
         if not DISCORD_ENABLE:

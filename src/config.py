@@ -10,6 +10,7 @@ mapPath = '../maps/'
 stickers_map_file = '../maps/sticker_map'
 text_map_file = '../maps/text_map'
 video_map_file = '../maps/video_map'
+conv_config_path = '../data/'
 
 dataServerAddress = 'http://copperbot.fr/tobrie_uploader/videos/'
 thumbnailsServerAddress = 'http://copperbot.fr/tobrie_uploader/thumbnails/'
@@ -40,5 +41,7 @@ id_console = 479998987
 conv_perso = 479998987
 
 TEST = not os.path.isdir(logPath)
+
+id_bot = 1081958230 if TEST else 720838667
 
 ffmpeg_path = "/usr/bin/ffmpeg" if not TEST else "C:/Users/dubicube/Desktop/bot/ffmpeg/bin/ffmpeg.exe"
