@@ -10,6 +10,7 @@ class ContextualBot:
     IMAGE = 3
     AUDIO = 4
     STICKER = 5
+    CHAINED_STICKERS = 7
     ANIMATION = 6
     PIC_LIST = [VIDEO, IMAGE, STICKER, ANIMATION]
 
@@ -79,9 +80,12 @@ class TelegramBot(ContextualBot):
             return ""
     def isChatPerso(self):
         return self.message.chat_id == self.message.from_user.id
+    def send_chained_stickers(self, conv, l):
+        for i in l:
+            self.context.bot.send_sticker(conv, i)
     def outputMessages(self):
         b = self.context.bot
-        funs = [b.send_message, b.send_document, b.send_video, b.send_photo, b.send_audio, b.send_sticker, b.send_animation]
+        funs = [b.send_message, b.send_document, b.send_video, b.send_photo, b.send_audio, b.send_sticker, b.send_animation, self.send_chained_stickers]
         for (type, obj, proba) in self.reply_queue:
             if type < len(funs) and not type in ContextualBot.PIC_LIST:
                 funs[type](self.update.message.chat_id, obj)
@@ -130,6 +134,10 @@ class DiscordBot(ContextualBot):
             if type==ContextualBot.STICKER:
                 obj.get_file().download("temp/sticker.webp")
                 await self.message.channel.send(file=DiscordFile("temp/sticker.webp"))
+            if type==ContextualBot.CHAINED_STICKERS:
+                for o in obj:
+                    o.get_file().download("temp/sticker.webp")
+                    await self.message.channel.send(file=DiscordFile("temp/sticker.webp"))
         super().clearQueue()
 
 

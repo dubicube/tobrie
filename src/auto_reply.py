@@ -165,8 +165,7 @@ def check_for_stickers(contextual_bot, sh_core, msg):
                 l = s[1].split('~')
                 contextual_bot.reply(ContextualBot.STICKER, pack.stickers[random.randint(int(l[0]), int(l[1]))], s[3])
             else:
-                for index in s[1].split(','):
-                    contextual_bot.reply(ContextualBot.STICKER, pack.stickers[int(index)], s[3])
+                contextual_bot.reply(ContextualBot.CHAINED_STICKERS, [pack.stickers[int(index)] for index in s[1].split(',')], s[3])
 
 def check_for_text(contextual_bot, msg):
     for s in text_map_regex:
