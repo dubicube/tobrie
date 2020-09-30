@@ -12,7 +12,7 @@ class ContextualBot:
     STICKER = 5
     CHAINED_STICKERS = 7
     ANIMATION = 6
-    PIC_LIST = [VIDEO, IMAGE, STICKER, ANIMATION]
+    PIC_LIST = [VIDEO, IMAGE, STICKER, ANIMATION, CHAINED_STICKERS]
 
     def __init__(self):
         self.type = "None"
@@ -279,3 +279,14 @@ class SpeechBot(ContextualBot):
         #getVoice(all_text, "temp/out.mp3")
         #b.send_audio(self.update.message.chat_id, open("temp/out.mp3", 'rb'))
         super().clearQueue()
+
+class SpeechBot2(TelegramBot):
+    def __init__(self, update, context, data):
+        self.update = update
+        self.context = context
+        self.data = data
+        super(SpeechBot2, self).__init__(update, context)
+    def getAbsoluteText(self):
+        return self.data
+    def getText(self):
+        return self.data

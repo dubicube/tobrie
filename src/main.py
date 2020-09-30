@@ -480,7 +480,7 @@ def telegram_stop(update, context):
 
 def voice_handler(update, context):
     update.message.voice.get_file().download(tempPath+"out.ogg")
-    contextual_bot = SpeechBot(update, context, speechToText(tempPath+"out.ogg"))
+    contextual_bot = SpeechBot2(update, context, speechToText(tempPath+"out.ogg"))
     generic_handle_text(contextual_bot, sh_core)
     contextual_bot.outputMessages()
 
@@ -602,6 +602,8 @@ def periodic_thread():
         #runTweepy()
         if periodic_thread_wait(10 if TEST else 300):
             break
+global stop_periodic_thread
+stop_periodic_thread = True
 def start_periodic_thread():
     global stop_periodic_thread
     global periodic_thread_watchdog
