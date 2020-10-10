@@ -34,6 +34,8 @@ from generic.mail_manager import *
 from service.brendapi import *
 from service.remote_service_server import *
 
+import events_ui
+
 sticker_map_regex = []
 text_map_regex = []
 video_map_regex = []
@@ -464,6 +466,7 @@ def telegram_handle_command(update, context):
 
 # Shutdown all system
 def shutdown():
+    eventsUI.stop() # Stop event thread
     brendapi.stop() # Kill BrendAPI
     sh_core.remote_service.stop() # Kill remote service
     stop_periodic_thread_fun() # Kill Mail and Twitter
@@ -627,6 +630,13 @@ def telegram_periodic_thread(update, context):
         if arg == "c":
             context.bot.send_message(update.message.chat_id, "Watchdog: "+str(periodic_thread_watchdog))
 
+#########################################################################################
+#                                       EVENTS                                          #
+#########################################################################################
+
+global eventsUI
+eventsUI = events_ui.EventsUI()
+
 
 #########################################################################################
 #                                        MAIN                                           #
@@ -637,6 +647,7 @@ TELEGRAM_ENABLE = True or not(TEST)
 DISCORD_ENABLE  = False or not(TEST)
 PERIODIC_ENABLE = False# or not(TEST)
 BRENDAPI_ENABLE = True or not(TEST)
+EVENTS_ENABLE = True or not(TEST)
 
 tokens = open("tokens", "r").read().split("\n")
 TELEGRAM_TOKEN=tokens[2] if TEST else tokens[0]
@@ -657,7 +668,10 @@ commands = [
 ("help", help),
 ("addv", addNewVideo),
 ("panier", getOrders), ("commande", addOrder),
-("ali", getAlie)
+#("ali", getAlie)
+("event", eventsUI.addEvent),
+("mainevent", eventsUI.setMainEvent),
+("countdown", eventsUI.reactMainEvent)
 ]
 
 def main():
@@ -679,6 +693,10 @@ def main():
         print("Start periodic")
         start_periodic_thread()
         print("Periodic ok")
+
+    #####[ EVENTS ]#####
+    if EVENTS_ENABLE:
+        eventsUI.init(sh_core)
 
     #####[ TELEGRAM ]#####
     dp = updater.dispatcher

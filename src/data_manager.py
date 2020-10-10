@@ -26,6 +26,14 @@ class DataManager:
         f = open(self.dataPath+conv+name, mode)
         f.write(data)
         f.close()
+    def getConvNames(self):
+        directories = []
+        dir = os.scandir(self.dataPath)
+        for entry in dir:
+            if not entry.is_file():
+                directories+=[entry.name+"/"]
+        directories = sorted(directories)
+        return directories
 
 
 # Example
