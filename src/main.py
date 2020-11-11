@@ -316,6 +316,18 @@ def addOrder(contextual_bot, sh_core):
     else:
         contextual_bot.reply(ContextualBot.TEXT, "Nop")
 
+def addCard(contextual_bot, sh_core):
+    txt = contextual_bot.getText()[9:].split('\n')[0]
+    if len(txt) > 1:
+        f = open(mapPath+"cards", "a")
+        f.write(txt+"\n")
+        f.close()
+        contextual_bot.reply(ContextualBot.TEXT, "Ok")
+    else:
+        contextual_bot.reply(ContextualBot.TEXT, "Nop")
+def showCards(contextual_bot, sh_core):
+    contextual_bot.reply(ContextualBot.TEXT, open(mapPath+"cards", "r").read())
+
 #########################################################################################
 #                                       Forward                                         #
 #########################################################################################
@@ -662,6 +674,7 @@ commands = [
 ("on", setAutoReplyOn),("off", setAutoReplyOff),("find", find),("info", info),
 ("quote", quote),("citation", getCitation), ("addc", addCitation), ("projet", get1AProject),
 ("addp", add1AProject),("meme", meme),("calc", calc), ("croa", croa),
+("addcard", addCard),("cards", showCards),
 ("say", sayText), ("lang", setVoiceLanguage),("img", search_image),("addm", addMusic),
 ("shuffle", shuffleMusic),("clear", clearMusic),("fetch", updateMusic),("queue", infoMusic),
 ("cursor", setCursorMusic),
