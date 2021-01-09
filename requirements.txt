@@ -1,0 +1,5 @@
+discord
+requests
+tweepy
+python-telegram-bot
+zalgo-text
