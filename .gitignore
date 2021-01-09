@@ -1,4 +1,6 @@
 __pycache__
+sound/v.mp3
+sound/v.wav
 temp/*
 data/*/
 tokens
