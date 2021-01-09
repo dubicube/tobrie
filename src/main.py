@@ -133,14 +133,18 @@ def croa(contextual_bot, sh_core):
     duplicateAudio(soundPath+"croa"+".wav", soundPath+"v.wav", v)
     contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+"v.mp3", 'rb'))
 voiceLanguage = "fr-FR"
+voiceSpeed = False
 def sayText(contextual_bot, sh_core):
     getVoice(contextual_bot.getText()[5:], soundPath+'v.mp3', voiceLanguage)
+    contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+'v.mp3', 'rb'))
+def sayText2(contextual_bot, sh_core):
+    getVoice2(contextual_bot.getText()[5:], soundPath+'v.mp3', voiceLanguage, voiceSpeed)
     contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+'v.mp3', 'rb'))
 
 def setVoiceLanguage(contextual_bot, sh_core):
     global voiceLanguage
     t = contextual_bot.getText()[6:]
-    h = [i[1:].split("\">") for i in getHelp("lang").split('\n')[5:-1]]
+    h = [i.split(": ") for i in getHelp("lang").split('\n')[5:-1]]
     value = [i[0] for i in h]
     text = [i[1] for i in h]
     if t in value:
@@ -149,6 +153,17 @@ def setVoiceLanguage(contextual_bot, sh_core):
         contextual_bot.reply(ContextualBot.TEXT, "Language selected:\n"+text[i])
     else:
         contextual_bot.reply(ContextualBot.TEXT, "Language not found\nType \"/help lang\" for more information")
+
+def setVoiceSpeed(contextual_bot, sh_core):
+    global voiceSpeed
+    t = contextual_bot.getText()[7:]
+    if t == '1':
+        voiceSpeed = False
+    elif t == '0':
+        voiceSpeed = True
+    else:
+        contextual_bot.reply(ContextualBot.TEXT, "TOCARD ! T'es sensé mettre 0 ou 1 en paramètre !")
+
 
 #########################################################################################
 #                                   OTHER COMMANDS                                      #
@@ -327,6 +342,22 @@ def addCard(contextual_bot, sh_core):
         contextual_bot.reply(ContextualBot.TEXT, "Nop")
 def showCards(contextual_bot, sh_core):
     contextual_bot.reply(ContextualBot.TEXT, open(mapPath+"cards", "r").read())
+
+def add2060(contextual_bot, sh_core):
+    txt = contextual_bot.getText()[9:].split('\n')[0]
+    if len(txt) > 1:
+        f = open(mapPath+"questions_for_2060", "a")
+        f.write(txt+"\n")
+        f.close()
+        contextual_bot.reply(ContextualBot.TEXT, "Ok")
+    else:
+        contextual_bot.reply(ContextualBot.TEXT, "Nop")
+def show2060(contextual_bot, sh_core):
+    list_out =  open(mapPath+"questions_for_2060", "r").read().split('\n')
+    #contextual_bot.reply(ContextualBot.TEXT, open(mapPath+"questions_for_2060", "r").read())
+    for i in range(len(list_out)//10):
+        contextual_bot.reply(ContextualBot.TEXT, "\n".join(list_out[i*10:(i+1)*10]))
+    contextual_bot.reply(ContextualBot.TEXT, "\n".join(list_out[(int(len(list_out)//10))*10:]))
 
 #########################################################################################
 #                                       Forward                                         #
@@ -675,7 +706,8 @@ commands = [
 ("quote", quote),("citation", getCitation), ("addc", addCitation), ("projet", get1AProject),
 ("addp", add1AProject),("meme", meme),("calc", calc), ("croa", croa),
 ("addcard", addCard),("cards", showCards),
-("say", sayText), ("lang", setVoiceLanguage),("img", search_image),("addm", addMusic),
+("add2060", add2060),("s2060", show2060),
+("say2", sayText), ("say", sayText2), ("lang", setVoiceLanguage), ("speed", setVoiceSpeed),("img", search_image),("addm", addMusic),
 ("shuffle", shuffleMusic),("clear", clearMusic),("fetch", updateMusic),("queue", infoMusic),
 ("cursor", setCursorMusic),
 ("help", help),
@@ -686,7 +718,7 @@ commands = [
 ("mainevent", eventsUI.setMainEvent),
 ("countdown", eventsUI.reactMainEvent)
 ]
-
+#24
 def main():
 
     #####[ BRENDAPI ]#####

@@ -2,6 +2,7 @@
 #                                        AUDIO                                          #
 #########################################################################################
 
+from gtts import gTTS
 import wave
 import subprocess
 import requests
@@ -37,6 +38,8 @@ def getVoice(text, file, language = "fr-FR"):
     datatowrite = filedata.read()
     with open(file, 'wb') as f:
         f.write(datatowrite)
+def getVoice2(text, file, language = "fr-FR", slow=False):
+    gTTS(text=text, lang=language, slow=slow).save(file)
 
 # Concatenate audio files to convert text operation to audio (from ytp Tintin)
 def calculate(input_data, soundPath):

@@ -82,61 +82,87 @@ Change la langue de la voix du /say
 Exemple:
 /lang fr-CA
 Langues disponibles:
+af: Afrikaans
+ar: Arabic
+bn: Bengali
+bs: Bosnian
+ca: Catalan
+cs: Czech
+cy: Welsh
+da: Danish
+de: German
+el: Greek
+en-au: English (Australia)
+en-ca: English (Canada)
+en-gb: English (UK)
+en-gh: English (Ghana)
+en-ie: English (Ireland)
+en-in: English (India)
+en-ng: English (Nigeria)
+en-nz: English (New Zealand)
+en-ph: English (Philippines)
+en-tz: English (Tanzania)
+en-uk: English (UK)
+en-us: English (US)
+en-za: English (South Africa)
+en: English
+eo: Esperanto
+es-es: Spanish (Spain)
+es-us: Spanish (United States)
+es: Spanish
+et: Estonian
+fi: Finnish
+fr-ca: French (Canada)
+fr-fr: French (France)
+fr: French
+gu: Gujarati
+hi: Hindi
+hr: Croatian
+hu: Hungarian
+hy: Armenian
+id: Indonesian
+is: Icelandic
+it: Italian
+ja: Japanese
+jw: Javanese
+km: Khmer
+kn: Kannada
+ko: Korean
+la: Latin
+lv: Latvian
+mk: Macedonian
+ml: Malayalam
+mr: Marathi
+my: Myanmar (Burmese)
+ne: Nepali
+nl: Dutch
+no: Norwegian
+pl: Polish
+pt-br: Portuguese (Brazil)
+pt-pt: Portuguese (Portugal)
+pt: Portuguese
+ro: Romanian
+ru: Russian
+si: Sinhala
+sk: Slovak
+sq: Albanian
+sr: Serbian
+su: Sundanese
+sv: Swedish
+sw: Swahili
+ta: Tamil
+te: Telugu
+th: Thai
+tl: Filipino
+tr: Turkish
+uk: Ukrainian
+ur: Urdu
+vi: Vietnamese
+zh-CN: Chinese
+zh-cn: Chinese (Mandarin/China)
+zh-tw: Chinese (Mandarin/Taiwan)
+
 "af-ZA">Afrikaans
-"sq">Albanian
-"ar-AE">Arabic
-"hy">Armenian
-"bn-BD">Bengali (Bangladesh)
-"bn-IN">Bengali (India)
-"bs">Bosnian
-"my">Burmese (Myanmar)
-"ca-ES">Catalan
-"cmn-Hant-TW">Chinese
-"hr-HR">Croatian
-"cs-CZ">Czech
-"da-DK">Danish
-"nl-NL">Dutch
-"en-AU">English (Australia)
-"en-GB">English (United Kingdom)
-"en-US">English (United States)
-"eo">Esperanto
-"fil-PH">Filipino
-"fi-FI">Finnish
-"fr-FR">French
-"fr-CA">French (Canada)
-"de-DE">German
-"el-GR">Greek
-"hi-IN">Hindi
-"hu-HU">Hungarian
-"is-IS">Icelandic
-"id-ID">Indonesian
-"it-IT">Italian
-"ja-JP">Japanese (Japan)
-"km">Khmer
-"ko-KR">Korean
-"la">Latin
-"lv">Latvian
-"mk">Macedonian
-"ne">Nepali
-"nb-NO">Norwegian
-"pl-PL">Polish
-"pt-BR">Portuguese
-"ro-RO">Romanian
-"ru-RU">Russian
-"sr-RS">Serbian
-"si">Sinhala
-"sk-SK">Slovak
-"es-MX">Spanish (Mexico)
-"es-ES">Spanish (Spain)
-"sw">Swahili
-"sv-SE">Swedish
-"ta">Tamil
-"te">Telugu
-"th-TH">Thai
-"tr-TR">Turkish
-"uk-UA">Ukrainian
-"vi-VN">Vietnamese
-"cy">Welsh
 
 Commande: /play
 Lance la playlist dernièrement chargée
