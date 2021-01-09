@@ -1,8 +1,6 @@
 __pycache__
-maps/
-sound/
-temp/
-data/
+temp/*
+data/*/
 tokens
 ctrl_bot.py
 file_service.py
