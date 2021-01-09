@@ -12,6 +12,26 @@ Déploiements futurs potentiels (non garanti lol):
 
 Ce bot a avant tout été développé autour de l'API Telegram. Il a ensuite été remodelé dans une forme relativement adaptative pour supporter facilement l'ajout de nouvelles API pour le déploiement sur d'autres plateformes. Certaines fonctionnalités ne peuvent cependant pas être déployées sur toutes les plateformes, .
 
+## Fresh install:
+
+Pour lancer ce code, il faut:
+- L'ensemble de ce repo
+- Avoir un token de bot telegram pour la production
+- Avoir un token de bot telegram pour le test
+- Avoir un token de bot discord
+- Avoir les tokens d'un bot Twitter
+- Créer un fihier "tokens" dans /tobrie/src/ où il faut mettre tous les tokens, un par ligne en respectant le positionnement décrit dans le fichier /tobrie/src/tokens_description
+
+Il n'est pas obligatoire d'avoir tous les tokens (il faut juste laisser la ligne vide dans le fichier tokens dans ce cas). Il faut cependant désactiver les fonctions associées aux tokens non disponibles. Pour cela, il faut modifier l'affectation de certains booléens dans main.py:
+- TELEGRAM_ENABLE permet d'activer le bot telegram
+- DISCORD_ENABLE permet d'activer le bot discord
+- PERIODIC_ENABLE permet d'activer le bot twitter et email
+- BRENDAPI_ENABLE permet d'activer l'API Brenda externe
+- EVENTS_ENABLE permet d'activer les événements programmés
+
+Après configuration, le bot se lance en exécutant main.py dans le répertoire /tobrie/src/. Pour lancer en mode test, ajouter -t dans la commande d'exécution de python.
+Pour arrêter le bot, la commande /stopall dans Telegram permet de tout arrêter proprement (note: il faut changer le super_admin dans config.py).
+
 ## Les fonctionnalités
 ### Réponses automatiques
 Dans un chat, lorsqu'une personne écrit un mot contenant "di", le bot répête la fin du mot après "di". De même avec "cri", sauf que le texte renvoyé par le bot est en majuscules. Ce comportement est récursif, avec tout de même une limite fixe de profondeur de récursivité.
