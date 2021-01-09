@@ -555,7 +555,12 @@ def telegram_new_member(update, context):
         contextual_bot.reply(ContextualBot.STICKER, pack.stickers[47])
         contextual_bot.outputMessages()
 
-
+def telegram_delete(update, context):
+    try:
+        context.bot.deleteMessage(update.message.chat_id, update.message.reply_to_message.message_id)
+        context.bot.deleteMessage(update.message.chat_id, update.message.message_id)
+    except Exception as e:
+        print("E") #EEEEEEEEEEEEEEEEEEEEEEE
 
 
 #########################################################################################
@@ -762,6 +767,7 @@ def main():
         dp.add_handler(CommandHandler('stopall', telegram_stop))
         dp.add_handler(CommandHandler('mail', forceMailUpdate))
         dp.add_handler(CommandHandler('per', telegram_periodic_thread))
+        dp.add_handler(CommandHandler('del', telegram_delete))
 
         dp.add_handler(MessageHandler(Filters.text, telegram_handle_command))
 
