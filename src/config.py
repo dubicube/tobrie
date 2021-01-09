@@ -1,4 +1,5 @@
 import os
+import sys
 
 #videoPath = 'video/'
 tempPath = '../temp/'
@@ -40,7 +41,7 @@ id_console = 479998987
 
 conv_perso = 479998987
 
-TEST = not os.path.isdir(logPath)
+TEST = len(sys.argv)>1 and sys.argv[1]=='-t'
 
 id_bot = 1081958230 if TEST else 720838667
 
