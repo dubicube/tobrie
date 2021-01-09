@@ -5,7 +5,11 @@
 # Parse the html file describing the inventory
 # Return the result as a list
 def processInventoryHTML(htmlFile):
-    htmlData = open(htmlFile, "r").read()
+    htmlData = ""
+    try:
+        htmlData = open(htmlFile, "r").read()
+    except Exception:
+        return []
     inventory = [[(j[:-6] if j[:-6]!="&#xa0;" else "") for j in i.split("<td class=\"org-left\">")[1:5]] for i in htmlData.split("<tr>")][2:]
     inventory = [[i[0],i[1],i[2],i[3][:-8] if i[3][:-8]!="&#xa0;" else ""] for i in inventory]
     return inventory
