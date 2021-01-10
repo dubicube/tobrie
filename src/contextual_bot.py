@@ -60,6 +60,7 @@ class TelegramBot(ContextualBot):
             self.message = update.message
         if not update.edited_message is None:
             self.message =  update.edited_message
+
     def getChatID(self):
         return self.message.chat_id
     def getUserID(self):
@@ -68,14 +69,22 @@ class TelegramBot(ContextualBot):
         return self.message.from_user.username
     def getUserFirstName(self):
         return self.message.from_user.first_name
+    def removeBotID(self, m):
+        t = m.text
+        i = 0
+        while i<len(t) and t[i] != ' ':
+            i+=1
+        if i-len(telegram_id) > 0 and t[i-len(telegram_id):i] == telegram_id:
+            t = t[:i-len(telegram_id)] + t[i:]
+        return t
     def getAbsoluteText(self):
         if not self.message is None:
-            return self.message.text
+            return self.removeBotID(self.message)
         else:
             return ""
     def getText(self):
         if not self.update.message is None:
-            return self.update.message.text
+            return self.removeBotID(self.update.message)
         else:
             return ""
     def isChatPerso(self):
