@@ -32,6 +32,8 @@ class ContextualBot:
         return ""
     def getAbsoluteText(self):
         return ""
+    def getReplyText(self):
+        return ""
     def reply(self, type, obj, proba=100):
         self.reply_queue+=[(type, obj, proba)]
         if type in ContextualBot.PIC_LIST:
@@ -87,6 +89,11 @@ class TelegramBot(ContextualBot):
             return self.removeBotID(self.update.message)
         else:
             return ""
+    def getReplyText(self):
+        if self.message.reply_to_message == None or self.message.reply_to_message.text == None:
+            return ""
+        else:
+            return self.message.reply_to_message.text
     def isChatPerso(self):
         return self.message.chat_id == self.message.from_user.id
     def send_chained_stickers(self, conv, l):

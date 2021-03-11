@@ -28,7 +28,7 @@ from shared_core import *
 from generic.web_texts import *
 from eirbot.inventory import *
 from generic.audio import *
-from auto_reply import handleText, load_maps, configureParameters, configureProba, setAutoReplyOn, setAutoReplyOff, conv
+from auto_reply import handleText, load_maps, configureParameters, configureProba, setAutoReplyOn, setAutoReplyOff, conv, handle_video
 from generic.youtube import *
 from generic.mail_manager import *
 from service.brendapi import *
@@ -138,21 +138,43 @@ def sayText(contextual_bot, sh_core):
     getVoice(contextual_bot.getText()[5:], soundPath+'v.mp3', voiceLanguage)
     contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+'v.mp3', 'rb'))
 def sayText2(contextual_bot, sh_core):
-    getVoice2(contextual_bot.getText()[5:], soundPath+'v.mp3', voiceLanguage, voiceSpeed)
+    t = contextual_bot.getText()[5:].split(' ')
+    tf = ""
+    i = 0
+    forcel = ""
+    while i < len(t):
+        if i+1 < len(t) and t[i] == '-l':
+            forcel = t[i+1]
+            i+=2
+        else:
+            tf+=t[i]+' '
+            i+=1
+    # if tf == "":
+    #     tf = contextual_bot.getReplyText()
+    vl = voiceLanguage
+    if isValidLanguage(forcel) != "":
+        vl = forcel
+    getVoice2(tf, soundPath+'v.mp3', vl, voiceSpeed)
     contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+'v.mp3', 'rb'))
 
-def setVoiceLanguage(contextual_bot, sh_core):
-    global voiceLanguage
-    t = contextual_bot.getText()[6:]
+def isValidLanguage(str):
     h = [i.split(": ") for i in getHelp("lang").split('\n')[5:-1]]
     value = [i[0] for i in h]
     text = [i[1] for i in h]
-    if t in value:
-        i = value.index(t)
+    if str in value:
+        i = value.index(str)
+        return text[i]
+    else:
+        return ""
+def setVoiceLanguage(contextual_bot, sh_core):
+    global voiceLanguage
+    t = contextual_bot.getText()[6:]
+    r = isValidLanguage(t)
+    if r == "":
+        contextual_bot.reply(ContextualBot.TEXT, "Language not found\nType \"/help lang\" for more information")
+    else:
         voiceLanguage = t
         contextual_bot.reply(ContextualBot.TEXT, "Language selected:\n"+text[i])
-    else:
-        contextual_bot.reply(ContextualBot.TEXT, "Language not found\nType \"/help lang\" for more information")
 
 def setVoiceSpeed(contextual_bot, sh_core):
     global voiceSpeed
@@ -199,6 +221,8 @@ def help(contextual_bot, sh_core):
     else:
         contextual_bot.reply(ContextualBot.TEXT, getHelp(contextual_bot.getText()[6:]))
 
+def outputGenre(contextual_bot, sh_core):
+    contextual_bot.reply(ContextualBot.TEXT, "Je suis un hélicoptère apache")
 
 #########################################################################################
 #                                   USELESS TEXTS                                       #
@@ -507,6 +531,9 @@ def telegram_handle_command(update, context):
     generic_handle_text(contextual_bot, sh_core)
     contextual_bot.outputMessages()
 
+def telegram_handle_video(update, context):
+    handle_video(update, context, sh_core)
+
 # Shutdown all system
 def shutdown():
     eventsUI.stop() # Stop event thread
@@ -721,7 +748,8 @@ commands = [
 #("ali", getAlie)
 ("event", eventsUI.addEvent),
 ("mainevent", eventsUI.setMainEvent),
-("countdown", eventsUI.reactMainEvent)
+("countdown", eventsUI.reactMainEvent),
+("genre", outputGenre)
 ]
 #24
 def main():
@@ -772,6 +800,8 @@ def main():
         dp.add_handler(MessageHandler(Filters.text, telegram_handle_command))
 
         dp.add_handler(MessageHandler(Filters.voice, voice_handler))
+
+        dp.add_handler(MessageHandler(Filters.video, telegram_handle_video))
 
         dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, telegram_new_member))
 

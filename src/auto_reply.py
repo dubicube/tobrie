@@ -114,6 +114,13 @@ def recur(contextual_bot, msg, level):
         else:
             sendYesNo(contextual_bot)
 
+def handle_video(update, context, sh_core):
+    print("video")
+    print(update.message.video)
+    if update.message.chat_id == conv_perso:
+        # auto_reply.conv_out
+        sh_core.telegramBot.send_video(conv_out, update.message.video)
+
 def handleText(contextual_bot, sh_core, level=0):
     parameters = sh_core.getParameterList().getConv(contextual_bot.getChatID())
     if len(contextual_bot.getAbsoluteText()) == 0:

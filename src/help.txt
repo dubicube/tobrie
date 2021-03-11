@@ -10,6 +10,9 @@ https://github.com/dubicube/tobrie
 Commande: /help
 https://www.youtube.com/watch?v=dQw4w9WgXcQ
 
+Commande: /site
+Besoin d'aide pour le site, car tu as tout cassé ? Appelle vite Sébastien !
+
 Commande: /list
 Liste les vidéos disponibles
 
