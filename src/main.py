@@ -119,6 +119,13 @@ def dico(update, context):
 #                                        AUDIO                                          #
 #########################################################################################
 
+def search_sound(contextual_bot, sh_core):
+    sh_core.notifConsole(contextual_bot)
+    if getSound(contextual_bot.getText()[7:], tempPath+'v.mp3'):
+        contextual_bot.reply(ContextualBot.AUDIO, open(tempPath+'v.mp3', 'rb'))
+    else:
+        contextual_bot.reply(ContextualBot.TEXT, "Rien trouvé (ou alors ça a planté)")
+
 def calc(contextual_bot, sh_core):
     sh_core.notifConsole(contextual_bot)
     calculate(contextual_bot.getText()[6:], soundPath)
@@ -739,7 +746,9 @@ commands = [
 ("addp", add1AProject),("meme", meme),("calc", calc), ("croa", croa),
 ("addcard", addCard),("cards", showCards),
 ("add2060", add2060),("s2060", show2060),
-("say2", sayText), ("say", sayText2), ("lang", setVoiceLanguage), ("speed", setVoiceSpeed),("img", search_image),("addm", addMusic),
+("say2", sayText), ("say", sayText2), ("lang", setVoiceLanguage), ("speed", setVoiceSpeed),
+("img", search_image), ("sound", search_sound),
+("addm", addMusic),
 ("shuffle", shuffleMusic),("clear", clearMusic),("fetch", updateMusic),("queue", infoMusic),
 ("cursor", setCursorMusic),
 ("help", help),

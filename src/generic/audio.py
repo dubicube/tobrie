@@ -12,6 +12,34 @@ import os
 import speech_recognition as sr
 from config import *
 
+def download_file(url, path):
+    r = requests.get(url, stream=True)
+    if r.status_code == 200:
+        with open(path, 'wb') as f:
+            for chunk in r:
+                f.write(chunk)
+        return True
+    else:
+        return False
+
+# Download a sound based on search_data
+# Return False if no sound was found
+def getSound(search_data, file):
+    search_url = 'https://www.myinstants.com/search/?name='+'+'.join(search_data.split(' '))
+    text = requests.get(search_url).text
+    i = text.find('<a href="javascript:void(0)" onclick="copyLink(', 0)
+    if i==-1:return False
+    j = text.find('/\')" title=', i+84)
+    if j==-1:return False
+    sound_url = text[i+48:j+1]
+    text = requests.get(sound_url).text
+    i = text.find('<meta property="og:audio" content="')
+    if i==-1:return False
+    j = text.find('" />', i)
+    if j==-1:return False
+    mp3_url = text[i+35:j]
+    return download_file(mp3_url, file)
+
 def speechToText(file, language = "fr-FR"):
     if os.path.isfile(tempPath+"out.wav"):
         os.remove(tempPath+"out.wav")
