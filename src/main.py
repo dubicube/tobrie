@@ -121,7 +121,15 @@ def dico(update, context):
 
 def search_sound(contextual_bot, sh_core):
     sh_core.notifConsole(contextual_bot)
-    if getSound(contextual_bot.getText()[7:], tempPath+'v.mp3'):
+    data = contextual_bot.getText()[7:]
+    n = data.split(' ')[-1]
+    m = 0
+    try:
+        m = int(n)
+        data = ' '.join(data.split(' ')[:-1])
+    except Exception:
+        m = 0
+    if getSound(data, tempPath+'v.mp3', m):
         contextual_bot.reply(ContextualBot.AUDIO, open(tempPath+'v.mp3', 'rb'))
     else:
         contextual_bot.reply(ContextualBot.TEXT, "Rien trouvé (ou alors ça a planté)")

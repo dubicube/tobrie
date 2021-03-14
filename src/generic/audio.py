@@ -24,11 +24,13 @@ def download_file(url, path):
 
 # Download a sound based on search_data
 # Return False if no sound was found
-def getSound(search_data, file):
+def getSound(search_data, file, index):
     search_url = 'https://www.myinstants.com/search/?name='+'+'.join(search_data.split(' '))
     text = requests.get(search_url).text
-    i = text.find('<a href="javascript:void(0)" onclick="copyLink(', 0)
-    if i==-1:return False
+    i = 0
+    for j in range(index+1):
+        i = text.find('<a href="javascript:void(0)" onclick="copyLink(', i+1)
+        if i==-1:return False
     j = text.find('/\')" title=', i+84)
     if j==-1:return False
     sound_url = text[i+48:j+1]
