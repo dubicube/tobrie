@@ -165,8 +165,6 @@ zh-CN: Chinese
 zh-cn: Chinese (Mandarin/China)
 zh-tw: Chinese (Mandarin/Taiwan)
 
-"af-ZA">Afrikaans
-
 Commande: /play
 Lance la playlist dernièrement chargée
 Seulement supporté sur Discord
@@ -206,5 +204,11 @@ Efface la playlist courante
 
 Commande: /queue
 Renvoie la taille de la playlist en cours, et le curseur d'avancement
+
+Commande: /genre
+Renvoie l’identité du bot
+
+Commande: /playlists
+Découvre la diversité et la richesse des playlists d'Eirbot
 
 Dummy text

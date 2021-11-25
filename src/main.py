@@ -239,6 +239,54 @@ def help(contextual_bot, sh_core):
 def outputGenre(contextual_bot, sh_core):
     contextual_bot.reply(ContextualBot.TEXT, "Je suis un hélicoptère apache")
 
+def outputPlaylists(contextual_bot, sh_core):
+    txt = """
+    Les playlists principales :
+
+     - La playlist EIRBOT classique :
+    https://www.youtube.com/playlist?list=PLCQolDsR1jjGI_ZPwxH9uJIvjECZ1-pDA
+
+     - La playlist EIRBOOM si vous voulez griller des enceintes :
+    https://www.youtube.com/playlist?list=PLCQolDsR1jjFRk9cEoq9tnNmJ_i1eqMqh
+
+     - La playlist WEABOT, plutôt tourné japonais :
+    https://www.youtube.com/playlist?list=PLCQolDsR1jjHVbGcnf72N_nHPE8uPOJ9e
+
+
+    Les playlists annexes :
+
+     - La playlist NIGHTBOT, principalement du nightcore :
+    https://www.youtube.com/playlist?list=PLCQolDsR1jjHIyN61g-Luq4oUoS7qPGn6
+
+     - La playlist TECHNOBOT (diffère de EIRBOOM) :
+    https://www.youtube.com/playlist?list=PLCQolDsR1jjE4Sg3zP4OUjWqqKYNJqH_c
+
+     - La playlist EIRBROCK, bah c'est du rock :
+    https://www.youtube.com/playlist?list=PLCQolDsR1jjGGFueC0xDGqMQuTULrefK6
+
+     - La playlist 50 BOT, rap & co :
+    https://www.youtube.com/playlist?list=PLCQolDsR1jjHYLJltciOHZ0aw3Mb2ib1Y
+
+     - La playlist JAZZABOT, devine cé koi :
+    https://www.youtube.com/playlist?list=PLCQolDsR1jjFekFP-VjuaFOTF23rUawnJ
+
+     - La playlist FUNKYBOT, c'est la founke :
+    https://www.youtube.com/playlist?list=PLCQolDsR1jjGYU1KvnRUb8xCtUMt1NHJT
+
+     - La playlist HOUSEBOT, de la house :
+    https://www.youtube.com/playlist?list=PLCQolDsR1jjHCGVAtOX5OymyO-MIU6cGF
+
+     - La playlist EPICBOT, des musiques epics :
+    https://www.youtube.com/playlist?list=PLCQolDsR1jjFfF0II3cyUK4A1aTQpgnYP
+
+     - La playlist WEIRDBOT, les trucs chelou (musique ou clip) trouvés sur youtube :
+    https://www.youtube.com/playlist?list=PLCQolDsR1jjHFYSipulnliBNU7whFYcyO
+
+     - La playlist TRASHBOT (dans le sens poubelle), un peu les bas fonds de youtube, parfois inécoutable :
+    https://www.youtube.com/playlist?list=PLCQolDsR1jjECMSRIFQ4xT4e98J-YjDWt
+    """
+    contextual_bot.reply(ContextualBot.TEXT, txt)
+
 #########################################################################################
 #                                   USELESS TEXTS                                       #
 #########################################################################################
@@ -358,17 +406,6 @@ def addNewVideo(contextual_bot, sh_core):
     else:
         contextual_bot.reply(ContextualBot.TEXT, "Nop")
 
-def getOrders(contextual_bot, sh_core):
-    contextual_bot.reply(ContextualBot.TEXT, open(mapPath+"orders", "r").read())
-def addOrder(contextual_bot, sh_core):
-    txt = contextual_bot.getText()[10:].split('\n')[0]
-    if len(txt) > 1:
-        f = open(mapPath+"orders", "a")
-        f.write(txt+"\n")
-        f.close()
-        contextual_bot.reply(ContextualBot.TEXT, "Ok")
-    else:
-        contextual_bot.reply(ContextualBot.TEXT, "Nop")
 
 def addCard(contextual_bot, sh_core):
     txt = contextual_bot.getText()[9:].split('\n')[0]
@@ -732,20 +769,31 @@ eventsUI = events_ui.EventsUI()
 #                                        MAIN                                           #
 #########################################################################################
 
-
+# APIs enable
 TELEGRAM_ENABLE = True or not(TEST)
 DISCORD_ENABLE  = False or not(TEST)
 PERIODIC_ENABLE = False# or not(TEST)
 BRENDAPI_ENABLE = True or not(TEST)
 EVENTS_ENABLE = True or not(TEST)
 
+# Retrieve tokens from file
 tokens = open("tokens", "r").read().split("\n")
 TELEGRAM_TOKEN=tokens[2] if TEST else tokens[0]
 DISCORD_TOKEN = tokens[16]
+
+# Some init with global variables
 updater = Updater(TELEGRAM_TOKEN, use_context=True)
 sh_core = SharedCore(updater.bot, RemoteServiceServer(65332))
 client_discord = discord.Client()
 
+
+# To add a new command, add a line in this list.
+# A command is described with a tuple containing
+#    - a string that triggers the command if detected in a text chat
+#    - a function called when the command string is matched
+# Those commands are generic for all APIs (Telegram, Discord, etc...)
+# If adding a command here, you should consider
+# adding a help description in the help.txt file.
 commands = [
 ("di", deprecatedCommand), ("video", deprecatedCommand),
 ("config", configureParameters),("proba", configureProba),
@@ -761,14 +809,14 @@ commands = [
 ("cursor", setCursorMusic),
 ("help", help),
 ("addv", addNewVideo),
-("panier", getOrders), ("commande", addOrder),
-#("ali", getAlie)
 ("event", eventsUI.addEvent),
 ("mainevent", eventsUI.setMainEvent),
 ("countdown", eventsUI.reactMainEvent),
-("genre", outputGenre)
+("genre", outputGenre),
+("playlists", outputPlaylists)
 ]
-#24
+
+
 def main():
 
     #####[ BRENDAPI ]#####
