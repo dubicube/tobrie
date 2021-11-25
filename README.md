@@ -32,6 +32,15 @@ Il n'est pas obligatoire d'avoir tous les tokens (il faut juste laisser la ligne
 Après configuration, le bot se lance en exécutant main.py dans le répertoire /tobrie/src/. Pour lancer en mode test, ajouter -t dans la commande d'exécution de python.
 Pour arrêter le bot, la commande /stopall dans Telegram permet de tout arrêter proprement (note: il faut changer le super_admin dans config.py).
 
+Dépendances:
+- discord.py
+- tweepy
+- python-telegram-bot
+- zalgo-text
+- gTTs
+- SpeechRecognition
+- youtube_dl
+
 ## Les fonctionnalités
 ### Réponses automatiques
 Dans un chat, lorsqu'une personne écrit un mot contenant "di", le bot répête la fin du mot après "di". De même avec "cri", sauf que le texte renvoyé par le bot est en majuscules. Ce comportement est récursif, avec tout de même une limite fixe de profondeur de récursivité.
