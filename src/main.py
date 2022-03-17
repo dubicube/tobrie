@@ -33,6 +33,7 @@ from generic.youtube import *
 from generic.mail_manager import *
 from service.brendapi import *
 from service.remote_service_server import *
+from file_list_manager import *
 
 import events_ui
 
@@ -376,64 +377,28 @@ def getRandomLine(txt):
     return l[random.randint(0, len(l)-2)]
 def getCitation(contextual_bot, sh_core):
     contextual_bot.reply(ContextualBot.TEXT, getRandomLine(open(mapPath+"citations", "r").read()))
+def getCitations(contextual_bot, sh_core):
+    FLM_getFile(contextual_bot, sh_core, "citations")
 def addCitation(contextual_bot, sh_core):
-    txt = contextual_bot.getText()[6:].split('\n')[0]
-    if len(txt) > 1:
-        f = open(mapPath+"citations", "a")
-        f.write(txt+"\n")
-        f.close()
-        contextual_bot.reply(ContextualBot.TEXT, "Ok")
-    else:
-        contextual_bot.reply(ContextualBot.TEXT, "Nop")
-def get1AProject(contextual_bot, sh_core):
-    contextual_bot.reply(ContextualBot.TEXT, open(mapPath+"projets1A", "r").read())
-def add1AProject(contextual_bot, sh_core):
-    txt = contextual_bot.getText()[6:].split('\n')[0]
-    if len(txt) > 1:
-        f = open(mapPath+"projets1A", "a")
-        f.write(txt+"\n")
-        f.close()
-        contextual_bot.reply(ContextualBot.TEXT, "Ok")
-    else:
-        contextual_bot.reply(ContextualBot.TEXT, "Nop")
-def addNewVideo(contextual_bot, sh_core):
-    txt = contextual_bot.getText()[6:].split('\n')[0]
-    if len(txt) > 1:
-        f = open(mapPath+"new_videos", "a")
-        f.write(txt+"\n")
-        f.close()
-        contextual_bot.reply(ContextualBot.TEXT, "Ok")
-    else:
-        contextual_bot.reply(ContextualBot.TEXT, "Nop")
+    FLM_addLine(contextual_bot, sh_core, "citations")
 
+def get1AProject(contextual_bot, sh_core):
+    FLM_getFile(contextual_bot, sh_core, "projets1A")
+def add1AProject(contextual_bot, sh_core):
+    FLM_addLine(contextual_bot, sh_core, "projets1A")
+
+def addNewVideo(contextual_bot, sh_core):
+    FLM_addLine(contextual_bot, sh_core, "new_videos")
 
 def addCard(contextual_bot, sh_core):
-    txt = contextual_bot.getText()[9:].split('\n')[0]
-    if len(txt) > 1:
-        f = open(mapPath+"cards", "a")
-        f.write(txt+"\n")
-        f.close()
-        contextual_bot.reply(ContextualBot.TEXT, "Ok")
-    else:
-        contextual_bot.reply(ContextualBot.TEXT, "Nop")
+    FLM_addLine(contextual_bot, sh_core, "cards")
 def showCards(contextual_bot, sh_core):
-    contextual_bot.reply(ContextualBot.TEXT, open(mapPath+"cards", "r").read())
+    FLM_getFile(contextual_bot, sh_core, "cards")
 
 def add2060(contextual_bot, sh_core):
-    txt = contextual_bot.getText()[9:].split('\n')[0]
-    if len(txt) > 1:
-        f = open(mapPath+"questions_for_2060", "a")
-        f.write(txt+"\n")
-        f.close()
-        contextual_bot.reply(ContextualBot.TEXT, "Ok")
-    else:
-        contextual_bot.reply(ContextualBot.TEXT, "Nop")
+    FLM_addLine(contextual_bot, sh_core, "questions_for_2060")
 def show2060(contextual_bot, sh_core):
-    list_out =  open(mapPath+"questions_for_2060", "r").read().split('\n')
-    #contextual_bot.reply(ContextualBot.TEXT, open(mapPath+"questions_for_2060", "r").read())
-    for i in range(len(list_out)//10):
-        contextual_bot.reply(ContextualBot.TEXT, "\n".join(list_out[i*10:(i+1)*10]))
-    contextual_bot.reply(ContextualBot.TEXT, "\n".join(list_out[(int(len(list_out)//10))*10:]))
+    FLM_getFile(contextual_bot, sh_core, "questions_for_2060")
 
 #########################################################################################
 #                                       Forward                                         #
@@ -798,9 +763,11 @@ commands = [
 ("di", deprecatedCommand), ("video", deprecatedCommand),
 ("config", configureParameters),("proba", configureProba),
 ("on", setAutoReplyOn),("off", setAutoReplyOff),("find", find),("info", info),
-("quote", quote),("citation", getCitation), ("addc", addCitation), ("projet", get1AProject),
-("addp", add1AProject),("meme", meme),("calc", calc), ("croa", croa),
-("addcard", addCard),("cards", showCards),
+("quote", quote),
+("meme", meme),("calc", calc), ("croa", croa),
+("addc", addCitation),("citations", getCitations),("citation", getCitation),
+("addp", add1AProject),("sprojet", get1AProject),
+("addcard", addCard),("scards", showCards),
 ("add2060", add2060),("s2060", show2060),
 ("say2", sayText), ("say", sayText2), ("lang", setVoiceLanguage), ("speed", setVoiceSpeed),
 ("img", search_image), ("sound", search_sound),
