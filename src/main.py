@@ -43,6 +43,46 @@ video_map_regex = []
 
 sh_core = None
 
+
+#########################################################################################
+#                                        PYBRENDA                                       #
+#########################################################################################
+
+import pexpect
+
+HOST = "127.0.0.1"
+PORT = 63913
+pybrenda = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+pybrenda.settimeout(0.2)
+pybrenda_enabled = True
+try:
+    pybrenda.connect((HOST, PORT))
+except:
+    pybrenda_enabled = False
+    print("Pybrenda not working")
+
+def runPybrenda(command):
+    r = ""
+    pybrenda.sendall(command)
+    while True:
+        try:
+            data = pybrenda.recv(1024)
+            r+=str(data)[2:-1]+"\n"
+        except:
+            break
+    return r
+
+def highLevelTextCallback(contextual_bot, sh_core):
+    msg = contextual_bot.getText()
+    rep = ""
+    if pybrenda_enabled and (contextual_bot.getChatID() == -1001216704238 or contextual_bot.getChatID() == conv_perso or contextual_bot.getChatID() == -1001459505391):
+        rep = runPybrenda(bytes(msg, 'utf8'))
+    if not("line 1" in rep and "SyntaxError" in rep) and len(rep) > 0:
+        rep = runPybrenda(bytes(msg, 'utf8'))
+        contextual_bot.reply(ContextualBot.TEXT, rep)
+    else:
+        handleText(contextual_bot, sh_core)
+
 #########################################################################################
 #                                        VIDEO                                          #
 #########################################################################################
@@ -412,7 +452,7 @@ def generic_handle_text(contextual_bot, sh_core):
             if msg[1:].startswith(fun_txt) and (len(msg[1:])==len(fun_txt) or msg[len(fun_txt)+1]==' '):
                 fun(contextual_bot, sh_core)
     else:
-        handleText(contextual_bot, sh_core)
+        highLevelTextCallback(contextual_bot, sh_core)
 
 #########################################################################################
 #                                       MUSIC                                           #
