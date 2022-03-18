@@ -77,7 +77,7 @@ def highLevelTextCallback(contextual_bot, sh_core):
     rep = ""
     if pybrenda_enabled and (contextual_bot.getChatID() == -1001216704238 or contextual_bot.getChatID() == conv_perso or contextual_bot.getChatID() == -1001459505391):
         rep = runPybrenda(bytes(msg, 'utf8'))
-        if (("line 1" in rep and ("SyntaxError" in rep or "NameError" in rep)) or len(rep) == 0) and len(msg.split(' ')) == 1:
+        if "<function" in rep and len(msg.split(' ')) == 1:
             rep = runPybrenda(bytes(msg+"()", 'utf8'))
 
     if not("line 1" in rep and ("SyntaxError" in rep or "NameError" in rep)) and len(rep) > 0:
