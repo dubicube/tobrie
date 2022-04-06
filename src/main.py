@@ -63,10 +63,18 @@ except:
 
 def runPybrenda(command):
     r = ""
-    pybrenda.sendall(command)
+    try:
+        pybrenda.sendall(command)
+    except:
+        return r
     while True:
         try:
             data = pybrenda.recv(1024)
+            if len(data) == 0:
+                # Pybrenda is not responding, thus we disable it
+                # It will be re-enabled when the server is restarted
+                pybrenda_enabled = False
+                break
             r+=str(data)[2:-1]+"\n"
         except:
             break
@@ -81,6 +89,8 @@ def highLevelTextCallback(contextual_bot, sh_core):
             rep = runPybrenda(bytes(msg+"()", 'utf8'))
 
     if not("line 1" in rep and ("SyntaxError" in rep or "NameError" in rep)) and len(rep) > 0:
+        sh_core.notifConsole(contextual_bot)
+        sh_core.notifConsole(contextual_bot, rep)
         contextual_bot.reply(ContextualBot.TEXT, rep)
     else:
         handleText(contextual_bot, sh_core)
