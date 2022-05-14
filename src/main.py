@@ -340,6 +340,10 @@ def outputPlaylists(contextual_bot, sh_core):
     """
     contextual_bot.reply(ContextualBot.TEXT, txt)
 
+
+def outputHoraires(contextual_bot, sh_core):
+    contextual_bot.reply(ContextualBot.TEXT, "8h-19h30 le samedi\n12h-18h30 le dimanche\nSachant que Clovis est souvent 10-15 min en retard le dimanche midi")
+
 #########################################################################################
 #                                   USELESS TEXTS                                       #
 #########################################################################################
@@ -832,7 +836,8 @@ commands = [
 ("mainevent", eventsUI.setMainEvent),
 ("countdown", eventsUI.reactMainEvent),
 ("genre", outputGenre),
-("playlists", outputPlaylists)
+("playlists", outputPlaylists),
+("horaires", outputHoraires),
 ]
 
 
