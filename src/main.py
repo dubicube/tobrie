@@ -342,7 +342,15 @@ def outputPlaylists(contextual_bot, sh_core):
 
 
 def outputHoraires(contextual_bot, sh_core):
-    contextual_bot.reply(ContextualBot.TEXT, "8h-19h30 le samedi\n12h-18h30 le dimanche\nSachant que Clovis est souvent 10-15 min en retard le dimanche midi")
+    contextual_bot.reply(ContextualBot.TEXT,
+"""* 7h-23h du lundi au vendredi
+* 8h-20h le samedi
+* fermé le dimanche
+Sachant que la sécu vire les gens environ 30min avant""")
+
+def votre(contextual_bot, sh_core):
+    pack = sh_core.telegramBot.get_sticker_set("EIRBOTO")
+    contextual_bot.reply(ContextualBot.STICKER, pack.stickers[14])
 
 #########################################################################################
 #                                   USELESS TEXTS                                       #
@@ -838,6 +846,8 @@ commands = [
 ("genre", outputGenre),
 ("playlists", outputPlaylists),
 ("horaires", outputHoraires),
+("votre", votre),
+("vos", votre)
 ]
 
 
