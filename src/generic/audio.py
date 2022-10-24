@@ -29,18 +29,13 @@ def getSound(search_data, file, index):
     text = requests.get(search_url).text
     i = 0
     for j in range(index+1):
-        i = text.find('<a href="javascript:void(0)" onclick="copyLink(', i+1)
+        i = text.find('onclick="play(\'', i+1)
         if i==-1:return False
-    j = text.find('/\')" title=', i+84)
+    j = text.find('\'', i+20)
     if j==-1:return False
-    sound_url = text[i+48:j+1]
-    text = requests.get(sound_url).text
-    i = text.find('<meta property="og:audio" content="')
-    if i==-1:return False
-    j = text.find('" />', i)
-    if j==-1:return False
-    mp3_url = text[i+35:j]
-    return download_file(mp3_url, file)
+    sound_url = 'https://www.myinstants.com/' + text[i+16:j]
+    f = download_file(sound_url, file)
+    return f
 
 def speechToText(file, language = "fr-FR"):
     if os.path.isfile(tempPath+"out.wav"):
