@@ -174,11 +174,6 @@ def dico(update, context):
 #########################################################################################
 
 def morse(contextual_bot, sh_core):
-    # if msg.reply_to_message != None:
-    #     print(msg.reply_to_message)
-    # else:
-    #     print("Nothing")
-
     cdata = contextual_bot.getText()[7:]
     # Get eventual audio file replying to
     fpath = contextual_bot.getReplyAudioFile()
@@ -189,6 +184,7 @@ def morse(contextual_bot, sh_core):
     # If we got a wav file, edit config, else, generate morse sound from text in message
     if fpath.endswith('.wav'):
         MSR_config(fpath, cdata)
+        contextual_bot.reply(ContextualBot.TEXT, "Ok")
     else:
         fname = MSR_cancer(cdata)
         contextual_bot.reply(ContextualBot.AUDIO, open(fname, 'rb'))
