@@ -34,6 +34,7 @@ from generic.mail_manager import *
 from service.brendapi import *
 from service.remote_service_server import *
 from file_list_manager import *
+from generic.morse import MSR_cancer, MSR_config
 
 import events_ui
 
@@ -172,6 +173,28 @@ def dico(update, context):
 #                                        AUDIO                                          #
 #########################################################################################
 
+def morse(contextual_bot, sh_core):
+    # if msg.reply_to_message != None:
+    #     print(msg.reply_to_message)
+    # else:
+    #     print("Nothing")
+
+    cdata = contextual_bot.getText()[7:]
+    # Get eventual audio file replying to
+    fpath = contextual_bot.getReplyAudioFile()
+    # Convert file to wav if format is mp3
+    if fpath.endswith('.mp3'):
+        convertAudioFile(fpath, tempPath + 'morse.wav')
+        fpath = tempPath + 'morse.wav'
+    # If we got a wav file, edit config, else, generate morse sound from text in message
+    if fpath.endswith('.wav'):
+        MSR_config(fpath, cdata)
+    else:
+        fname = MSR_cancer(cdata)
+        contextual_bot.reply(ContextualBot.AUDIO, open(fname, 'rb'))
+
+
+
 def search_sound(contextual_bot, sh_core):
     sh_core.notifConsole(contextual_bot)
     data = contextual_bot.getText()[7:]
@@ -199,7 +222,7 @@ def croa(contextual_bot, sh_core):
     if len(txt[6:]) > 0 and int(txt[6:]) < 100:
         v = int(txt[6:])
     duplicateAudio(soundPath+"croa"+".wav", soundPath+"v.wav", v)
-    contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+"v.mp3", 'rb'))
+    contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+"v.wav", 'rb'))
 voiceLanguage = "fr-FR"
 voiceSpeed = False
 def sayText(contextual_bot, sh_core):
@@ -834,7 +857,7 @@ commands = [
 ("addcard", addCard),("scards", showCards),
 ("add2060", add2060),("s2060", show2060),
 ("say2", sayText), ("say", sayText2), ("lang", setVoiceLanguage), ("speed", setVoiceSpeed),
-("img", search_image), ("sound", search_sound),
+("img", search_image), ("sound", search_sound), ("morse", morse),
 ("addm", addMusic),
 ("shuffle", shuffleMusic),("clear", clearMusic),("fetch", updateMusic),("queue", infoMusic),
 ("cursor", setCursorMusic),

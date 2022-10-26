@@ -12,6 +12,11 @@ import os
 import speech_recognition as sr
 from config import *
 
+
+
+def convertAudioFile(input_file, output_file):
+    subprocess.call(['ffmpeg', '-y', '-i', input_file, output_file])
+
 def download_file(url, path):
     r = requests.get(url, stream=True)
     if r.status_code == 200:
@@ -91,21 +96,50 @@ def calculate(input_data, soundPath):
     cmd = 'lame --preset insane %s' % wav
     subprocess.call(cmd, shell=True)
 
-# Take the audio file input, and duplicate it v times in the file outfile
-def duplicateAudio(input, outfile, v):
-    infiles = []
-    for i in range(v):
-        infiles+=[input]
+def appendAudioFiles(fileList, outfile):
     data = []
-    for infile in infiles:
+    frameLength = 0
+    for infile in fileList:
         w = wave.open(infile, 'rb')
+        frameLength = len(w.readframes(1))
         data.append( [w.getparams(), w.readframes(w.getnframes())] )
         w.close()
 
     output = wave.open(outfile, 'wb')
     output.setparams(data[0][0])
-    for i in range(len(infiles)):
+    for i in range(len(fileList)):
         output.writeframes(data[i][1])
+    output.close()
+    wav = outfile
+    cmd = 'lame --preset insane %s' % wav
+    subprocess.call(cmd, shell=True)
+
+# Take the audio file input, and duplicate it v times in the file outfile
+def duplicateAudio(input, outfile, v):
+    infiles = []
+    for i in range(v):
+        infiles+=[input]
+    appendAudioFiles(infiles, outfile)
+
+def duplicateAudioForMorse(input0, input1, outfile, pattern, timing):
+    w = wave.open(input0, 'rb')
+    frameLength = len(w.readframes(1))
+    data0 = [w.getparams(), w.readframes(w.getnframes())]
+    fr = w.getframerate()
+    w.close()
+    w = wave.open(input1, 'rb')
+    data1 = [w.getparams(), w.readframes(w.getnframes())]
+    w.close()
+
+    output = wave.open(outfile, 'wb')
+    output.setparams(data0[0])
+    for i in range(len(pattern)):
+        if pattern[i][0] == 1:
+            output.writeframes(data0[1])
+        else:
+            output.writeframes(data1[1])
+        emptyspace = bytes((pattern[i][1]*frameLength*timing)*[0])
+        output.writeframes(emptyspace)
     output.close()
     wav = outfile
     cmd = 'lame --preset insane %s' % wav

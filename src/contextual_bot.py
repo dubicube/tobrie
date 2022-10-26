@@ -34,6 +34,8 @@ class ContextualBot:
         return ""
     def getReplyText(self):
         return ""
+    def getReplyAudioFile(self):
+        return ""
     def reply(self, type, obj, proba=100):
         self.reply_queue+=[(type, obj, proba)]
         if type in ContextualBot.PIC_LIST:
@@ -89,6 +91,20 @@ class TelegramBot(ContextualBot):
             return self.removeBotID(self.update.message)
         else:
             return ""
+    def getReplyAudioFile(self):
+        if self.message.reply_to_message == None or self.message.reply_to_message.audio == None:
+            return ""
+        else:
+            fname = self.message.reply_to_message.audio.file_name
+            fpath = ''
+            if fname.endswith('.wav'):
+                fpath = tempPath + 'morse.wav'
+            if fname.endswith('.mp3'):
+                fpath = tempPath + 'morse.mp3'
+            if fpath != '':
+                self.message.reply_to_message.audio.get_file().download(fpath)
+                return fpath
+            return ''
     def getReplyText(self):
         if self.message.reply_to_message == None or self.message.reply_to_message.text == None:
             return ""
