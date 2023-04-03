@@ -5,6 +5,8 @@ from shared_core import *
 from generic.web_texts import getGoogleResponse
 from contextual_bot import ContextualBot
 
+import openai
+
 messages_perso = [
     ['TudorEustache', 100, "C'est Ambre qui t'a dit ça?"],
     ['dicribolzano', 200, "Mais oui c'est clair!"],
@@ -136,12 +138,16 @@ def handleText(contextual_bot, sh_core, level=0):
     else:
         sh_core.notifConsole(contextual_bot)
 
-    # Auto response from google. Terminate if response provided
-    if msg.lower()[0:7] == "brenda ":
-        #googleresp = getGoogleResponse(msg[7:])
-        googleresp = sh_core.remote_service.sendToClient('0'+msg[7:])
-        if len(googleresp) > 1:
-            contextual_bot.reply(ContextualBot.TEXT, googleresp)
+    # Auto response from chatgpt. Terminate if response provided
+    if msg.endswith('@eir_bot'):
+        gptprompt = msg[:-len('@eir_bot')]
+        completion = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo", 
+            messages=[{"role": "user", "content": gptprompt}]
+        )
+        chatgpt_resp = str(completion['choices'][0]['message']['content'])
+        if len(chatgpt_resp) > 1:
+            contextual_bot.reply(ContextualBot.TEXT, chatgpt_resp)
             return
 
     if parameters.getBoolean("AUTOREPLY_ENABLE") and random.randint(1, 100) <= int(parameters.getList("PROBAS")[0]):

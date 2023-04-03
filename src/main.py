@@ -4,6 +4,8 @@ from discord.utils import get
 
 import tweepy
 
+import openai
+
 from uuid import uuid4
 import telegram
 from telegram import InlineQueryResultArticle, InlineQueryResultVideo, InputTextMessageContent
@@ -828,6 +830,9 @@ EVENTS_ENABLE = True or not(TEST)
 tokens = open("tokens", "r").read().split("\n")
 TELEGRAM_TOKEN=tokens[2] if TEST else tokens[0]
 DISCORD_TOKEN = tokens[16]
+OPENAI_TOKEN = tokens[27]
+
+openai.api_key = OPENAI_TOKEN
 
 # Some init with global variables
 updater = Updater(TELEGRAM_TOKEN, use_context=True)
