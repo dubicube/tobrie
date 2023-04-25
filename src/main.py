@@ -27,6 +27,7 @@ import threading
 from config import *
 from contextual_bot import *
 from shared_core import *
+from gpt import *
 from generic.web_texts import *
 from eirbot.inventory import *
 from generic.audio import *
@@ -368,10 +369,6 @@ def outputHoraires(contextual_bot, sh_core):
 * 8h-20h le samedi
 * fermé le dimanche
 Sachant que la sécu vire les gens environ 30min avant""")
-
-def votre(contextual_bot, sh_core):
-    pack = sh_core.telegramBot.get_sticker_set("EIRBOTO")
-    contextual_bot.reply(ContextualBot.STICKER, pack.stickers[14])
 
 #########################################################################################
 #                                   USELESS TEXTS                                       #
@@ -870,8 +867,9 @@ commands = [
 ("genre", outputGenre),
 ("playlists", outputPlaylists),
 ("horaires", outputHoraires),
-("votre", votre),
-("vos", votre)
+("gptstart", GPT_startConvMode),
+("gptstop", GPT_stopConvMode),
+("gptconfig", GPT_setSystemPrompt)
 ]
 
 
