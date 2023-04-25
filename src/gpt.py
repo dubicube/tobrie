@@ -34,6 +34,7 @@ def GPT_setSystemPrompt(contextual_bot, sh_core):
     (conversationMode, convHistory) = gpt_convData[chatID]
     GPT_SYSTEM_PROMPT = {"role": "system", "content": msg}
     convHistory[0] = {"role": "system", "content": msg}
+    gpt_convData[chatID] = (conversationMode, convHistory)
 
 def GPT_getResponse(contextual_bot):
     msg = contextual_bot.getText()
