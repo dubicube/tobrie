@@ -404,6 +404,15 @@ def getAlie(contextual_bot, sh_core):
     contextual_bot.reply(ContextualBot.TEXT, product[0])
     contextual_bot.reply(ContextualBot.IMAGE, open(image_name, "rb"))
 
+def porteMegane(contextual_bot, sh_core):
+    today = datetime.today()
+    f = open("./../maps/porte", "r")
+    d = f.read()[:10]
+    f.close()
+    d = datetime.strptime(d, "%Y-%m-%d")
+    delta = today - d
+    contextual_bot.reply(ContextualBot.TEXT, "Nombre de jours depuis le dernier démontage de porte de Mégane: " + str(delta.days))
+
 #########################################################################################
 #                                       RAPPORT                                         #
 #########################################################################################
@@ -869,7 +878,8 @@ commands = [
 ("horaires", outputHoraires),
 ("gptstart", GPT_startConvMode),
 ("gptstop", GPT_stopConvMode),
-("gptconfig", GPT_setSystemPrompt)
+("gptconfig", GPT_setSystemPrompt),
+("porte", porteMegane)
 ]
 
 
