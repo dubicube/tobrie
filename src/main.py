@@ -365,7 +365,7 @@ def outputPlaylists(contextual_bot, sh_core):
 
 def outputHoraires(contextual_bot, sh_core):
     contextual_bot.reply(ContextualBot.TEXT,
-"""* 7h-23h du lundi au vendredi
+"""* 7h-22h du lundi au vendredi
 * 8h-20h le samedi
 * fermé le dimanche
 Sachant que la sécu vire les gens environ 30min avant""")
