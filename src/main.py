@@ -370,6 +370,27 @@ def outputHoraires(contextual_bot, sh_core):
 * fermé le dimanche
 Sachant que la sécu vire les gens environ 30min avant""")
 
+def setWelcomeMessage(contextual_bot, sh_core):
+    dm = data_manager.DataManager()
+    text = contextual_bot.getReplyText()
+    sticker = contextual_bot.getReplySticker()
+    video = contextual_bot.getReplyVideo()
+    print(video)
+    success = True
+    if text != "":
+        dm.saveRessource(contextual_bot.getChatID(), "welcome", "T" + text)
+    elif sticker != "":
+        dm.saveRessource(contextual_bot.getChatID(), "welcome", "S" + sticker)
+    elif video != "":
+        dm.saveRessource(contextual_bot.getChatID(), "welcome", "V" + video)
+    else:
+        success = False
+    if success:
+        contextual_bot.reply(ContextualBot.TEXT, "OK")
+    else:
+        contextual_bot.reply(ContextualBot.TEXT, "Tocard, tu sais pas utiliser la commande.\nIl faut invoquer la commande en répondant à un message. Le message répondu sera le message automatiquement envoyé lors de l'arrivée d'une nouvelle personne. Seulement le texte, les stickers et les vidéos sont supportés.")
+
+
 #########################################################################################
 #                                   USELESS TEXTS                                       #
 #########################################################################################
@@ -667,6 +688,7 @@ def voice_handler(update, context):
 
 
 def telegram_new_member(update, context):
+    dm = data_manager.DataManager()
     contextual_bot = TelegramBot(update, context)
     members = update.message.new_chat_members
     ptdrtki = False
@@ -678,6 +700,8 @@ def telegram_new_member(update, context):
             contextual_bot.outputMessages()
             contextual_bot.reply(ContextualBot.TEXT, "Aide: /help\nConfiguration: /on, /off, /config, /proba")
             contextual_bot.outputMessages()
+            # Init default welcome message in chat group with historic "PTDR T KI"
+            dm.saveRessource(contextual_bot.getChatID(), "welcome", 'SCAACAgQAAxkBAAIPVmUm4YE6sR4VTIZvRAmjB_topb1KAAJbBwACTcfgUrO3oPsTnHZbMAQ')
         else:
             ptdrtki = True
         if m.id == conv_perso:
@@ -686,9 +710,17 @@ def telegram_new_member(update, context):
             contextual_bot.reply(ContextualBot.STICKER, pack.stickers[12])
             contextual_bot.outputMessages()
     if ptdrtki:
-        pack = sh_core.telegramBot.get_sticker_set("EIRBOTO")
-        contextual_bot.reply(ContextualBot.STICKER, pack.stickers[47])
-        contextual_bot.outputMessages()
+        message = dm.getRessource(contextual_bot.getChatID(), "welcome")
+        if len(message) > 2:
+            if message[0] == 'T':
+                contextual_bot.reply(ContextualBot.TEXT, message[1:])
+                contextual_bot.outputMessages()
+            elif message[0] == 'S':
+                contextual_bot.reply(ContextualBot.STICKER, message[1:])
+                contextual_bot.outputMessages()
+            elif message[0] == 'V':
+                contextual_bot.reply(ContextualBot.VIDEO, message[1:])
+                contextual_bot.outputMessages()
 
 def telegram_delete(update, context):
     try:
@@ -879,7 +911,8 @@ commands = [
 ("gptstart", GPT_startConvMode),
 ("gptstop", GPT_stopConvMode),
 ("gptconfig", GPT_setSystemPrompt),
-("porte", porteMegane)
+("porte", porteMegane),
+("welcome", setWelcomeMessage)
 ]
 
 

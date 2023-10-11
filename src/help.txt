@@ -1,11 +1,48 @@
->>>>>  EIR_BOT V4.0  <<<<<
+>>>>>  EIR_BOT V481.223.6636_w96(08)  <<<<<
 Plus d'aide sur une commande:
 /help commande
-Liste des commandes:
+Liste des commandes (qui sont normalement pas trop cassées):
 @eir_bot, /on, /off, /config, /proba, /list, /dico, /calc, /meme, /quote, /info, /img, /say, /lang,
-/addm, /shuffle, /clear, /play, /stop, /pause, /resume, /next, /previous, /pn, /queue
-Code source:
+/genre, /playlists, /horaires, /porte, /event, /mainevent, /countdown, /welcome
+Code source (code développé à la méthode www.la-rache.com):
 https://github.com/dubicube/tobrie
+
+Commande: /welcome
+Commande à utiliser en répondant à un autre message. Le message pointé sera le message automatiquement envoyé par Brenda lors de l'arrivée d'une nouvelle personne dans la conversation.
+Types de message supportés:
+  - Texte
+  - Sticker
+  - Vidéos
+
+Commande: /event
+Configure l'envoie d'un message à l'avance, éventuellement régulier tous les ans à la même date.
+Exemple d'événement ponctuel (avec formattage d'heure à la seconde près):
+    /event 31/12/2023 23:59:50 Plus que 10 secondes
+Exemple d'événement régulier annuel (avec formattage d'heure textuel):
+    /event 01/01 00h00mn Une année de plus
+ATTENTION: Il n'est pas possible de supprimer les événements réguliers. Les événements ponctuels sont automatiquement supprimés après expiration de l'événement.
+Les événements réguliers seront éventuellement supprimés au prochain crammage de serveurs OVH.
+De mémoire, on peut aussi programmer des événements réguliers à la semaine, mais je sais plus comment (oui j'écrit l'aide de cette commande 3ans après l'avoir implémentée, donc faut regarder le code pour savoir comment ça fonctionne).
+
+Commande: /mainevent
+Permet de configurer un événement, de la même façon que la commande /event, mais avec un compte à rebours en plus.
+Le compte à rebours peut être visualisé avec la commande /countdown.
+
+Commande: /countdown
+Affiche le compte à rebours du mainevent, si celui-ci a été définit.
+Voir /mainevent.
+
+Commande: /genre
+Décrit l'identité sexuelle de Brenda
+
+Commande: /playlists
+Liste les playlists incontournables d'Eirbot
+
+Commande: /horaires
+Les horaires d'ouverture de l'ENSEIRB
+
+Commande: /porte
+Renvoie le nombre de jours depuis le dernier démontage de porte de Mégane
 
 Commande: /help
 https://www.youtube.com/watch?v=dQw4w9WgXcQ

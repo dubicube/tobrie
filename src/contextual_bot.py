@@ -2,7 +2,6 @@ from discord import File as DiscordFile
 from generic.audio import *
 import random
 
-
 class ContextualBot:
     TEXT = 0
     DOCUMENT = 1
@@ -13,6 +12,8 @@ class ContextualBot:
     CHAINED_STICKERS = 7
     ANIMATION = 6
     PIC_LIST = [VIDEO, IMAGE, STICKER, ANIMATION, CHAINED_STICKERS]
+
+    UNICORN = "piiinnnk fluffy unicorns dancing on rainbow"
 
     def __init__(self):
         self.type = "None"
@@ -32,9 +33,19 @@ class ContextualBot:
         return ""
     def getAbsoluteText(self):
         return ""
+    # Returns text of message which the current message is replying to
     def getReplyText(self):
         return ""
+    # Returns audio of message which the current message is replying to.
+    # Returns a string which is a local path to the downloaded audio file.
     def getReplyAudioFile(self):
+        return ""
+    # Returns sticker file_id of message which the current message is replying to
+    # Return value is a string.
+    def getReplySticker(self):
+        return ""
+    # Returns video file_id of message which the current message is replying to
+    def getReplyVideo(self):
         return ""
     def reply(self, type, obj, proba=100):
         self.reply_queue+=[(type, obj, proba)]
@@ -105,6 +116,16 @@ class TelegramBot(ContextualBot):
                 self.message.reply_to_message.audio.get_file().download(fpath)
                 return fpath
             return ''
+    def getReplySticker(self):
+        if self.message.reply_to_message == None or self.message.reply_to_message.sticker == None:
+            return ""
+        else:
+            return str(self.message.reply_to_message.sticker.file_id)
+    def getReplyVideo(self):
+        if self.message.reply_to_message == None or self.message.reply_to_message.video == None:
+            return ""
+        else:
+            return str(self.message.reply_to_message.video.file_id)
     def getReplyText(self):
         if self.message.reply_to_message == None or self.message.reply_to_message.text == None:
             return ""
