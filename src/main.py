@@ -435,18 +435,7 @@ def porteMegane(contextual_bot, sh_core):
     contextual_bot.reply(ContextualBot.TEXT, "Nombre de jours depuis le dernier démontage de porte de Mégane: " + str(delta.days))
 
 def bureauList(contextual_bot, sh_core):
-    contextual_bot.reply(ContextualBot.TEXT, """Bureau Eirbot 2023/2024 :
-- Président : @Postalle
-- Vice Prez : @theo_lasticot
-- Trésorier : @Kingkazma2921
-- Secrétaire : @maximeweiss
-
-- Respo Boom Boom: @sac_a_dos_bleu
-- Respo Com : @Charlou11
-- Respo Ménage : @Antotchoin
-- Respo Part : @mays_eirb
-- Respo Site : @jesuisjules_tamere
-""")
+    FLM_getFile(contextual_bot, sh_core, "bureau")
 
 
 #########################################################################################
