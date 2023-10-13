@@ -436,7 +436,7 @@ def porteMegane(contextual_bot, sh_core):
 
 def bureauList(contextual_bot, sh_core):
     data = open(mapPath+"bureau", "r").read()
-    ontextual_bot.reply(contextual_bot.TEXT, data)
+    contextual_bot.reply(contextual_bot.TEXT, data)
 
 
 #########################################################################################
