@@ -435,7 +435,8 @@ def porteMegane(contextual_bot, sh_core):
     contextual_bot.reply(ContextualBot.TEXT, "Nombre de jours depuis le dernier démontage de porte de Mégane: " + str(delta.days))
 
 def bureauList(contextual_bot, sh_core):
-    FLM_getFile(contextual_bot, sh_core, "bureau")
+    data = open(mapPath+"bureau", "r").read()
+    ontextual_bot.reply(contextual_bot.TEXT, data)
 
 
 #########################################################################################
