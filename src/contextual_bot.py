@@ -47,6 +47,8 @@ class ContextualBot:
     # Returns video file_id of message which the current message is replying to
     def getReplyVideo(self):
         return ""
+    def downloadReplyDocument(self, dirPath):
+        return ""
     def reply(self, type, obj, proba=100):
         self.reply_queue+=[(type, obj, proba)]
         if type in ContextualBot.PIC_LIST:
@@ -126,6 +128,13 @@ class TelegramBot(ContextualBot):
             return ""
         else:
             return str(self.message.reply_to_message.video.file_id)
+    def downloadReplyDocument(self, dirPath):
+        if self.message.reply_to_message == None or self.message.reply_to_message.document == None:
+            return ""
+        else:
+            path = dirPath + self.message.reply_to_message.document.file_name
+            self.message.reply_to_message.document.get_file().download(path)
+            return path
     def getReplyText(self):
         if self.message.reply_to_message == None or self.message.reply_to_message.text == None:
             return ""

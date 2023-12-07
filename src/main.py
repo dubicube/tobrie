@@ -6,6 +6,8 @@ import tweepy
 
 import openai
 
+import aspose.words as aw
+
 from uuid import uuid4
 import telegram
 from telegram import InlineQueryResultArticle, InlineQueryResultVideo, InputTextMessageContent
@@ -438,6 +440,15 @@ def bureauList(contextual_bot, sh_core):
     data = open(mapPath+"bureau", "r").read()
     contextual_bot.reply(contextual_bot.TEXT, data)
 
+def pdfConvert(contextual_bot, sh_core):
+    path = contextual_bot.downloadReplyDocument(tempPath)
+    if path.endswith('docx'):
+        doc = aw.Document(path)
+        pdfPath = path[:-4] + 'pdf'
+        doc.save(pdfPath)
+        contextual_bot.reply(contextual_bot.DOCUMENT, open(pdfPath, 'rb'))
+    else:
+        contextual_bot.reply(contextual_bot.TEXT, "Fichier invalide")
 
 #########################################################################################
 #                                       RAPPORT                                         #
@@ -918,7 +929,8 @@ commands = [
 ("gptconfig", GPT_setSystemPrompt),
 ("porte", porteMegane),
 ("welcome", setWelcomeMessage),
-("bureau", bureauList)
+("bureau", bureauList),
+("pdf", pdfConvert)
 ]
 
 
