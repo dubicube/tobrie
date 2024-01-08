@@ -6,6 +6,7 @@ import tweepy
 
 import openai
 
+from credit_card_info_generator import generate_credit_card
 import aspose.words as aw
 
 from uuid import uuid4
@@ -449,6 +450,10 @@ def pdfConvert(contextual_bot, sh_core):
         contextual_bot.reply(contextual_bot.DOCUMENT, open(pdfPath, 'rb'))
     else:
         contextual_bot.reply(contextual_bot.TEXT, "Fichier invalide")
+
+def creditCard(contextual_bot, sh_core):
+    card = generate_credit_card('Visa')
+    contextual_bot.reply(contextual_bot.TEXT, "Number: " + str(card["card_number"]) + "\nCVV: " + str(card["cvv"]) + "\nExpiry date: " + str(card["expiry_date"]))
 
 #########################################################################################
 #                                       RAPPORT                                         #
@@ -930,7 +935,8 @@ commands = [
 ("porte", porteMegane),
 ("welcome", setWelcomeMessage),
 ("bureau", bureauList),
-("pdf", pdfConvert)
+("pdf", pdfConvert),
+("card", creditCard)
 ]
 
 
