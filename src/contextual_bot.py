@@ -13,12 +13,14 @@ class ContextualBot:
     ANIMATION = 6
     PIC_LIST = [VIDEO, IMAGE, STICKER, ANIMATION, CHAINED_STICKERS]
 
+    # OK, I was drunk when I wrote this line
     UNICORN = "piiinnnk fluffy unicorns dancing on rainbow"
 
     def __init__(self):
         self.type = "None"
         self.reply_queue = []
         self.reply_queue_pic = []
+        self.achievement_queue = []
     def getChatID(self):
         return 0
     def getUserID(self):
@@ -53,6 +55,8 @@ class ContextualBot:
         self.reply_queue+=[(type, obj, proba)]
         if type in ContextualBot.PIC_LIST:
             self.reply_queue_pic+=[(type, obj, proba)]
+    def addAchievement(self, type, obj):
+        self.achievement_queue+=[(type, obj)]
     def clearQueue(self):
         self.reply_queue = []
         self.reply_queue_pic = []
@@ -166,6 +170,8 @@ class TelegramBot(ContextualBot):
                 (type, obj, proba) = self.reply_queue_pic[i-1]
                 funs[type](self.update.message.chat_id, obj)
         super().clearQueue()
+        for (type, obj) in self.achievement_queue:
+            funs[type](self.update.message.chat_id, obj)
 
 
 class DiscordBot(ContextualBot):

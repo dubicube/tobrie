@@ -5,6 +5,7 @@ from shared_core import *
 from generic.web_texts import getGoogleResponse
 from contextual_bot import ContextualBot
 from gpt import *
+import events_ui
 
 messages_perso = [
     ['TudorEustache', 100, "C'est Ambre qui t'a dit ça?"],
@@ -142,6 +143,12 @@ def handleText(contextual_bot, sh_core, level=0):
     if len(chatgpt_resp) > 1:
         contextual_bot.reply(ContextualBot.TEXT, chatgpt_resp)
         return
+
+    dataManager = data_manager.DataManager()
+    maxMessageLength = dataManager.getRessource(contextual_bot.getChatID(), "maxMessageLength")
+    if len(maxMessageLength) == 0 or len(msg) > int(maxMessageLength):
+        dataManager.saveRessource(contextual_bot.getChatID(), "maxMessageLength", str(len(msg)))
+        contextual_bot.addAchievement(contextual_bot.TEXT, "Achievement unlocked: message le plus long dans la conversation: " + str(len(msg)) + " caractères")
 
     if parameters.getBoolean("AUTOREPLY_ENABLE") and random.randint(1, 100) <= int(parameters.getList("PROBAS")[0]):
 
