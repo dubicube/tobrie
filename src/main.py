@@ -7,7 +7,7 @@ import tweepy
 import openai
 
 from credit_card_info_generator import generate_credit_card
-import aspose.words as aw
+import pypandoc
 
 from uuid import uuid4
 import telegram
@@ -444,9 +444,8 @@ def bureauList(contextual_bot, sh_core):
 def pdfConvert(contextual_bot, sh_core):
     path = contextual_bot.downloadReplyDocument(tempPath)
     if path.endswith('docx'):
-        doc = aw.Document(path)
         pdfPath = path[:-4] + 'pdf'
-        doc.save(pdfPath)
+        pypandoc.convert_file(path, 'pdf', outputfile=pdfPath)
         contextual_bot.reply(contextual_bot.DOCUMENT, open(pdfPath, 'rb'))
     else:
         contextual_bot.reply(contextual_bot.TEXT, "Fichier invalide")
