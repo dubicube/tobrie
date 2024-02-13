@@ -90,7 +90,7 @@ def runPybrenda(command):
 def highLevelTextCallback(contextual_bot, sh_core):
     msg = contextual_bot.getText()
     rep = ""
-    if pybrenda_enabled and (contextual_bot.getChatID() in [-1001168293232, -1001216704238, conv_perso, -1001459505391]):
+    if pybrenda_enabled and (contextual_bot.getChatID() in [-1001168293232, -1001216704238, conv_perso, -1001459505391, -1001825803119]):
         rep = runPybrenda(bytes(msg, 'utf8'))
         if "<function" in rep and len(msg.split(' ')) == 1:
             rep = runPybrenda(bytes(msg+"()", 'utf8'))
