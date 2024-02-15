@@ -180,7 +180,7 @@ def download_image(url, path):
 
 # Get a random phrase with no sense
 def getQuote():
-    text = requests.get('http://generateur.vuzi.fr/').text
+    text = requests.get('http://generateur.vuzi.fr/', verify=False).text
     i = text.index('<span id="quotemarkContent">')
     j = text.index('</span>', i)
     return text[i+37:j-6]
