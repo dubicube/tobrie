@@ -134,7 +134,10 @@ class EventsUI:
             # Get main event last time it has been requested
             main_event_last_trigger_date = self.dm.getRessource(contextual_bot.getChatID(), "main_event_lt")
             self.dm.saveRessource(contextual_bot.getChatID(), "main_event_lt", str(now))
-            delta_s = (now-datetime.datetime.strptime(main_event_last_trigger_date, "%Y-%m-%d %H:%M:%S.%f")).total_seconds()
+            try:
+                delta_s = (now-datetime.datetime.strptime(main_event_last_trigger_date, "%Y-%m-%d %H:%M:%S.%f")).total_seconds()
+            except:
+                delta_s = (now-now).total_seconds()
             print(main_event_last_trigger_date, delta_s)
             (days, hours, minutes, seconds) = getDHMS(delta_s)
             str_output += "\nDernière utilisation de la commande: il y a " + smartDayPrintStr(days, hours, minutes, seconds)
