@@ -1,6 +1,7 @@
 from discord import File as DiscordFile
 from generic.audio import *
 import random
+import coin
 
 class ContextualBot:
     TEXT = 0
@@ -13,8 +14,7 @@ class ContextualBot:
     ANIMATION = 6
     PIC_LIST = [VIDEO, IMAGE, STICKER, ANIMATION, CHAINED_STICKERS]
 
-    # OK, I was drunk when I wrote this line
-    UNICORN = "piiinnnk fluffy unicorns dancing on rainbow"
+    # Le fromage
 
     def __init__(self):
         self.type = "None"
@@ -149,12 +149,17 @@ class TelegramBot(ContextualBot):
     def send_chained_stickers(self, conv, l):
         for i in l:
             self.context.bot.send_sticker(conv, i)
+
+    # TODO: dissociate the probability system from the direct message output.
+    # The problem with current implementation is that probability is computed at the same time
+    # with message output, and thus achievements and coins cannot be easily calculated on other platforms.
     def outputMessages(self):
         b = self.context.bot
         funs = [b.send_message, b.send_document, b.send_video, b.send_photo, b.send_audio, b.send_sticker, b.send_animation, self.send_chained_stickers]
         for (type, obj, proba) in self.reply_queue:
             if type < len(funs) and not type in ContextualBot.PIC_LIST:
                 funs[type](self.update.message.chat_id, obj)
+                coin.increaseUserCoinsFromMessage(self.getChatID(), self.getUserID(), type, obj)
         if len(self.reply_queue_pic) > 0:
             proba_total = 0
             for (type, obj, proba) in self.reply_queue_pic:
@@ -169,9 +174,11 @@ class TelegramBot(ContextualBot):
                     i+=1
                 (type, obj, proba) = self.reply_queue_pic[i-1]
                 funs[type](self.update.message.chat_id, obj)
+                coin.increaseUserCoinsFromMessage(self.getChatID(), self.getUserID(), type, obj)
         super().clearQueue()
         for (type, obj) in self.achievement_queue:
             funs[type](self.update.message.chat_id, obj)
+            coin.increaseUserCoinsFromMessage(self.getChatID(), self.getUserID(), type, obj)
 
 
 class DiscordBot(ContextualBot):

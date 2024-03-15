@@ -41,6 +41,7 @@ from service.brendapi import *
 from service.remote_service_server import *
 from file_list_manager import *
 from generic.morse import MSR_cancer, MSR_config
+import coin
 
 import events_ui
 
@@ -453,6 +454,16 @@ def pdfConvert(contextual_bot, sh_core):
 def creditCard(contextual_bot, sh_core):
     card = generate_credit_card('Visa')
     contextual_bot.reply(contextual_bot.TEXT, "Number: " + str(card["card_number"]) + "\nCVV: " + str(card["cvv"]) + "\nExpiry date: " + str(card["expiry_date"]))
+
+#########################################################################################
+#                                        COINS                                          #
+#########################################################################################
+
+
+def mycoins(contextual_bot, sh_core):
+    coins = coin.getUserCoins(contextual_bot.getChatID(), contextual_bot.getUserID())
+    contextual_bot.reply(contextual_bot.TEXT, str(coins))
+
 
 #########################################################################################
 #                                       RAPPORT                                         #
@@ -924,7 +935,7 @@ commands = [
 ("addv", addNewVideo),
 ("event", eventsUI.addEvent),
 ("mainevent", eventsUI.setMainEvent),
-("countdown", eventsUI.reactMainEvent),
+("countdown", eventsUI.reactMainEvent), ("cfr", eventsUI.reactMainEvent),
 ("genre", outputGenre),
 ("playlists", outputPlaylists),
 ("horaires", outputHoraires),
@@ -935,7 +946,9 @@ commands = [
 ("welcome", setWelcomeMessage),
 ("bureau", bureauList),
 ("pdf", pdfConvert),
-("card", creditCard)
+("card", creditCard),
+
+("mycoins", mycoins)
 ]
 
 
