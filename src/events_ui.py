@@ -129,7 +129,7 @@ class EventsUI:
             delta_s = (ev_dt-now).total_seconds()
             (days, hours, minutes, seconds) = getDHMS(delta_s)
 
-            thisIsFineGif = days < 4
+            thisIsFineGif = days < 5
 
             str_output = "Il reste " + smartDayPrintStr(days, hours, minutes, seconds) + " avant " + ev_txt
 
