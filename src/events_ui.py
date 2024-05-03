@@ -129,6 +129,8 @@ class EventsUI:
             delta_s = (ev_dt-now).total_seconds()
             (days, hours, minutes, seconds) = getDHMS(delta_s)
 
+            thisIsFineGif = days < 4
+
             str_output = "Il reste " + smartDayPrintStr(days, hours, minutes, seconds) + " avant " + ev_txt
 
             # Get main event last time it has been requested
@@ -143,5 +145,7 @@ class EventsUI:
             str_output += "\nDernière utilisation de la commande: il y a " + smartDayPrintStr(days, hours, minutes, seconds)
 
             contextual_bot.reply(ContextualBot.TEXT, str_output)
+            if thisIsFineGif:
+                contextual_bot.reply(ContextualBot.ANIMATION, "https://tenor.com/view/fine-this-is-fine-fine-dog-shaking-intensifies-im-ok-gif-15733726")
             return
         contextual_bot.reply(ContextualBot.TEXT, "Aucun événement majeur en mémoire")
