@@ -44,6 +44,45 @@ video_map_regex = []
 sh_core = None
 
 
+
+#########################################################################################
+#                                      BRIDGEBOT                                        #
+#########################################################################################
+
+from BridgeBot import *
+
+def telegram2BridgeBot(update, context):
+    event = None
+    if update.message.text != None and len(update.message.text) > 0:
+        user = User(update.message.from_user.first_name, update.message.from_user.last_name, update.message.from_user.username, update.message.from_user.id)
+        messageData = MessageData(MessageType.TEXT, update.message.text)
+        event = Event(EventSource.TELEGRAM, update.message.chat_id, EventType.MESSAGE, user, messageData)
+    return event
+
+
+def bridgeBot2Telegram(reply):
+    bot = sh_core.telegramBot
+    if reply.messageType == MessageType.TEXT:
+        bot.send_message(chat_id=reply.chatId, text=reply.data)
+    elif reply.messageType == MessageType.IMAGE:
+        bot.send_photo(chat_id=reply.chatId, photo=open(reply.data, 'rb'))
+    elif reply.messageType == MessageType.VIDEO:
+        bot.send_video(chat_id=reply.chatId, video=reply.data)
+    elif reply.messageType == MessageType.AUDIO:
+        bot.send_audio(chat_id=reply.chatId, audio=open(reply.data, 'rb'))
+    elif reply.messageType == MessageType.FILE:
+        bot.send_document(chat_id=reply.chatId, document=open(reply.data, 'rb'))
+    elif reply.messageType == MessageType.STICKER:
+        s = reply.data.split(' ')
+        pack = bot.get_sticker_set(s[0])
+        bot.send_sticker(chat_id=reply.chatId, sticker=pack.stickers[int(s[1])])
+
+
+def bridgeBot2FrontEnd(replies):
+    for r in replies:
+        if r.source == EventSource.TELEGRAM:
+            bridgeBot2Telegram(r)
+
 #########################################################################################
 #                                        PYBRENDA                                       #
 #########################################################################################
@@ -586,9 +625,13 @@ def telegram_conv(update, context):
     conv(TelegramBot(update, context))
 # Forward incoming text from Telegram to global core
 def telegram_handle_command(update, context):
-    contextual_bot = TelegramBot(update, context)
-    generic_handle_text(contextual_bot, sh_core)
-    contextual_bot.outputMessages()
+    event = telegram2BridgeBot(update, context)
+    replies = []
+    replies+=[Reply(event.source, event.chatId, MessageType.STICKER, 'MemeManMemesta 81')]
+    bridgeBot2FrontEnd(replies)
+    # contextual_bot = TelegramBot(update, context)
+    # (contextual_bot, sh_core)
+    # contextual_bot.outputMessages()
 
 def telegram_handle_video(update, context):
     handle_video(update, context, sh_core)
