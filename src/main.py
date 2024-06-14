@@ -1,32 +1,31 @@
+import time, os, signal, requests, threading, random, logging, re
+import urllib.parse
+from urllib import request
+from datetime import datetime
+from uuid import uuid4
+
+# Discord
 import discord
 from discord import FFmpegPCMAudio
 from discord.utils import get
 
+# Tweeter
 import tweepy
 
+# Telegram
+import telegram
+from telegram import ForceReply, Update, InlineQueryResultArticle, InlineQueryResultVideo, InputTextMessageContent
+from telegram.ext import Application, InlineQueryHandler, CommandHandler, MessageHandler, filters, CallbackQueryHandler
+
+# Other dependencies
 import openai
 
+from zalgo_text import zalgo
 from credit_card_info_generator import generate_credit_card
 import pypandoc
 
-from uuid import uuid4
-import telegram
-from telegram import InlineQueryResultArticle, InlineQueryResultVideo, InputTextMessageContent
-from telegram.ext import Updater, InlineQueryHandler, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
-import re
-import logging
-import random
-from datetime import datetime
-import time
-import os
-import signal
-import requests
-from zalgo_text import zalgo
-import urllib.parse
-from urllib import request
 
-import threading
-
+# Internal imports
 from config import *
 from contextual_bot import *
 from shared_core import *
@@ -138,31 +137,23 @@ def getResults(txt, names, nbr_max):
                 results+=[vid]
                 nbr+=1
     return results
-def inlinequery(update, context):
-    context.bot.send_message(chat_id=conv_perso, text="["+", "+str(update.inline_query.from_user.first_name)+", "+str(update.inline_query.from_user.id)+": "+update.inline_query.query)
+async def telegramInlinequery(update, context):
+    await sh_core.notifConsole(TelegramBot(update, context), "["+", "+str(update.inline_query.from_user.first_name)+", "+str(update.inline_query.from_user.id)+": "+update.inline_query.query)
     txt = update.inline_query.query.lower().split(" ")
 
     if txt[0] == 'z':
         zal = zalgo.zalgo().zalgofy(" ".join(txt[1:]))
         results = [InlineQueryResultArticle(id=uuid4(), title=zal, input_message_content=InputTextMessageContent(zal), description=zal)]
-        update.inline_query.answer(results)
+        await update.inline_query.answer(results)
     else:
         r = getResults(txt, video_names_out, 50)
         results = [InlineQueryResultVideo(uuid4(), dataServerAddress+vname.replace(" ", "%20"), "video/mp4", thumbnailsServerAddress+vname[:-3].replace(" ", "%20")+'jpg', vname) for vname in r]
-        update.inline_query.answer(results)
-def list(update, context):
-    sh_core.notifConsole(TelegramBot(update, context))
-    if update.message.chat_id == update.message.from_user.id:
-        list_out = video_names_out
-        if len(update.message.text) > 6:
-            list_out = getResults(update.message.text[6:].lower().split(' '), video_names_out, 9999999)
-        for i in range(len(list_out)//10):
-            context.bot.send_message(chat_id=update.message.chat_id, text="\n".join(list_out[i*10:(i+1)*10]))
-        context.bot.send_message(chat_id=update.message.chat_id, text="\n".join(list_out[(int(len(list_out)//10))*10:]))
-    else:
-        context.bot.send_message(chat_id=update.message.chat_id, text="Le /list est interdit dans les groupes")
-def dico(update, context):
-    sh_core.notifConsole(TelegramBot(update, context))
+        await update.inline_query.answer(results)
+async def listVideos(update, context):
+    await sh_core.notifConsole(TelegramBot(update, context))
+    await context.bot.send_message(chat_id=update.message.chat_id, text=dataServerAddress)
+async def dico(update, context):
+    await sh_core.notifConsole(TelegramBot(update, context))
     if update.message.chat_id == update.message.from_user.id:
         d = []
         for name in video_names_out:
@@ -171,10 +162,10 @@ def dico(update, context):
                     d+=[i]
         d = sorted(d)
         for i in range(len(d)//100):
-            context.bot.send_message(chat_id=update.message.chat_id, text=", ".join(d[i*100:(i+1)*100]))
-        context.bot.send_message(chat_id=update.message.chat_id, text=", ".join(d[(int(len(d)//100))*100:]))
+            await context.bot.send_message(chat_id=update.message.chat_id, text=", ".join(d[i*100:(i+1)*100]))
+        await context.bot.send_message(chat_id=update.message.chat_id, text=", ".join(d[(int(len(d)//100))*100:]))
     else:
-        context.bot.send_message(chat_id=update.message.chat_id, text="Le /dico est interdit dans les groupes")
+        await context.bot.send_message(chat_id=update.message.chat_id, text="Le /dico est interdit dans les groupes")
 
 #########################################################################################
 #                                        AUDIO                                          #
@@ -469,18 +460,18 @@ def mycoins(contextual_bot, sh_core):
 #                                       RAPPORT                                         #
 #########################################################################################
 
-def rapport(update, context):
+async def rapport(update, context):
     msg = update.message
     today = datetime.now()
     d = datetime(2020, 8, 27, 21, 59, 59, 999999)
     reste = d-today
     sec = reste.seconds
     if reste.days >= 0 and sec//3600>=0 and ((sec%3600)//60)>=0 and (sec%3600)%60>=0:
-        context.bot.send_message(chat_id=msg.chat_id, text="Il reste "+str(reste.days)+" jours, "+str(sec//3600)+" heures, "+str((sec%3600)//60)+" minutes et "+str((sec%3600)%60)+" secondes pour finir le rapport (ou le commencer...)")
+        await context.bot.send_message(chat_id=msg.chat_id, text="Il reste "+str(reste.days)+" jours, "+str(sec//3600)+" heures, "+str((sec%3600)//60)+" minutes et "+str((sec%3600)%60)+" secondes pour finir le rapport (ou le commencer...)")
     else:
 
-        context.bot.send_message(chat_id=msg.chat_id, text="Il reste "+str(sec//3600)+" heures, "+str((sec%3600)//60)+" minutes et "+str((sec%3600)%60)+" secondes pour finir le rapport avec "+str(24*-reste.days)+"h de retard")
-        context.bot.send_animation(msg.chat_id, "https://tenor.com/view/fine-this-is-fine-fine-dog-shaking-intensifies-im-ok-gif-15733726")
+        await context.bot.send_message(chat_id=msg.chat_id, text="Il reste "+str(sec//3600)+" heures, "+str((sec%3600)//60)+" minutes et "+str((sec%3600)%60)+" secondes pour finir le rapport avec "+str(24*-reste.days)+"h de retard")
+        await context.bot.send_animation(msg.chat_id, "https://tenor.com/view/fine-this-is-fine-fine-dog-shaking-intensifies-im-ok-gif-15733726")
         #reste = today-d
         #sec = reste.seconds
         #context.bot.send_message(chat_id=msg.chat_id, text="Trop tard, il fallait rendre le rapport il y a "+str(reste.days)+" jours, "+str(sec//3600)+" heures, "+str((sec%3600)//60)+" minutes et "+str((sec%3600)%60)+" secondes !")
@@ -700,15 +691,19 @@ def shutdown():
     brendapi.stop() # Kill BrendAPI
     sh_core.remote_service.stop() # Kill remote service
     stop_periodic_thread_fun() # Kill Mail and Twitter
-    updater.stop() # Kill Telegram
-    updater.is_idle = False
+    # This should be wawaited, but fuck asynchronous python
+    telegramApplication.stop() # Kill Telegram
+    telegramApplication.is_idle = False
+    # Now reading this line, after several years :
+    # WTF was I thinking when I wrote that ?
+    # Seems to work, somehow...
     os.kill(os.getpid(), signal.SIGINT) # Kill Discord
 def stopAll():
     threading.Thread(target=shutdown).start()
 # Shutdown command from Telegram
-def telegram_stop(update, context):
+async def telegram_stop(update, context):
     if update.message.from_user.id == super_admin:
-        context.bot.send_message(update.message.chat_id, "Stopping...")
+        await context.bot.send_message(update.message.chat_id, "Stopping...")
         stopAll()
 
 def voice_handler(update, context):
@@ -904,8 +899,8 @@ OPENAI_TOKEN = tokens[27]
 openai.api_key = OPENAI_TOKEN
 
 # Some init with global variables
-updater = Updater(TELEGRAM_TOKEN, use_context=True)
-sh_core = SharedCore(updater.bot, RemoteServiceServer(65332))
+telegramApplication = Application.builder().token(TELEGRAM_TOKEN).build()
+sh_core = SharedCore(telegramApplication.bot, RemoteServiceServer(65332))
 client_discord = discord.Client()
 
 
@@ -917,38 +912,38 @@ client_discord = discord.Client()
 # If adding a command here, you should consider
 # adding a help description in the help.txt file.
 commands = [
-("di", deprecatedCommand), ("video", deprecatedCommand),
-("config", configureParameters),("proba", configureProba),
-("on", setAutoReplyOn),("off", setAutoReplyOff),("find", find),("info", info),
-("quote", quote),
-("meme", meme),("calc", calc), ("croa", croa),
-("addc", addCitation),("citations", getCitations),("citation", getCitation),
-("addp", add1AProject),("sprojet", get1AProject),
-("addcard", addCard),("scards", showCards),
-("add2060", add2060),("s2060", show2060),
-("say2", sayText), ("say", sayText2), ("lang", setVoiceLanguage), ("speed", setVoiceSpeed),
-("img", search_image), ("sound", search_sound), ("morse", morse),
-("addm", addMusic),
-("shuffle", shuffleMusic),("clear", clearMusic),("fetch", updateMusic),("queue", infoMusic),
-("cursor", setCursorMusic),
-("help", help),
-("addv", addNewVideo),
-("event", eventsUI.addEvent),
-("mainevent", eventsUI.setMainEvent),
-("countdown", eventsUI.reactMainEvent), ("cfr", eventsUI.reactMainEvent),
-("genre", outputGenre),
-("playlists", outputPlaylists),
-("horaires", outputHoraires),
-("gptstart", GPT_startConvMode),
-("gptstop", GPT_stopConvMode),
-("gptconfig", GPT_setSystemPrompt),
-("porte", porteMegane),
-("welcome", setWelcomeMessage),
-("bureau", bureauList),
-("pdf", pdfConvert),
-("card", creditCard),
+    ("di", deprecatedCommand), ("video", deprecatedCommand),
+    ("config", configureParameters),("proba", configureProba),
+    ("on", setAutoReplyOn),("off", setAutoReplyOff),("find", find),("info", info),
+    ("quote", quote),
+    ("meme", meme),("calc", calc), ("croa", croa),
+    ("addc", addCitation),("citations", getCitations),("citation", getCitation),
+    ("addp", add1AProject),("sprojet", get1AProject),
+    ("addcard", addCard),("scards", showCards),
+    ("add2060", add2060),("s2060", show2060),
+    ("say2", sayText), ("say", sayText2), ("lang", setVoiceLanguage), ("speed", setVoiceSpeed),
+    ("img", search_image), ("sound", search_sound), ("morse", morse),
+    ("addm", addMusic),
+    ("shuffle", shuffleMusic),("clear", clearMusic),("fetch", updateMusic),("queue", infoMusic),
+    ("cursor", setCursorMusic),
+    ("help", help),
+    ("addv", addNewVideo),
+    ("event", eventsUI.addEvent),
+    ("mainevent", eventsUI.setMainEvent),
+    ("countdown", eventsUI.reactMainEvent), ("cfr", eventsUI.reactMainEvent),
+    ("genre", outputGenre),
+    ("playlists", outputPlaylists),
+    ("horaires", outputHoraires),
+    ("gptstart", GPT_startConvMode),
+    ("gptstop", GPT_stopConvMode),
+    ("gptconfig", GPT_setSystemPrompt),
+    ("porte", porteMegane),
+    ("welcome", setWelcomeMessage),
+    ("bureau", bureauList),
+    ("pdf", pdfConvert),
+    ("card", creditCard),
 
-("mycoins", mycoins)
+    ("mycoins", mycoins)
 ]
 
 
@@ -977,37 +972,40 @@ def main():
         eventsUI.init(sh_core)
 
     #####[ TELEGRAM ]#####
-    dp = updater.dispatcher
-    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+    # logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
     if TELEGRAM_ENABLE:
-        dp.add_handler(InlineQueryHandler(inlinequery))
+        telegramApplication.add_handler(InlineQueryHandler(telegramInlinequery))
 
-        for (fun_txt, fun) in commands:
-            dp.add_handler(CommandHandler(fun_txt, telegram_handle_command))
+        # TODO
+        # for (fun_txt, fun) in commands:
+        #     telegramApplication.add_handler(CommandHandler(fun_txt, telegram_handle_command))
 
-        dp.add_handler(CommandHandler('list',list))
-        dp.add_handler(CommandHandler('dico',dico))
-        dp.add_handler(CommandHandler('rapport',rapport))
-        dp.add_handler(CommandHandler('update',update_video_names_command))
+        # TODO
+        telegramApplication.add_handler(CommandHandler('list', listVideos)) # TODO: general support for all bots
+        telegramApplication.add_handler(CommandHandler('dico', dico)) # TODO: general support for all bots
+        telegramApplication.add_handler(CommandHandler('rapport', rapport))
+        # telegramApplication.add_handler(CommandHandler('update',update_video_names_command))
 
-        #Personal commands
-        dp.add_handler(CommandHandler('conv', telegram_conv))
-        dp.add_handler(CommandHandler('stopall', telegram_stop))
-        dp.add_handler(CommandHandler('mail', forceMailUpdate))
-        dp.add_handler(CommandHandler('per', telegram_periodic_thread))
-        dp.add_handler(CommandHandler('del', telegram_delete))
+        # Personal commands
+        # TODO
+        # telegramApplication.add_handler(CommandHandler('conv', telegram_conv))
+        telegramApplication.add_handler(CommandHandler('stopall', telegram_stop))
+        # telegramApplication.add_handler(CommandHandler('mail', forceMailUpdate))
+        # telegramApplication.add_handler(CommandHandler('per', telegram_periodic_thread))
+        # telegramApplication.add_handler(CommandHandler('del', telegram_delete))
 
-        dp.add_handler(MessageHandler(Filters.text, telegram_handle_command))
+        # TODO
+        # telegramApplication.add_handler(MessageHandler(Filters.text, telegram_handle_command))
+        # telegramApplication.add_handler(MessageHandler(Filters.voice, voice_handler))
+        # telegramApplication.add_handler(MessageHandler(Filters.video, telegram_handle_video))
+        # telegramApplication.add_handler(MessageHandler(Filters.status_update.new_chat_members, telegram_new_member))
 
-        dp.add_handler(MessageHandler(Filters.voice, voice_handler))
-
-        dp.add_handler(MessageHandler(Filters.video, telegram_handle_video))
-
-        dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, telegram_new_member))
-
-        updater.start_polling()
-        if not DISCORD_ENABLE:
-            updater.idle()
+        # Old code
+        # updater.start_polling()
+        # if not DISCORD_ENABLE:
+        #     updater.idle()
+        telegramApplication.run_polling(allowed_updates=Update.ALL_TYPES)
+        # TODO: allow discord bot to boot
 
     #####[ DISCORD ]#####
     if DISCORD_ENABLE:

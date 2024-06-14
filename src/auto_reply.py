@@ -139,11 +139,13 @@ def handleText(contextual_bot, sh_core, level=0):
         sh_core.notifConsole(contextual_bot)
 
     # Auto response from chatgpt. Terminate if response provided
+    # (Actually no longer working..........)
     chatgpt_resp = GPT_getResponse(contextual_bot)
     if len(chatgpt_resp) > 1:
         contextual_bot.reply(ContextualBot.TEXT, chatgpt_resp)
         return
 
+    # Achievement
     dataManager = data_manager.DataManager()
     maxMessageLength = dataManager.getRessource(contextual_bot.getChatID(), "maxMessageLength")
     if len(maxMessageLength) == 0 or len(msg) > int(maxMessageLength):
