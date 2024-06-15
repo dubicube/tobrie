@@ -49,7 +49,7 @@ class ContextualBot:
     # Returns video file_id of message which the current message is replying to
     def getReplyVideo(self):
         return ""
-    def downloadReplyDocument(self, dirPath):
+    async def downloadReplyDocument(self, dirPath):
         return ""
     def reply(self, type, obj, proba=100):
         self.reply_queue+=[(type, obj, proba)]
@@ -132,12 +132,12 @@ class TelegramBot(ContextualBot):
             return ""
         else:
             return str(self.message.reply_to_message.video.file_id)
-    def downloadReplyDocument(self, dirPath):
+    async def downloadReplyDocument(self, dirPath):
         if self.message.reply_to_message == None or self.message.reply_to_message.document == None:
             return ""
         else:
             path = dirPath + self.message.reply_to_message.document.file_name
-            self.message.reply_to_message.document.get_file().download(path)
+            await self.message.reply_to_message.document.get_file().download_to_drive(path)
             return path
     def getReplyText(self):
         if self.message.reply_to_message == None or self.message.reply_to_message.text == None:
@@ -146,19 +146,19 @@ class TelegramBot(ContextualBot):
             return self.message.reply_to_message.text
     def isChatPerso(self):
         return self.message.chat_id == self.message.from_user.id
-    def send_chained_stickers(self, conv, l):
+    async def send_chained_stickers(self, conv, l):
         for i in l:
-            self.context.bot.send_sticker(conv, i)
+            await self.context.bot.send_sticker(conv, i)
 
     # TODO: dissociate the probability system from the direct message output.
     # The problem with current implementation is that probability is computed at the same time
     # with message output, and thus achievements and coins cannot be easily calculated on other platforms.
-    def outputMessages(self):
+    async def outputMessages(self):
         b = self.context.bot
         funs = [b.send_message, b.send_document, b.send_video, b.send_photo, b.send_audio, b.send_sticker, b.send_animation, self.send_chained_stickers]
         for (type, obj, proba) in self.reply_queue:
             if type < len(funs) and not type in ContextualBot.PIC_LIST:
-                funs[type](self.update.message.chat_id, obj)
+                await funs[type](self.update.message.chat_id, obj)
                 coin.increaseUserCoinsFromMessage(self.getChatID(), self.getUserID(), type, obj)
         if len(self.reply_queue_pic) > 0:
             proba_total = 0
@@ -173,11 +173,11 @@ class TelegramBot(ContextualBot):
                     proba_total+=proba
                     i+=1
                 (type, obj, proba) = self.reply_queue_pic[i-1]
-                funs[type](self.update.message.chat_id, obj)
+                await funs[type](self.update.message.chat_id, obj)
                 coin.increaseUserCoinsFromMessage(self.getChatID(), self.getUserID(), type, obj)
         super().clearQueue()
         for (type, obj) in self.achievement_queue:
-            funs[type](self.update.message.chat_id, obj)
+            await funs[type](self.update.message.chat_id, obj)
             coin.increaseUserCoinsFromMessage(self.getChatID(), self.getUserID(), type, obj)
 
 

@@ -18,7 +18,7 @@ conv_out = conv_perso
 depth = 0 # Recusrsivity meter
 
 
-def configureParameters(contextual_bot, sh_core):
+async def configureParameters(contextual_bot, sh_core):
     parameters = sh_core.getParameterList().getConv(contextual_bot.getChatID())
     t = contextual_bot.getText().split(' ')
     #v = not parameters.getBoolean("DI_ENABLE")
@@ -33,10 +33,10 @@ def configureParameters(contextual_bot, sh_core):
     reply+="Text: "+str(parameters.getBoolean("TEXT_ENABLE"))+"\n"
     reply+="Stickers: "+str(parameters.getBoolean("STICKER_ENABLE"))+"\n"
     reply+="Videos: "+str(parameters.getBoolean("VIDEO_ENABLE"))+"\n"
-    sh_core.notifConsole(contextual_bot)
+    await sh_core.notifConsole(contextual_bot)
     contextual_bot.reply(ContextualBot.TEXT, reply)
 
-def configureProba(contextual_bot, sh_core):
+async def configureProba(contextual_bot, sh_core):
     parameters = sh_core.getParameterList().getConv(contextual_bot.getChatID())
     t = contextual_bot.getText().split(' ')
     #v = not parameters.getBoolean("DI_ENABLE")
@@ -59,21 +59,21 @@ def configureProba(contextual_bot, sh_core):
     reply+="Text: "+prob[1]+"\n"
     reply+="Stickers: "+prob[2]+"\n"
     reply+="Videos: "+prob[3]+"\n"
-    sh_core.notifConsole(contextual_bot)
+    await sh_core.notifConsole(contextual_bot)
     contextual_bot.reply(ContextualBot.TEXT, reply)
 
-def conv(contextual_bot):
+async def conv(contextual_bot):
     global conv_out
     if contextual_bot.getUserID() == super_admin:
         conv_out = int(contextual_bot.getText()[6:])
-def setAutoReplyOn(contextual_bot, sh_core):
+async def setAutoReplyOn(contextual_bot, sh_core):
     parameters = sh_core.getParameterList().getConv(contextual_bot.getChatID())
     parameters.setBoolean("AUTOREPLY_ENABLE", True)
-    sh_core.notifConsole(contextual_bot)
-def setAutoReplyOff(contextual_bot, sh_core):
+    await sh_core.notifConsole(contextual_bot)
+async def setAutoReplyOff(contextual_bot, sh_core):
     parameters = sh_core.getParameterList().getConv(contextual_bot.getChatID())
     parameters.setBoolean("AUTOREPLY_ENABLE", False)
-    sh_core.notifConsole(contextual_bot)
+    await sh_core.notifConsole(contextual_bot)
 
 def removeAccents(text):
     return text.replace('é', 'e').replace('è', 'e')
@@ -123,7 +123,7 @@ def handle_video(update, context, sh_core):
         # auto_reply.conv_out
         sh_core.telegramBot.send_video(conv_out, update.message.video)
 
-def handleText(contextual_bot, sh_core, level=0):
+async def handleText(contextual_bot, sh_core, level=0):
     parameters = sh_core.getParameterList().getConv(contextual_bot.getChatID())
     if len(contextual_bot.getAbsoluteText()) == 0:
         return
@@ -136,7 +136,7 @@ def handleText(contextual_bot, sh_core, level=0):
     if contextual_bot.getChatID() == conv_perso:
         sh_core.telegramBot.send_message(chat_id=conv_out, text=contextual_bot.getText())
     else:
-        sh_core.notifConsole(contextual_bot)
+        await sh_core.notifConsole(contextual_bot)
 
     # Auto response from chatgpt. Terminate if response provided
     # (Actually no longer working..........)

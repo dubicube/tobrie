@@ -1,4 +1,4 @@
-import datetime
+import datetime, asyncio
 import events
 import data_manager
 from contextual_bot import *
@@ -64,13 +64,17 @@ class EventsUI:
     def stop(self):
         events.stopEventThread()
 
+
+    async def telegramSendTextAsync(self, condID, text):
+        await self.sh_core.telegramBot.send_message(chat_id=condID, text=text)
     def eventCallBack(self, ev_conv, ev_txt):
         try:
-            self.sh_core.telegramBot.send_message(chat_id=ev_conv, text=ev_txt)
-        except:
+            asyncio.run(self.telegramSendTextAsync(ev_conv, ev_txt))
+        except Exception as e:
+            print(e)
             print(ev_conv, ev_txt)
 
-    def addEvent(self, contextual_bot, sh_core):
+    async def addEvent(self, contextual_bot, sh_core):
         msg = contextual_bot.getText()[7:]
         i0 = msg.find(' ', 0)
         i1 = msg.find(' ', i0+1)
@@ -94,7 +98,7 @@ class EventsUI:
                 contextual_bot.reply(ContextualBot.TEXT, "Jour de la semaine non reconnu")
             elif error_code >= 10:
                 contextual_bot.reply(ContextualBot.TEXT, "Heure invalide")
-    def setMainEvent(self, contextual_bot, sh_core):
+    async def setMainEvent(self, contextual_bot, sh_core):
         msg = contextual_bot.getText()[11:]
         i0 = msg.find(' ', 0)
         i1 = msg.find(' ', i0+1)
@@ -116,7 +120,7 @@ class EventsUI:
                 contextual_bot.reply(ContextualBot.TEXT, "Jour de la semaine non reconnu")
             elif error_code >= 10:
                 contextual_bot.reply(ContextualBot.TEXT, "Heure invalide")
-    def reactMainEvent(self, contextual_bot, sh_core):
+    async def reactMainEvent(self, contextual_bot, sh_core):
         data = self.dm.getRessource(contextual_bot.getChatID(), "main_event")
         (newData, evl) = events.getEventList2(data, contextual_bot.getChatID())
         self.dm.saveRessource(contextual_bot.getChatID(), "main_event", newData)

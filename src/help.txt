@@ -2,10 +2,15 @@
 Plus d'aide sur une commande:
 /help commande
 Liste des commandes (qui sont normalement pas trop cassées):
-@eir_bot, /on, /off, /config, /proba, /list, /dico, /calc, /meme, /quote, /info, /img, /say, /lang,
-/genre, /playlists, /horaires, /porte, /event, /mainevent, /countdown, /welcome
+@eir_bot, /on, /off, /config, /proba, /list, /dico, /calc, /quote, /info, /img, /say, /lang,
+/genre, /porte, /event, /mainevent, /countdown, /welcome, /pdf,
+/horaires, /playlists, /bureau
 Code source (code développé à la méthode www.la-rache.com):
 https://github.com/dubicube/tobrie
+
+Commande: /pdf
+Permet de convertir un document word en fichier PDF.
+Exécuter la commande en répondant à un message contenant un fichier .docx.
 
 Commande: /welcome
 Commande à utiliser en répondant à un autre message. Le message pointé sera le message automatiquement envoyé par Brenda lors de l'arrivée d'une nouvelle personne dans la conversation.
@@ -247,5 +252,8 @@ Renvoie l’identité du bot
 
 Commande: /playlists
 Découvre la diversité et la richesse des playlists d'Eirbot
+
+Commande: /bureau
+Indique très probablement le bureau d'une année passée
 
 Dummy text

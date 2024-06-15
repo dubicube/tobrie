@@ -87,7 +87,7 @@ def runPybrenda(command):
             break
     return r
 
-def highLevelTextCallback(contextual_bot, sh_core):
+async def highLevelTextCallback(contextual_bot, sh_core):
     msg = contextual_bot.getText()
     rep = ""
     if pybrenda_enabled and (contextual_bot.getChatID() in [-1001168293232, -1001216704238, conv_perso, -1001459505391, -1001825803119, -4115059679]):
@@ -96,8 +96,8 @@ def highLevelTextCallback(contextual_bot, sh_core):
             rep = runPybrenda(bytes(msg+"()", 'utf8'))
 
     if not("line 1" in rep and ("SyntaxError" in rep or "NameError" in rep)) and len(rep) > 0:
-        sh_core.notifConsole(contextual_bot)
-        sh_core.notifConsole(contextual_bot, rep)
+        await sh_core.notifConsole(contextual_bot)
+        await sh_core.notifConsole(contextual_bot, rep)
         contextual_bot.reply(ContextualBot.TEXT, rep)
     else:
         handleText(contextual_bot, sh_core)
@@ -171,7 +171,7 @@ async def dico(update, context):
 #                                        AUDIO                                          #
 #########################################################################################
 
-def morse(contextual_bot, sh_core):
+async def morse(contextual_bot, sh_core):
     cdata = contextual_bot.getText()[7:]
     # Get eventual audio file replying to
     fpath = contextual_bot.getReplyAudioFile()
@@ -189,8 +189,8 @@ def morse(contextual_bot, sh_core):
 
 
 
-def search_sound(contextual_bot, sh_core):
-    sh_core.notifConsole(contextual_bot)
+async def search_sound(contextual_bot, sh_core):
+    await sh_core.notifConsole(contextual_bot)
     data = contextual_bot.getText()[7:]
     n = data.split(' ')[-1]
     m = 0
@@ -204,13 +204,13 @@ def search_sound(contextual_bot, sh_core):
     else:
         contextual_bot.reply(ContextualBot.TEXT, "Rien trouvé (ou alors ça a planté)")
 
-def calc(contextual_bot, sh_core):
-    sh_core.notifConsole(contextual_bot)
+async def calc(contextual_bot, sh_core):
+    await sh_core.notifConsole(contextual_bot)
     calculate(contextual_bot.getText()[6:], soundPath)
     contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+"v.mp3", 'rb'))
 
-def croa(contextual_bot, sh_core):
-    sh_core.notifConsole(contextual_bot)
+async def croa(contextual_bot, sh_core):
+    await sh_core.notifConsole(contextual_bot)
     v = 1
     txt = contextual_bot.getText()
     if len(txt[6:]) > 0 and int(txt[6:]) < 100:
@@ -219,10 +219,7 @@ def croa(contextual_bot, sh_core):
     contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+"v.wav", 'rb'))
 voiceLanguage = "fr-FR"
 voiceSpeed = False
-def sayText(contextual_bot, sh_core):
-    getVoice(contextual_bot.getText()[5:], soundPath+'v.mp3', voiceLanguage)
-    contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+'v.mp3', 'rb'))
-def sayText2(contextual_bot, sh_core):
+async def sayText2(contextual_bot, sh_core):
     t = contextual_bot.getText()[5:].split(' ')
     tf = ""
     i = 0
@@ -251,7 +248,7 @@ def isValidLanguage(str):
         return text[i]
     else:
         return ""
-def setVoiceLanguage(contextual_bot, sh_core):
+async def setVoiceLanguage(contextual_bot, sh_core):
     global voiceLanguage
     t = contextual_bot.getText()[6:]
     r = isValidLanguage(t)
@@ -259,9 +256,9 @@ def setVoiceLanguage(contextual_bot, sh_core):
         contextual_bot.reply(ContextualBot.TEXT, "Language not found\nType \"/help lang\" for more information")
     else:
         voiceLanguage = t
-        contextual_bot.reply(ContextualBot.TEXT, "Language selected:\n"+text[i])
+        contextual_bot.reply(ContextualBot.TEXT, "Language selected:\n"+r)
 
-def setVoiceSpeed(contextual_bot, sh_core):
+async def setVoiceSpeed(contextual_bot, sh_core):
     global voiceSpeed
     t = contextual_bot.getText()[7:]
     if t == '1':
@@ -275,12 +272,6 @@ def setVoiceSpeed(contextual_bot, sh_core):
 #########################################################################################
 #                                   OTHER COMMANDS                                      #
 #########################################################################################
-
-def meme(contextual_bot, sh_core):
-    sh_core.notifConsole(contextual_bot)
-    memes = [f for f in os.listdir(memePath) if os.path.isfile(os.path.join(memePath, f))]
-    m = memes[random.randint(0, len(memes)-1)]
-    contextual_bot.reply(ContextualBot.IMAGE, open(memePath+m, 'rb'))
 
 def getHelp(data):
     help_data_file = open("help.txt", "r")
@@ -299,17 +290,17 @@ def getHelp(data):
             return help_data[i]
         else:
             return help_data[0]
-def help(contextual_bot, sh_core):
-    sh_core.notifConsole(contextual_bot)
+async def help(contextual_bot, sh_core):
+    await sh_core.notifConsole(contextual_bot)
     if len(contextual_bot.getText()) <= 7:
         contextual_bot.reply(ContextualBot.TEXT, getHelp(""))
     else:
         contextual_bot.reply(ContextualBot.TEXT, getHelp(contextual_bot.getText()[6:]))
 
-def outputGenre(contextual_bot, sh_core):
+async def outputGenre(contextual_bot, sh_core):
     contextual_bot.reply(ContextualBot.TEXT, "Je suis un hélicoptère apache")
 
-def outputPlaylists(contextual_bot, sh_core):
+async def outputPlaylists(contextual_bot, sh_core):
     txt = """
     Les playlists principales :
 
@@ -358,14 +349,14 @@ def outputPlaylists(contextual_bot, sh_core):
     contextual_bot.reply(ContextualBot.TEXT, txt)
 
 
-def outputHoraires(contextual_bot, sh_core):
+async def outputHoraires(contextual_bot, sh_core):
     contextual_bot.reply(ContextualBot.TEXT,
 """* 7h-22h du lundi au vendredi
 * 8h-20h le samedi
 * fermé le dimanche
 Sachant que la sécu vire les gens environ 30min avant""")
 
-def setWelcomeMessage(contextual_bot, sh_core):
+async def setWelcomeMessage(contextual_bot, sh_core):
     dm = data_manager.DataManager()
     text = contextual_bot.getReplyText()
     sticker = contextual_bot.getReplySticker()
@@ -390,14 +381,15 @@ def setWelcomeMessage(contextual_bot, sh_core):
 #                                   USELESS TEXTS                                       #
 #########################################################################################
 
-def info(contextual_bot, sh_core):
-    sh_core.notifConsole(contextual_bot)
+async def info(contextual_bot, sh_core):
+    await sh_core.notifConsole(contextual_bot)
     contextual_bot.reply(ContextualBot.TEXT, getInfo())
-def quote(contextual_bot, sh_core):
-    sh_core.notifConsole(contextual_bot)
+async def quote(contextual_bot, sh_core):
+    await sh_core.notifConsole(contextual_bot)
     contextual_bot.reply(ContextualBot.TEXT, getQuote())
-def search_image(contextual_bot, sh_core):
-    sh_core.notifConsole(contextual_bot)
+async def search_image(contextual_bot, sh_core):
+    await sh_core.notifConsole(contextual_bot)
+    # TODO : fix this code
     url = getGoogleImage(contextual_bot.getText()[5:])
     extension = url.split(".")[-1]
     if extension == "gif":
@@ -406,21 +398,8 @@ def search_image(contextual_bot, sh_core):
         image_name = tempPath+"out."+extension
         download_image(url, image_name)
         contextual_bot.reply(ContextualBot.IMAGE, open(image_name, "rb"))
-def getAlie(contextual_bot, sh_core):
-    sh_core.notifConsole(contextual_bot)
-    #product = getFirstAlie(contextual_bot.getText()[5:])
-    product = sh_core.remote_service.sendToClient('1'+contextual_bot.getText()[5:]).split('///')
-    if len(product) != 2:
-        contextual_bot.reply(ContextualBot.TEXT, "Connection failed")
-        return
-    url = product[1]
-    extension = url.split(".")[-1]
-    image_name = tempPath+"out."+extension
-    download_image(url, image_name)
-    contextual_bot.reply(ContextualBot.TEXT, product[0])
-    contextual_bot.reply(ContextualBot.IMAGE, open(image_name, "rb"))
 
-def porteMegane(contextual_bot, sh_core):
+async def porteMegane(contextual_bot, sh_core):
     today = datetime.today()
     f = open("./../maps/porte", "r")
     d = f.read()[:10]
@@ -429,11 +408,11 @@ def porteMegane(contextual_bot, sh_core):
     delta = today - d
     contextual_bot.reply(ContextualBot.TEXT, "Nombre de jours depuis le dernier démontage de porte de Mégane: " + str(delta.days))
 
-def bureauList(contextual_bot, sh_core):
+async def bureauList(contextual_bot, sh_core):
     data = open(mapPath+"bureau", "r").read()
     contextual_bot.reply(contextual_bot.TEXT, data)
 
-def pdfConvert(contextual_bot, sh_core):
+async def pdfConvert(contextual_bot, sh_core):
     path = contextual_bot.downloadReplyDocument(tempPath)
     if path.endswith('docx'):
         pdfPath = path[:-4] + 'pdf'
@@ -442,7 +421,7 @@ def pdfConvert(contextual_bot, sh_core):
     else:
         contextual_bot.reply(contextual_bot.TEXT, "Fichier invalide")
 
-def creditCard(contextual_bot, sh_core):
+async def creditCard(contextual_bot, sh_core):
     card = generate_credit_card('Visa')
     contextual_bot.reply(contextual_bot.TEXT, "Number: " + str(card["card_number"]) + "\nCVV: " + str(card["cvv"]) + "\nExpiry date: " + str(card["expiry_date"]))
 
@@ -451,7 +430,7 @@ def creditCard(contextual_bot, sh_core):
 #########################################################################################
 
 
-def mycoins(contextual_bot, sh_core):
+async def mycoins(contextual_bot, sh_core):
     coins = coin.getUserCoins(contextual_bot.getChatID(), contextual_bot.getUserID())
     contextual_bot.reply(contextual_bot.TEXT, str(coins))
 
@@ -484,7 +463,7 @@ async def rapport(update, context):
 inventory = []
 if not(TEST):
     inventory = processInventoryHTML("eirbot/base.html")
-def find(contextual_bot, sh_core):
+async def find(contextual_bot, sh_core):
     results = searchInventory(contextual_bot.getText()[6:], inventory)
     if len(results) < 10:
         for l in results:
@@ -493,14 +472,19 @@ def find(contextual_bot, sh_core):
         contextual_bot.reply(ContextualBot.TEXT, "Trop de résultats")
 
 
-
-def deprecatedCommand(contextual_bot, sh_core):
-    contextual_bot.reply(ContextualBot.TEXT, "Cette commande n'est plus supportée")
-    contextual_bot.outputMessages()
+async def notWorkingCommand(contextual_bot, sh_core):
+    contextual_bot.reply(ContextualBot.TEXT, "Oups, cette commande ne marche plus, et je sais pas pourquoi")
+    await contextual_bot.outputMessages()
     contextual_bot.reply(ContextualBot.VIDEO, dataServerAddress+'tintin_c\'est_con_capitaine.mp4')
-    contextual_bot.outputMessages()
+    await contextual_bot.outputMessages()
+
+async def deprecatedCommand(contextual_bot, sh_core):
+    contextual_bot.reply(ContextualBot.TEXT, "Cette commande n'est plus supportée")
+    await contextual_bot.outputMessages()
+    contextual_bot.reply(ContextualBot.VIDEO, dataServerAddress+'tintin_c\'est_con_capitaine.mp4')
+    await contextual_bot.outputMessages()
     contextual_bot.reply(ContextualBot.TEXT, "Consultez l'aide (/help) pour découvrir les commandes alternatives")
-    contextual_bot.outputMessages()
+    await contextual_bot.outputMessages()
 
 #########################################################################################
 #                                     CITATIONS                                         #
@@ -509,42 +493,42 @@ def deprecatedCommand(contextual_bot, sh_core):
 def getRandomLine(txt):
     l = txt.split('\n')
     return l[random.randint(0, len(l)-2)]
-def getCitation(contextual_bot, sh_core):
+async def getCitation(contextual_bot, sh_core):
     contextual_bot.reply(ContextualBot.TEXT, getRandomLine(open(mapPath+"citations", "r").read()))
-def getCitations(contextual_bot, sh_core):
+async def getCitations(contextual_bot, sh_core):
     FLM_getFile(contextual_bot, sh_core, "citations")
-def addCitation(contextual_bot, sh_core):
+async def addCitation(contextual_bot, sh_core):
     FLM_addLine(contextual_bot, sh_core, "citations")
 
-def get1AProject(contextual_bot, sh_core):
+async def get1AProject(contextual_bot, sh_core):
     FLM_getFile(contextual_bot, sh_core, "projets1A")
-def add1AProject(contextual_bot, sh_core):
+async def add1AProject(contextual_bot, sh_core):
     FLM_addLine(contextual_bot, sh_core, "projets1A")
 
-def addNewVideo(contextual_bot, sh_core):
+async def addNewVideo(contextual_bot, sh_core):
     FLM_addLine(contextual_bot, sh_core, "new_videos")
 
-def addCard(contextual_bot, sh_core):
+async def addCard(contextual_bot, sh_core):
     FLM_addLine(contextual_bot, sh_core, "cards")
-def showCards(contextual_bot, sh_core):
+async def showCards(contextual_bot, sh_core):
     FLM_getFile(contextual_bot, sh_core, "cards")
 
-def add2060(contextual_bot, sh_core):
+async def add2060(contextual_bot, sh_core):
     FLM_addLine(contextual_bot, sh_core, "questions_for_2060")
-def show2060(contextual_bot, sh_core):
+async def show2060(contextual_bot, sh_core):
     FLM_getFile(contextual_bot, sh_core, "questions_for_2060")
 
 #########################################################################################
 #                                       Forward                                         #
 #########################################################################################
 
-def generic_handle_text(contextual_bot, sh_core):
+async def generic_handle_text(contextual_bot, sh_core):
     msg = contextual_bot.getText()
     if len(msg)==0:return
     if msg[0] == '/':
         for (fun_txt, fun) in commands:
             if msg[1:].startswith(fun_txt) and (len(msg[1:])==len(fun_txt) or msg[len(fun_txt)+1]==' '):
-                fun(contextual_bot, sh_core)
+                await fun(contextual_bot, sh_core)
     else:
         highLevelTextCallback(contextual_bot, sh_core)
 
@@ -553,7 +537,7 @@ def generic_handle_text(contextual_bot, sh_core):
 #########################################################################################
 
 musicQueue = MusicQueue()
-def addMusic(contextual_bot, sh_core):#/addm
+async def addMusic(contextual_bot, sh_core):#/addm
     data = contextual_bot.getText().split(' ')
     contextual_bot.reply(ContextualBot.TEXT, "Adding data...")
     contextual_bot.outputMessages()
@@ -565,13 +549,13 @@ def addMusic(contextual_bot, sh_core):#/addm
     contextual_bot.reply(ContextualBot.TEXT, str(len(musicQueue.queue))+"  video(s) in total")
     if "shuffle" in data:
         musicQueue.shuffle()
-def shuffleMusic(contextual_bot, sh_core):#/shuffle
+async def shuffleMusic(contextual_bot, sh_core):#/shuffle
     musicQueue.shuffle()
     contextual_bot.reply(ContextualBot.TEXT, "Done")
-def clearMusic(contextual_bot, sh_core):#/clear
+async def clearMusic(contextual_bot, sh_core):#/clear
     musicQueue.clear()
     contextual_bot.reply(ContextualBot.TEXT, "Done")
-def updateMusic(contextual_bot, sh_core):#/fetch
+async def updateMusic(contextual_bot, sh_core):#/fetch
     if musicQueue.playlist == None:
         contextual_bot.reply(ContextualBot.TEXT, "No playlist to update")
     else:
@@ -580,9 +564,9 @@ def updateMusic(contextual_bot, sh_core):#/fetch
         old_size = musicQueue.playlist.size
         musicQueue.updatePlaylist()
         contextual_bot.reply(ContextualBot.TEXT, "Playlist updated ("+str(musicQueue.playlist.size-old_size)+" new videos)")
-def infoMusic(contextual_bot, sh_core):#/queue
+async def infoMusic(contextual_bot, sh_core):#/queue
     contextual_bot.reply(ContextualBot.TEXT, str(len(musicQueue.queue))+"  video(s)\nCursor: "+str(musicQueue.cursor))
-def setCursorMusic(contextual_bot, sh_core):
+async def setCursorMusic(contextual_bot, sh_core):
     musicQueue.setCursor(int(contextual_bot.getText().split(' ')[1]))
 
 #########################################################################################
@@ -677,10 +661,10 @@ async def discordDisconnect():
 def telegram_conv(update, context):
     conv(TelegramBot(update, context))
 # Forward incoming text from Telegram to global core
-def telegram_handle_command(update, context):
+async def telegram_handle_command(update, context):
     contextual_bot = TelegramBot(update, context)
-    generic_handle_text(contextual_bot, sh_core)
-    contextual_bot.outputMessages()
+    await generic_handle_text(contextual_bot, sh_core)
+    await contextual_bot.outputMessages()
 
 def telegram_handle_video(update, context):
     handle_video(update, context, sh_core)
@@ -912,35 +896,38 @@ client_discord = discord.Client()
 # If adding a command here, you should consider
 # adding a help description in the help.txt file.
 commands = [
-    ("di", deprecatedCommand), ("video", deprecatedCommand),
     ("config", configureParameters),("proba", configureProba),
     ("on", setAutoReplyOn),("off", setAutoReplyOff),("find", find),("info", info),
     ("quote", quote),
-    ("meme", meme),("calc", calc), ("croa", croa),
+    ("calc", calc), ("croa", croa), # TODO : check this still works
     ("addc", addCitation),("citations", getCitations),("citation", getCitation),
     ("addp", add1AProject),("sprojet", get1AProject),
     ("addcard", addCard),("scards", showCards),
     ("add2060", add2060),("s2060", show2060),
-    ("say2", sayText), ("say", sayText2), ("lang", setVoiceLanguage), ("speed", setVoiceSpeed),
-    ("img", search_image), ("sound", search_sound), ("morse", morse),
-    ("addm", addMusic),
-    ("shuffle", shuffleMusic),("clear", clearMusic),("fetch", updateMusic),("queue", infoMusic),
-    ("cursor", setCursorMusic),
-    ("help", help),
     ("addv", addNewVideo),
-    ("event", eventsUI.addEvent),
-    ("mainevent", eventsUI.setMainEvent),
+    ("say", sayText2), ("lang", setVoiceLanguage), ("speed", setVoiceSpeed),
+    ("img", notWorkingCommand), # search_image TODO : need repair
+    ("sound", search_sound), ("morse", morse),
+
+    ("addm", notWorkingCommand), ("shuffle", notWorkingCommand), ("clear", notWorkingCommand),
+    ("fetch", notWorkingCommand), ("queue", notWorkingCommand), ("cursor", notWorkingCommand),
+    # ("addm", addMusic), ("shuffle", shuffleMusic), ("clear", clearMusic),
+    # ("fetch", updateMusic), ("queue", infoMusic), ("cursor", setCursorMusic),
+
+    ("help", help),
+    ("event", eventsUI.addEvent), ("mainevent", eventsUI.setMainEvent),
     ("countdown", eventsUI.reactMainEvent), ("cfr", eventsUI.reactMainEvent),
     ("genre", outputGenre),
     ("playlists", outputPlaylists),
     ("horaires", outputHoraires),
-    ("gptstart", GPT_startConvMode),
-    ("gptstop", GPT_stopConvMode),
-    ("gptconfig", GPT_setSystemPrompt),
+
+    # TODO : repair (need to pay tokens...)
+    # ("gptstart", GPT_startConvMode), ("gptstop", GPT_stopConvMode), ("gptconfig", GPT_setSystemPrompt),
+
     ("porte", porteMegane),
-    ("welcome", setWelcomeMessage),
+    ("welcome", setWelcomeMessage), # TODO : check still working
     ("bureau", bureauList),
-    ("pdf", pdfConvert),
+    ("pdf", pdfConvert), # TODO : check still working
     ("card", creditCard),
 
     ("mycoins", mycoins)
@@ -977,8 +964,8 @@ def main():
         telegramApplication.add_handler(InlineQueryHandler(telegramInlinequery))
 
         # TODO
-        # for (fun_txt, fun) in commands:
-        #     telegramApplication.add_handler(CommandHandler(fun_txt, telegram_handle_command))
+        for (fun_txt, fun) in commands:
+            telegramApplication.add_handler(CommandHandler(fun_txt, telegram_handle_command))
 
         # TODO
         telegramApplication.add_handler(CommandHandler('list', listVideos)) # TODO: general support for all bots
@@ -1034,7 +1021,7 @@ def main():
                 await discordPlayMic(message)
             if message.content.startswith("/quit"):
                 await discordDisconnect()
-            generic_handle_text(contextual_bot, sh_core)
+            await generic_handle_text(contextual_bot, sh_core)
             await contextual_bot.outputMessages()
         @client_discord.event
         async def on_ready():

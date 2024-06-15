@@ -153,6 +153,8 @@ def getEventList2(data, conv):
     return getEventList(data, conv, keepFunAll)
 
 def getEventList(data, conv, keepFun=standardKeepFun):
+    if conv.endswith('/'):
+        conv = conv[:-1]
     today = datetime.datetime.today()
     r = []
     newData = ""
