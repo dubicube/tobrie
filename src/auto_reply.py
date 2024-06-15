@@ -62,7 +62,7 @@ async def configureProba(contextual_bot, sh_core):
     await sh_core.notifConsole(contextual_bot)
     contextual_bot.reply(ContextualBot.TEXT, reply)
 
-async def conv(contextual_bot):
+def conv(contextual_bot):
     global conv_out
     if contextual_bot.getUserID() == super_admin:
         conv_out = int(contextual_bot.getText()[6:])
@@ -116,13 +116,6 @@ def recur(contextual_bot, msg, level):
         else:
             sendYesNo(contextual_bot)
 
-def handle_video(update, context, sh_core):
-    print("video")
-    print(update.message.video)
-    if update.message.chat_id == conv_perso:
-        # auto_reply.conv_out
-        sh_core.telegramBot.send_video(conv_out, update.message.video)
-
 async def handleText(contextual_bot, sh_core, level=0):
     parameters = sh_core.getParameterList().getConv(contextual_bot.getChatID())
     if len(contextual_bot.getAbsoluteText()) == 0:
@@ -134,7 +127,7 @@ async def handleText(contextual_bot, sh_core, level=0):
     #if not contextual_bot.isChatPerso():
     #    sh_core.saveToLog(contextual_bot);
     if contextual_bot.getChatID() == conv_perso:
-        sh_core.telegramBot.send_message(chat_id=conv_out, text=contextual_bot.getText())
+        await sh_core.telegramBot.send_message(chat_id=conv_out, text=contextual_bot.getText())
     else:
         await sh_core.notifConsole(contextual_bot)
 
