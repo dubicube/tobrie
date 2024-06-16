@@ -881,7 +881,7 @@ eventsUI = events_ui.EventsUI()
 TELEGRAM_ENABLE = True or not(TEST)
 DISCORD_ENABLE  = False or not(TEST)
 PERIODIC_ENABLE = False# or not(TEST)
-BRENDAPI_ENABLE = True or not(TEST)
+BRENDAPI_ENABLE = False or not(TEST)
 EVENTS_ENABLE = True or not(TEST)
 
 # Retrieve tokens from file
@@ -945,7 +945,7 @@ commands = [
 # Some init with global variables
 telegramApplication = Application.builder().token(TELEGRAM_TOKEN).build()
 sh_core = SharedCore(telegramApplication.bot, RemoteServiceServer(65332))
-client_discord = discord.Client()
+client_discord = discord.Client(intents=discord.Intents.default())
 
 
 async def main():
@@ -1011,6 +1011,7 @@ async def main():
             await telegramApplication.shutdown()
         else:
             # TODO: check that discord bot can boot with this modification
+            await telegramApplication.initialize()
             await telegramApplication.start()
             await telegramApplication.updater.start_polling()
 
