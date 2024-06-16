@@ -1,4 +1,4 @@
-import time, os, signal, requests, threading, random, logging, re
+import time, os, signal, requests, threading, random, logging, re, asyncio
 import urllib.parse
 from urllib import request
 from datetime import datetime
@@ -49,7 +49,10 @@ text_map_regex = []
 video_map_regex = []
 
 sh_core = None
+telegramApplication = None
+client_discord = None
 
+stopTelegramFlag = False
 
 #########################################################################################
 #                                        PYBRENDA                                       #
@@ -674,9 +677,13 @@ def shutdown():
     brendapi.stop() # Kill BrendAPI
     sh_core.remote_service.stop() # Kill remote service
     stop_periodic_thread_fun() # Kill Mail and Twitter
+
     # This should be wawaited, but fuck asynchronous python
-    telegramApplication.stop() # Kill Telegram
-    telegramApplication.is_idle = False
+    # telegramApplication.stop() # Kill Telegram
+    # telegramApplication.is_idle = False
+    stopTelegramFlag = True
+
+
     # Now reading this line, after several years :
     # WTF was I thinking when I wrote that ?
     # Seems to work, somehow...
@@ -885,12 +892,6 @@ OPENAI_TOKEN = tokens[27]
 
 openai.api_key = OPENAI_TOKEN
 
-# Some init with global variables
-telegramApplication = Application.builder().token(TELEGRAM_TOKEN).build()
-sh_core = SharedCore(telegramApplication.bot, RemoteServiceServer(65332))
-client_discord = discord.Client()
-
-
 # To add a new command, add a line in this list.
 # A command is described with a tuple containing
 #    - a string that triggers the command if detected in a text chat
@@ -940,7 +941,14 @@ commands = [
 ]
 
 
-def main():
+
+# Some init with global variables
+telegramApplication = Application.builder().token(TELEGRAM_TOKEN).build()
+sh_core = SharedCore(telegramApplication.bot, RemoteServiceServer(65332))
+client_discord = discord.Client()
+
+
+async def main():
 
     #####[ BRENDAPI ]#####
     global brendapi
@@ -987,12 +995,24 @@ def main():
         telegramApplication.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, telegram_new_member))
         telegramApplication.add_handler(MessageHandler(filters.StatusUpdate.LEFT_CHAT_MEMBER, telegram_left_member))
 
-        # Old code
-        # updater.start_polling()
-        # if not DISCORD_ENABLE:
-        #     updater.idle()
-        telegramApplication.run_polling(allowed_updates=Update.ALL_TYPES)
-        # TODO: allow discord bot to boot
+        if not DISCORD_ENABLE:
+            #telegramApplication.run_polling(allowed_updates=Update.ALL_TYPES)
+
+            await telegramApplication.initialize()
+            await telegramApplication.start()
+            await telegramApplication.updater.start_polling()
+
+            # await asyncio.sleep(100)
+            while not stopTelegramFlag:
+                time.sleep(1)
+
+            await telegramApplication.updater.stop()
+            await telegramApplication.stop()
+            await telegramApplication.shutdown()
+        else:
+            # TODO: check that discord bot can boot with this modification
+            await telegramApplication.start()
+            await telegramApplication.updater.start_polling()
 
     #####[ DISCORD ]#####
     if DISCORD_ENABLE:
@@ -1028,5 +1048,8 @@ def main():
             print('Connected to Discord!')
         client_discord.run(DISCORD_TOKEN)
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     # asyncio.run(main())
+#     main()
+
+asyncio.run(main())

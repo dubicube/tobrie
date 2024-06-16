@@ -1,6 +1,6 @@
 from random import randint
 import requests
-import youtube_dl
+import yt_dlp as youtube_dl
 import os
 
 YTDL_OPTS = {
