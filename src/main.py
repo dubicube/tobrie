@@ -672,29 +672,22 @@ async def telegram_handle_command(update, context):
     await contextual_bot.outputMessages()
 
 # Shutdown all system
-def shutdown():
+async def shutdown():
+    global stopTelegramFlag
     eventsUI.stop() # Stop event thread
     brendapi.stop() # Kill BrendAPI
     sh_core.remote_service.stop() # Kill remote service
     stop_periodic_thread_fun() # Kill Mail and Twitter
 
-    # This should be wawaited, but fuck asynchronous python
-    # telegramApplication.stop() # Kill Telegram
-    # telegramApplication.is_idle = False
+    # Stop discord bot
+    await client_discord.close()
+    # Stop telegram bot
     stopTelegramFlag = True
 
-
-    # Now reading this line, after several years :
-    # WTF was I thinking when I wrote that ?
-    # Seems to work, somehow...
-    os.kill(os.getpid(), signal.SIGINT) # Kill Discord
-def stopAll():
-    threading.Thread(target=shutdown).start()
-# Shutdown command from Telegram
 async def telegram_stop(update, context):
     if update.message.from_user.id == super_admin:
         await context.bot.send_message(update.message.chat_id, "Stopping...")
-        stopAll()
+        await shutdown()
 
 async def voice_handler(update, context):
     myFile = await update.message.voice.get_file()
@@ -879,7 +872,7 @@ eventsUI = events_ui.EventsUI()
 
 # APIs enable
 TELEGRAM_ENABLE = True or not(TEST)
-DISCORD_ENABLE  = False or not(TEST)
+DISCORD_ENABLE  = True if not TEST else False
 PERIODIC_ENABLE = False# or not(TEST)
 BRENDAPI_ENABLE = False or not(TEST)
 EVENTS_ENABLE = True or not(TEST)
@@ -945,7 +938,10 @@ commands = [
 # Some init with global variables
 telegramApplication = Application.builder().token(TELEGRAM_TOKEN).build()
 sh_core = SharedCore(telegramApplication.bot, RemoteServiceServer(65332))
-client_discord = discord.Client(intents=discord.Intents.default())
+
+discordIntents = discord.Intents.default()
+discordIntents.message_content = True
+client_discord = discord.Client(intents=discordIntents)
 
 
 async def main():
@@ -975,6 +971,7 @@ async def main():
     #####[ TELEGRAM ]#####
     # logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
     if TELEGRAM_ENABLE:
+        print("Starting telegram bot (and doing some shit with asyncio)")
         telegramApplication.add_handler(InlineQueryHandler(telegramInlinequery))
 
         for (fun_txt, fun) in commands:
@@ -1002,21 +999,22 @@ async def main():
             await telegramApplication.start()
             await telegramApplication.updater.start_polling()
 
-            # await asyncio.sleep(100)
+            print("while 1")
             while not stopTelegramFlag:
-                time.sleep(1)
+                await asyncio.sleep(1)
 
+            print("Stopping telegram bot")
             await telegramApplication.updater.stop()
             await telegramApplication.stop()
             await telegramApplication.shutdown()
         else:
-            # TODO: check that discord bot can boot with this modification
             await telegramApplication.initialize()
             await telegramApplication.start()
             await telegramApplication.updater.start_polling()
 
     #####[ DISCORD ]#####
     if DISCORD_ENABLE:
+        print("Starting discord bot")
         @client_discord.event
         async def on_message(message):
             if message.author == client_discord.user:
@@ -1047,10 +1045,6 @@ async def main():
         @client_discord.event
         async def on_ready():
             print('Connected to Discord!')
-        client_discord.run(DISCORD_TOKEN)
-
-# if __name__ == '__main__':
-#     # asyncio.run(main())
-#     main()
+        await client_discord.start(DISCORD_TOKEN)
 
 asyncio.run(main())
