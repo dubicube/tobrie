@@ -49,9 +49,9 @@ class EventsUI:
     def __init__(self):
         self.dm = data_manager.DataManager()
 
-    def init(self, sh_core):
+    async def init(self, sh_core):
         self.sh_core = sh_core
-        events.stopEventThread()
+        self.stop()
         convs = self.dm.getConvNames()
         eventList = []
         for c in convs:
@@ -59,20 +59,19 @@ class EventsUI:
             (newData, evl) = events.getEventList(data, c)
             self.dm.saveRessource(c, "events", newData)
             eventList+=evl
-        events.startEventThread(eventList, self.eventCallBack)
+
+        self.eventAsyncIOShit = asyncio.create_task(startEventThread(eventList, self.eventCallBack))
 
     def stop(self):
-        events.stopEventThread()
-
-
-    async def telegramSendTextAsync(self, condID, text):
-        await self.sh_core.telegramBot.send_message(chat_id=condID, text=text)
-    def eventCallBack(self, ev_conv, ev_txt):
+        # events.stopEventThread()
         try:
-            asyncio.run(self.telegramSendTextAsync(ev_conv, ev_txt))
-        except Exception as e:
-            print(e)
-            print(ev_conv, ev_txt)
+            self.eventAsyncIOShit.cancel()
+        except:
+            print("Fuck asyncio")
+
+
+    async def eventCallBack(self, ev_conv, ev_txt):
+        await self.sh_core.telegramBot.send_message(chat_id=ev_conv, text=ev_txt)
 
     async def addEvent(self, contextual_bot, sh_core):
         msg = contextual_bot.getText()[7:]

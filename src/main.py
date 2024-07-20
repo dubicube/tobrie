@@ -966,7 +966,7 @@ async def main():
 
     #####[ EVENTS ]#####
     if EVENTS_ENABLE:
-        eventsUI.init(sh_core)
+        await eventsUI.init(sh_core)
 
     #####[ TELEGRAM ]#####
     # logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)

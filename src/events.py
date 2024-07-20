@@ -171,10 +171,10 @@ def getEventList(data, conv, keepFun=standardKeepFun):
                     r+=[(kdt, conv, m[2])]
     return (newData, r)
 
-def defaultActionFun(ev_conv, ev_txt):
+async def defaultActionFun(ev_conv, ev_txt):
     print(ev_conv, ev_txt)
 
-def eventThread(e, eventList, actionFun=defaultActionFun):
+async def eventThread(eventList, actionFun=defaultActionFun):
     eventList.sort()
     while True:
         today = datetime.datetime.today()
@@ -185,25 +185,27 @@ def eventThread(e, eventList, actionFun=defaultActionFun):
         delta_s = (ev_dt-today).total_seconds()
         if delta_s < 1:
             del eventList[0]
-            actionFun(ev_conv, ev_txt)
-        elif delta_s < 60:
-            if e.wait(timeout=delta_s):
-                print("Event list terminated")
-                return
+            await actionFun(ev_conv, ev_txt)
+        elif delta_s < 70:
+            await asyncio.sleep(delta_s)
+            # if e.wait(timeout=delta_s):
+            #     print("Event list terminated")
+            #     return
         else:
-            if e.wait(timeout=delta_s-60):
-                print("Event list terminated")
-                return
+            await asyncio.sleep(delta_s-60)
+            # if e.wait(timeout=delta_s-60):
+            #     print("Event list terminated")
+            #     return
 
-def startEventThread(eventList, actionFun = defaultActionFun):
-    global threadingEvent
-    threadingEvent = threading.Event()
-    threading.Thread(target=eventThread, args=(threadingEvent, eventList, actionFun)).start()
+async def startEventThread(eventList, actionFun = defaultActionFun):
+    await eventThread(eventList, actionFun)
 
-def stopEventThread():
-    try:
-        global threadingEvent
-        threadingEvent.set()
-        return True
-    except:
-        return False
+# def stopEventThread():
+#     # TODO: stop this asyncio shit
+#     # try:
+#     #     global threadingEvent
+#     #     threadingEvent.set()
+#     #     return True
+#     # except:
+#     #     return False
+#     return True
