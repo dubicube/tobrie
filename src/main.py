@@ -286,10 +286,12 @@ def setVoiceSpeed(contextual_bot, sh_core):
 #########################################################################################
 
 def meme(contextual_bot, sh_core):
-    sh_core.notifConsole(contextual_bot)
-    memes = [f for f in os.listdir(memePath) if os.path.isfile(os.path.join(memePath, f))]
-    m = memes[random.randint(0, len(memes)-1)]
-    contextual_bot.reply(ContextualBot.IMAGE, open(memePath+m, 'rb'))
+    # sh_core.notifConsole(contextual_bot)
+    # memes = [f for f in os.listdir(memePath) if os.path.isfile(os.path.join(memePath, f))]
+    # m = memes[random.randint(0, len(memes)-1)]
+    # contextual_bot.reply(ContextualBot.IMAGE, open(memePath+m, 'rb'))
+    contextual_bot.reply(ContextualBot.TEXT, "Oups, les memes ont brulés dans l'incendie du datacenter d'OVH à Strasbourg... (Oui, faut VRAIMENT penser à faire des backups......)")
+    contextual_bot.reply(ContextualBot.VIDEO, dataServerAddress+'tintin_c\'est_con_capitaine.mp4')
 
 def getHelp(data):
     help_data_file = open("help.txt", "r")
@@ -394,6 +396,10 @@ def setWelcomeMessage(contextual_bot, sh_core):
     else:
         contextual_bot.reply(ContextualBot.TEXT, "Tocard, tu sais pas utiliser la commande.\nIl faut invoquer la commande en répondant à un message. Le message répondu sera le message automatiquement envoyé lors de l'arrivée d'une nouvelle personne. Seulement le texte, les stickers et les vidéos sont supportés.")
 
+
+def wiki(contextual_bot, sh_core):
+    url = getRandomWiki()
+    contextual_bot.reply(ContextualBot.TEXT, url)
 
 #########################################################################################
 #                                   USELESS TEXTS                                       #
@@ -890,7 +896,7 @@ eventsUI = events_ui.EventsUI()
 
 # APIs enable
 TELEGRAM_ENABLE = True or not(TEST)
-DISCORD_ENABLE  = False or not(TEST)
+DISCORD_ENABLE  = False# or not(TEST)
 PERIODIC_ENABLE = False# or not(TEST)
 BRENDAPI_ENABLE = True or not(TEST)
 EVENTS_ENABLE = True or not(TEST)
@@ -948,7 +954,9 @@ commands = [
 ("pdf", pdfConvert),
 ("card", creditCard),
 
-("mycoins", mycoins)
+("mycoins", mycoins),
+
+("wiki", wiki)
 ]
 
 

@@ -223,3 +223,15 @@ def parseAlie(msg):
 def getFirstAlie(msg):
     d = parseAlie(msg)
     return parseAlieProduct(d[0])
+
+
+
+
+
+def getRandomWiki():
+    text = requests.get('https://en.wikipedia.org/wiki/Special:Random', verify=False).text
+    gzjhsgkjhqes = '<link rel="canonical" href="'
+    i = text.index(gzjhsgkjhqes)
+    j = text.index('">', i)
+    return text[i+len(gzjhsgkjhqes):j]
+
