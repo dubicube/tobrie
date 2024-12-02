@@ -44,13 +44,13 @@ Commande: /playlists
 Liste les playlists incontournables d'Eirbot
 
 Commande: /horaires
-Les horaires d'ouverture de l'ENSEIRB
+Les horaires d'ouverture de l'ENSEIRB (à un moment donné dans l'histoire de l'humanité, à vérifier avec Clovis (non c'est pas celui qui est roi des Francs) pour être certain)
 
 Commande: /porte
 Renvoie le nombre de jours depuis le dernier démontage de porte de Mégane
 
 Commande: /help
-https://www.youtube.com/watch?v=dQw4w9WgXcQ
+Je sais que je suis débile, mais achète toi un cerveau là quand même
 
 Commande: /site
 Besoin d'aide pour le site, car tu as tout cassé ? Appelle vite Sébastien !
@@ -255,5 +255,8 @@ Découvre la diversité et la richesse des playlists d'Eirbot
 
 Commande: /bureau
 Indique très probablement le bureau d'une année passée
+
+Commande: /wiki
+Renvoie un article wikipédia aléatoire (super utile). Je crois que c'est forcément en anglais, mais j'en suis pas trop sûr, c'est à tester.
 
 Dummy text
