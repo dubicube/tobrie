@@ -1,6 +1,7 @@
 import time
 import datetime
 import threading
+import asyncio as asyncioDeepShit # Mouhahaha
 
 def getDate(day, month, year):
     try :
@@ -179,7 +180,6 @@ async def eventThread(eventList, actionFun=defaultActionFun):
     while True:
         today = datetime.datetime.today()
         if len(eventList) == 0:
-            print("Event list terminated")
             return
         (ev_dt, ev_conv, ev_txt) = eventList[0]
         delta_s = (ev_dt-today).total_seconds()
@@ -187,25 +187,9 @@ async def eventThread(eventList, actionFun=defaultActionFun):
             del eventList[0]
             await actionFun(ev_conv, ev_txt)
         elif delta_s < 70:
-            await asyncio.sleep(delta_s)
-            # if e.wait(timeout=delta_s):
-            #     print("Event list terminated")
-            #     return
+            await asyncioDeepShit.sleep(delta_s)
         else:
-            await asyncio.sleep(delta_s-60)
-            # if e.wait(timeout=delta_s-60):
-            #     print("Event list terminated")
-            #     return
+            await asyncioDeepShit.sleep(delta_s-60)
 
 async def startEventThread(eventList, actionFun = defaultActionFun):
     await eventThread(eventList, actionFun)
-
-# def stopEventThread():
-#     # TODO: stop this asyncio shit
-#     # try:
-#     #     global threadingEvent
-#     #     threadingEvent.set()
-#     #     return True
-#     # except:
-#     #     return False
-#     return True

@@ -1,4 +1,5 @@
-import datetime, asyncio
+import datetime
+import asyncio as asyncioDeepShit
 import events
 import data_manager
 from contextual_bot import *
@@ -47,6 +48,7 @@ def smartDayPrintStr(days, hours, minutes, seconds):
 
 class EventsUI:
     def __init__(self):
+        self.eventAsyncIOShit = None
         self.dm = data_manager.DataManager()
 
     async def init(self, sh_core):
@@ -60,14 +62,14 @@ class EventsUI:
             self.dm.saveRessource(c, "events", newData)
             eventList+=evl
 
-        self.eventAsyncIOShit = asyncio.create_task(startEventThread(eventList, self.eventCallBack))
+        self.eventAsyncIOShit = asyncioDeepShit.create_task(events.startEventThread(eventList, self.eventCallBack))
 
     def stop(self):
-        # events.stopEventThread()
-        try:
-            self.eventAsyncIOShit.cancel()
-        except:
-            print("Fuck asyncio")
+        if self.eventAsyncIOShit != None:
+            try:
+                self.eventAsyncIOShit.cancel()
+            except:
+                print("Fuck asyncio dumb shit")
 
 
     async def eventCallBack(self, ev_conv, ev_txt):
@@ -85,7 +87,7 @@ class EventsUI:
         if error_code == 0:
             contextual_bot.reply(ContextualBot.TEXT, "Prochaine occurence:\n" + str(nextTrig))
             self.dm.saveRessource(contextual_bot.getChatID(), "events", newdata)
-            self.init(self.sh_core)
+            await self.init(self.sh_core)
         else:
             if error_code == 2:
                 contextual_bot.reply(ContextualBot.TEXT, "Formattage incorrect")

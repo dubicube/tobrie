@@ -1,4 +1,5 @@
-import time, os, signal, requests, threading, random, logging, re, asyncio
+import time, os, signal, requests, threading, random, logging, re
+import asyncio as asyncioDeepShit # Mouhahaha
 import urllib.parse
 from urllib import request
 from datetime import datetime
@@ -870,12 +871,14 @@ eventsUI = events_ui.EventsUI()
 #                                        MAIN                                           #
 #########################################################################################
 
-# APIs enable
-TELEGRAM_ENABLE = True or not(TEST)
-DISCORD_ENABLE  = True if not TEST else False
-PERIODIC_ENABLE = False# or not(TEST)
-BRENDAPI_ENABLE = False or not(TEST)
-EVENTS_ENABLE = True or not(TEST)
+# Platform enable
+#                  Normal Test
+TELEGRAM_ENABLE = [True , True ][TEST]
+DISCORD_ENABLE  = [True , False][TEST]
+PERIODIC_ENABLE = [False, False][TEST]
+BRENDAPI_ENABLE = [False, False][TEST]
+EVENTS_ENABLE   = [True , True ][TEST]
+
 
 # Retrieve tokens from file
 tokens = open("tokens", "r").read().split("\n")
@@ -999,9 +1002,9 @@ async def main():
             await telegramApplication.start()
             await telegramApplication.updater.start_polling()
 
-            print("while 1")
+            print("Entering telegram while 1")
             while not stopTelegramFlag:
-                await asyncio.sleep(1)
+                await asyncioDeepShit.sleep(1)
 
             print("Stopping telegram bot")
             await telegramApplication.updater.stop()
@@ -1047,4 +1050,4 @@ async def main():
             print('Connected to Discord!')
         await client_discord.start(DISCORD_TOKEN)
 
-asyncio.run(main())
+asyncioDeepShit.run(main())
