@@ -1,6 +1,7 @@
 import time
 import datetime
 import threading
+import asyncio as asyncioDeepShit # Mouhahaha
 
 def getDate(day, month, year):
     try :
@@ -153,6 +154,8 @@ def getEventList2(data, conv):
     return getEventList(data, conv, keepFunAll)
 
 def getEventList(data, conv, keepFun=standardKeepFun):
+    if conv.endswith('/'):
+        conv = conv[:-1]
     today = datetime.datetime.today()
     r = []
     newData = ""
@@ -169,39 +172,24 @@ def getEventList(data, conv, keepFun=standardKeepFun):
                     r+=[(kdt, conv, m[2])]
     return (newData, r)
 
-def defaultActionFun(ev_conv, ev_txt):
+async def defaultActionFun(ev_conv, ev_txt):
     print(ev_conv, ev_txt)
 
-def eventThread(e, eventList, actionFun=defaultActionFun):
+async def eventThread(eventList, actionFun=defaultActionFun):
     eventList.sort()
     while True:
         today = datetime.datetime.today()
         if len(eventList) == 0:
-            print("Event list terminated")
             return
         (ev_dt, ev_conv, ev_txt) = eventList[0]
         delta_s = (ev_dt-today).total_seconds()
         if delta_s < 1:
             del eventList[0]
-            actionFun(ev_conv, ev_txt)
-        elif delta_s < 60:
-            if e.wait(timeout=delta_s):
-                print("Event list terminated")
-                return
+            await actionFun(ev_conv, ev_txt)
+        elif delta_s < 70:
+            await asyncioDeepShit.sleep(delta_s)
         else:
-            if e.wait(timeout=delta_s-60):
-                print("Event list terminated")
-                return
+            await asyncioDeepShit.sleep(delta_s-60)
 
-def startEventThread(eventList, actionFun = defaultActionFun):
-    global threadingEvent
-    threadingEvent = threading.Event()
-    threading.Thread(target=eventThread, args=(threadingEvent, eventList, actionFun)).start()
-
-def stopEventThread():
-    try:
-        global threadingEvent
-        threadingEvent.set()
-        return True
-    except:
-        return False
+async def startEventThread(eventList, actionFun = defaultActionFun):
+    await eventThread(eventList, actionFun)

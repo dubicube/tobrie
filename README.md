@@ -33,13 +33,9 @@ Après configuration, le bot se lance en exécutant main.py dans le répertoire 
 Pour arrêter le bot, la commande /stopall dans Telegram permet de tout arrêter proprement (note: il faut changer le super_admin dans config.py).
 
 Dépendances:
-- discord.py
-- tweepy
-- python-telegram-bot
-- zalgo-text
-- gTTs
-- SpeechRecognition
-- youtube_dl
+
+pip3 install requests discord.py python-telegram-bot zalgo-text tweepy openai credit-card-info-generator pypandoc gTTs SpeechRecognition yt-dlp pexpect
+
 
 ## Les fonctionnalités
 ### Réponses automatiques

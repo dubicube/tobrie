@@ -1,32 +1,32 @@
+import time, os, signal, requests, threading, random, logging, re
+import asyncio as asyncioDeepShit # Mouhahaha
+import urllib.parse
+from urllib import request
+from datetime import datetime
+from uuid import uuid4
+
+# Discord
 import discord
 from discord import FFmpegPCMAudio
 from discord.utils import get
 
+# Tweeter
 import tweepy
 
+# Telegram
+import telegram
+from telegram import ForceReply, Update, InlineQueryResultArticle, InlineQueryResultVideo, InputTextMessageContent
+from telegram.ext import Application, InlineQueryHandler, CommandHandler, MessageHandler, filters, CallbackQueryHandler
+
+# Other dependencies
 import openai
 
+from zalgo_text import zalgo
 from credit_card_info_generator import generate_credit_card
 import pypandoc
 
-from uuid import uuid4
-import telegram
-from telegram import InlineQueryResultArticle, InlineQueryResultVideo, InputTextMessageContent
-from telegram.ext import Updater, InlineQueryHandler, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
-import re
-import logging
-import random
-from datetime import datetime
-import time
-import os
-import signal
-import requests
-from zalgo_text import zalgo
-import urllib.parse
-from urllib import request
 
-import threading
-
+# Internal imports
 from config import *
 from contextual_bot import *
 from shared_core import *
@@ -34,7 +34,7 @@ from gpt import *
 from generic.web_texts import *
 from eirbot.inventory import *
 from generic.audio import *
-from auto_reply import handleText, load_maps, configureParameters, configureProba, setAutoReplyOn, setAutoReplyOff, conv, handle_video
+from auto_reply import handleText, load_maps, configureParameters, configureProba, setAutoReplyOn, setAutoReplyOff, conv
 from generic.youtube import *
 from generic.mail_manager import *
 from service.brendapi import *
@@ -50,7 +50,10 @@ text_map_regex = []
 video_map_regex = []
 
 sh_core = None
+telegramApplication = None
+client_discord = None
 
+stopTelegramFlag = False
 
 #########################################################################################
 #                                        PYBRENDA                                       #
@@ -88,7 +91,7 @@ def runPybrenda(command):
             break
     return r
 
-def highLevelTextCallback(contextual_bot, sh_core):
+async def highLevelTextCallback(contextual_bot, sh_core):
     msg = contextual_bot.getText()
     rep = ""
     if pybrenda_enabled and (contextual_bot.getChatID() in [-1001168293232, -1001216704238, conv_perso, -1001459505391, -1001825803119, -4115059679]):
@@ -97,11 +100,11 @@ def highLevelTextCallback(contextual_bot, sh_core):
             rep = runPybrenda(bytes(msg+"()", 'utf8'))
 
     if not("line 1" in rep and ("SyntaxError" in rep or "NameError" in rep)) and len(rep) > 0:
-        sh_core.notifConsole(contextual_bot)
-        sh_core.notifConsole(contextual_bot, rep)
+        await sh_core.notifConsole(contextual_bot)
+        await sh_core.notifConsole(contextual_bot, rep)
         contextual_bot.reply(ContextualBot.TEXT, rep)
     else:
-        handleText(contextual_bot, sh_core)
+        await handleText(contextual_bot, sh_core)
 
 #########################################################################################
 #                                        VIDEO                                          #
@@ -113,14 +116,16 @@ def update_video_names():
     #Mouhahaha
     video_names_out=sorted([i.split('>')[0][9:-1] for i in urllib.parse.unquote(requests.get(dataServerAddress).text).split("<img src=\"/__ovh_icons/movie.gif\" alt=\"[VID]\"> ")[1:]])
 update_video_names()
-def update_video_names_command(update, context):
+async def update_video_names_command(update, context):
     load_maps()
-    context.bot.send_message(chat_id=update.message.chat_id, text="Sticker map mise à jour ("+str(len(sticker_map_regex))+" stickers)")
-    context.bot.send_message(chat_id=update.message.chat_id, text="Text map mise à jour ("+str(len(text_map_regex))+" textes)")
-    context.bot.send_message(chat_id=update.message.chat_id, text="Video map mise à jour ("+str(len(video_map_regex))+" vidéos)")
+    await context.bot.send_message(chat_id=update.message.chat_id, text="Sticker map mise à jour ("+str(len(sticker_map_regex))+" stickers)")
+    await context.bot.send_message(chat_id=update.message.chat_id, text="Text map mise à jour ("+str(len(text_map_regex))+" textes)")
+    await context.bot.send_message(chat_id=update.message.chat_id, text="Video map mise à jour ("+str(len(video_map_regex))+" vidéos)")
+    await context.bot.send_message(chat_id=update.message.chat_id, text="(oui, ça met toujours 0 et je sais pas pourquoi)")
     update_video_names()
     global video_names_out
-    context.bot.send_message(chat_id=update.message.chat_id, text="Vidéos mises à jours ("+str(len(video_names_out))+" vidéos).")
+    await context.bot.send_message(chat_id=update.message.chat_id, text="Vidéos mises à jours ("+str(len(video_names_out))+" vidéos).")
+    await context.bot.send_message(chat_id=update.message.chat_id, text="(par contre le compteur de vidéos a l'air de fonctionner)")
 
 def getResults(txt, names, nbr_max):
     results = []
@@ -138,32 +143,25 @@ def getResults(txt, names, nbr_max):
                 results+=[vid]
                 nbr+=1
     return results
-def inlinequery(update, context):
-    context.bot.send_message(chat_id=conv_perso, text="["+", "+str(update.inline_query.from_user.first_name)+", "+str(update.inline_query.from_user.id)+": "+update.inline_query.query)
+async def telegramInlinequery(update, context):
+    await sh_core.notifConsole(TelegramBot(update, context), "["+", "+str(update.inline_query.from_user.first_name)+", "+str(update.inline_query.from_user.id)+": "+update.inline_query.query)
     txt = update.inline_query.query.lower().split(" ")
 
     if txt[0] == 'z':
         zal = zalgo.zalgo().zalgofy(" ".join(txt[1:]))
         results = [InlineQueryResultArticle(id=uuid4(), title=zal, input_message_content=InputTextMessageContent(zal), description=zal)]
-        update.inline_query.answer(results)
+        await update.inline_query.answer(results)
     else:
         r = getResults(txt, video_names_out, 50)
         results = [InlineQueryResultVideo(uuid4(), dataServerAddress+vname.replace(" ", "%20"), "video/mp4", thumbnailsServerAddress+vname[:-3].replace(" ", "%20")+'jpg', vname) for vname in r]
-        update.inline_query.answer(results)
-def list(update, context):
-    sh_core.notifConsole(TelegramBot(update, context))
-    if update.message.chat_id == update.message.from_user.id:
-        list_out = video_names_out
-        if len(update.message.text) > 6:
-            list_out = getResults(update.message.text[6:].lower().split(' '), video_names_out, 9999999)
-        for i in range(len(list_out)//10):
-            context.bot.send_message(chat_id=update.message.chat_id, text="\n".join(list_out[i*10:(i+1)*10]))
-        context.bot.send_message(chat_id=update.message.chat_id, text="\n".join(list_out[(int(len(list_out)//10))*10:]))
-    else:
-        context.bot.send_message(chat_id=update.message.chat_id, text="Le /list est interdit dans les groupes")
-def dico(update, context):
-    sh_core.notifConsole(TelegramBot(update, context))
-    if update.message.chat_id == update.message.from_user.id:
+        await update.inline_query.answer(results)
+
+async def listVideos(contextual_bot, sh_core):
+    await sh_core.notifConsole(contextual_bot)
+    contextual_bot.reply(ContextualBot.TEXT, dataServerAddress)
+async def dico(contextual_bot, sh_core):
+    await sh_core.notifConsole(contextual_bot)
+    if contextual_bot.getChatID() == contextual_bot.getUserID():
         d = []
         for name in video_names_out:
             for i in name[:-4].split('_'):
@@ -171,16 +169,16 @@ def dico(update, context):
                     d+=[i]
         d = sorted(d)
         for i in range(len(d)//100):
-            context.bot.send_message(chat_id=update.message.chat_id, text=", ".join(d[i*100:(i+1)*100]))
-        context.bot.send_message(chat_id=update.message.chat_id, text=", ".join(d[(int(len(d)//100))*100:]))
+            contextual_bot.reply(ContextualBot.TEXT, ", ".join(d[i*100:(i+1)*100]))
+        contextual_bot.reply(ContextualBot.TEXT, ", ".join(d[(int(len(d)//100))*100:]))
     else:
-        context.bot.send_message(chat_id=update.message.chat_id, text="Le /dico est interdit dans les groupes")
+        contextual_bot.reply(ContextualBot.TEXT, "Le /dico est interdit dans les groupes")
 
 #########################################################################################
 #                                        AUDIO                                          #
 #########################################################################################
 
-def morse(contextual_bot, sh_core):
+async def morse(contextual_bot, sh_core):
     cdata = contextual_bot.getText()[7:]
     # Get eventual audio file replying to
     fpath = contextual_bot.getReplyAudioFile()
@@ -198,8 +196,8 @@ def morse(contextual_bot, sh_core):
 
 
 
-def search_sound(contextual_bot, sh_core):
-    sh_core.notifConsole(contextual_bot)
+async def search_sound(contextual_bot, sh_core):
+    await sh_core.notifConsole(contextual_bot)
     data = contextual_bot.getText()[7:]
     n = data.split(' ')[-1]
     m = 0
@@ -213,13 +211,13 @@ def search_sound(contextual_bot, sh_core):
     else:
         contextual_bot.reply(ContextualBot.TEXT, "Rien trouvé (ou alors ça a planté)")
 
-def calc(contextual_bot, sh_core):
-    sh_core.notifConsole(contextual_bot)
+async def calc(contextual_bot, sh_core):
+    await sh_core.notifConsole(contextual_bot)
     calculate(contextual_bot.getText()[6:], soundPath)
     contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+"v.mp3", 'rb'))
 
-def croa(contextual_bot, sh_core):
-    sh_core.notifConsole(contextual_bot)
+async def croa(contextual_bot, sh_core):
+    await sh_core.notifConsole(contextual_bot)
     v = 1
     txt = contextual_bot.getText()
     if len(txt[6:]) > 0 and int(txt[6:]) < 100:
@@ -228,10 +226,7 @@ def croa(contextual_bot, sh_core):
     contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+"v.wav", 'rb'))
 voiceLanguage = "fr-FR"
 voiceSpeed = False
-def sayText(contextual_bot, sh_core):
-    getVoice(contextual_bot.getText()[5:], soundPath+'v.mp3', voiceLanguage)
-    contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+'v.mp3', 'rb'))
-def sayText2(contextual_bot, sh_core):
+async def sayText2(contextual_bot, sh_core):
     t = contextual_bot.getText()[5:].split(' ')
     tf = ""
     i = 0
@@ -260,7 +255,7 @@ def isValidLanguage(str):
         return text[i]
     else:
         return ""
-def setVoiceLanguage(contextual_bot, sh_core):
+async def setVoiceLanguage(contextual_bot, sh_core):
     global voiceLanguage
     t = contextual_bot.getText()[6:]
     r = isValidLanguage(t)
@@ -268,9 +263,9 @@ def setVoiceLanguage(contextual_bot, sh_core):
         contextual_bot.reply(ContextualBot.TEXT, "Language not found\nType \"/help lang\" for more information")
     else:
         voiceLanguage = t
-        contextual_bot.reply(ContextualBot.TEXT, "Language selected:\n"+text[i])
+        contextual_bot.reply(ContextualBot.TEXT, "Language selected:\n"+r)
 
-def setVoiceSpeed(contextual_bot, sh_core):
+async def setVoiceSpeed(contextual_bot, sh_core):
     global voiceSpeed
     t = contextual_bot.getText()[7:]
     if t == '1':
@@ -310,17 +305,17 @@ def getHelp(data):
             return help_data[i]
         else:
             return help_data[0]
-def help(contextual_bot, sh_core):
-    sh_core.notifConsole(contextual_bot)
+async def help(contextual_bot, sh_core):
+    await sh_core.notifConsole(contextual_bot)
     if len(contextual_bot.getText()) <= 7:
         contextual_bot.reply(ContextualBot.TEXT, getHelp(""))
     else:
         contextual_bot.reply(ContextualBot.TEXT, getHelp(contextual_bot.getText()[6:]))
 
-def outputGenre(contextual_bot, sh_core):
+async def outputGenre(contextual_bot, sh_core):
     contextual_bot.reply(ContextualBot.TEXT, "Je suis un hélicoptère apache")
 
-def outputPlaylists(contextual_bot, sh_core):
+async def outputPlaylists(contextual_bot, sh_core):
     txt = """
     Les playlists principales :
 
@@ -369,14 +364,14 @@ def outputPlaylists(contextual_bot, sh_core):
     contextual_bot.reply(ContextualBot.TEXT, txt)
 
 
-def outputHoraires(contextual_bot, sh_core):
+async def outputHoraires(contextual_bot, sh_core):
     contextual_bot.reply(ContextualBot.TEXT,
 """* 7h-22h du lundi au vendredi
 * 8h-20h le samedi
 * fermé le dimanche
 Sachant que la sécu vire les gens environ 30min avant""")
 
-def setWelcomeMessage(contextual_bot, sh_core):
+async def setWelcomeMessage(contextual_bot, sh_core):
     dm = data_manager.DataManager()
     text = contextual_bot.getReplyText()
     sticker = contextual_bot.getReplySticker()
@@ -405,14 +400,15 @@ def wiki(contextual_bot, sh_core):
 #                                   USELESS TEXTS                                       #
 #########################################################################################
 
-def info(contextual_bot, sh_core):
-    sh_core.notifConsole(contextual_bot)
+async def info(contextual_bot, sh_core):
+    await sh_core.notifConsole(contextual_bot)
     contextual_bot.reply(ContextualBot.TEXT, getInfo())
-def quote(contextual_bot, sh_core):
-    sh_core.notifConsole(contextual_bot)
+async def quote(contextual_bot, sh_core):
+    await sh_core.notifConsole(contextual_bot)
     contextual_bot.reply(ContextualBot.TEXT, getQuote())
-def search_image(contextual_bot, sh_core):
-    sh_core.notifConsole(contextual_bot)
+async def search_image(contextual_bot, sh_core):
+    await sh_core.notifConsole(contextual_bot)
+    # TODO : fix this code
     url = getGoogleImage(contextual_bot.getText()[5:])
     extension = url.split(".")[-1]
     if extension == "gif":
@@ -421,21 +417,8 @@ def search_image(contextual_bot, sh_core):
         image_name = tempPath+"out."+extension
         download_image(url, image_name)
         contextual_bot.reply(ContextualBot.IMAGE, open(image_name, "rb"))
-def getAlie(contextual_bot, sh_core):
-    sh_core.notifConsole(contextual_bot)
-    #product = getFirstAlie(contextual_bot.getText()[5:])
-    product = sh_core.remote_service.sendToClient('1'+contextual_bot.getText()[5:]).split('///')
-    if len(product) != 2:
-        contextual_bot.reply(ContextualBot.TEXT, "Connection failed")
-        return
-    url = product[1]
-    extension = url.split(".")[-1]
-    image_name = tempPath+"out."+extension
-    download_image(url, image_name)
-    contextual_bot.reply(ContextualBot.TEXT, product[0])
-    contextual_bot.reply(ContextualBot.IMAGE, open(image_name, "rb"))
 
-def porteMegane(contextual_bot, sh_core):
+async def porteMegane(contextual_bot, sh_core):
     today = datetime.today()
     f = open("./../maps/porte", "r")
     d = f.read()[:10]
@@ -444,11 +427,11 @@ def porteMegane(contextual_bot, sh_core):
     delta = today - d
     contextual_bot.reply(ContextualBot.TEXT, "Nombre de jours depuis le dernier démontage de porte de Mégane: " + str(delta.days))
 
-def bureauList(contextual_bot, sh_core):
+async def bureauList(contextual_bot, sh_core):
     data = open(mapPath+"bureau", "r").read()
     contextual_bot.reply(contextual_bot.TEXT, data)
 
-def pdfConvert(contextual_bot, sh_core):
+async def pdfConvert(contextual_bot, sh_core):
     path = contextual_bot.downloadReplyDocument(tempPath)
     if path.endswith('docx'):
         pdfPath = path[:-4] + 'pdf'
@@ -457,7 +440,7 @@ def pdfConvert(contextual_bot, sh_core):
     else:
         contextual_bot.reply(contextual_bot.TEXT, "Fichier invalide")
 
-def creditCard(contextual_bot, sh_core):
+async def creditCard(contextual_bot, sh_core):
     card = generate_credit_card('Visa')
     contextual_bot.reply(contextual_bot.TEXT, "Number: " + str(card["card_number"]) + "\nCVV: " + str(card["cvv"]) + "\nExpiry date: " + str(card["expiry_date"]))
 
@@ -466,7 +449,7 @@ def creditCard(contextual_bot, sh_core):
 #########################################################################################
 
 
-def mycoins(contextual_bot, sh_core):
+async def mycoins(contextual_bot, sh_core):
     coins = coin.getUserCoins(contextual_bot.getChatID(), contextual_bot.getUserID())
     contextual_bot.reply(contextual_bot.TEXT, str(coins))
 
@@ -475,18 +458,17 @@ def mycoins(contextual_bot, sh_core):
 #                                       RAPPORT                                         #
 #########################################################################################
 
-def rapport(update, context):
-    msg = update.message
+async def rapport(contextual_bot, sh_core):
     today = datetime.now()
     d = datetime(2020, 8, 27, 21, 59, 59, 999999)
     reste = d-today
     sec = reste.seconds
     if reste.days >= 0 and sec//3600>=0 and ((sec%3600)//60)>=0 and (sec%3600)%60>=0:
-        context.bot.send_message(chat_id=msg.chat_id, text="Il reste "+str(reste.days)+" jours, "+str(sec//3600)+" heures, "+str((sec%3600)//60)+" minutes et "+str((sec%3600)%60)+" secondes pour finir le rapport (ou le commencer...)")
+        contextual_bot.reply(contextual_bot.TEXT, "Il reste "+str(reste.days)+" jours, "+str(sec//3600)+" heures, "+str((sec%3600)//60)+" minutes et "+str((sec%3600)%60)+" secondes pour finir le rapport (ou le commencer...)")
     else:
 
-        context.bot.send_message(chat_id=msg.chat_id, text="Il reste "+str(sec//3600)+" heures, "+str((sec%3600)//60)+" minutes et "+str((sec%3600)%60)+" secondes pour finir le rapport avec "+str(24*-reste.days)+"h de retard")
-        context.bot.send_animation(msg.chat_id, "https://tenor.com/view/fine-this-is-fine-fine-dog-shaking-intensifies-im-ok-gif-15733726")
+        contextual_bot.reply(contextual_bot.TEXT, "Il reste "+str(sec//3600)+" heures, "+str((sec%3600)//60)+" minutes et "+str((sec%3600)%60)+" secondes pour finir le rapport avec "+str(24*-reste.days)+"h de retard")
+        contextual_bot.reply(contextual_bot.ANIMATION, "https://tenor.com/view/fine-this-is-fine-fine-dog-shaking-intensifies-im-ok-gif-15733726")
         #reste = today-d
         #sec = reste.seconds
         #context.bot.send_message(chat_id=msg.chat_id, text="Trop tard, il fallait rendre le rapport il y a "+str(reste.days)+" jours, "+str(sec//3600)+" heures, "+str((sec%3600)//60)+" minutes et "+str((sec%3600)%60)+" secondes !")
@@ -499,7 +481,7 @@ def rapport(update, context):
 inventory = []
 if not(TEST):
     inventory = processInventoryHTML("eirbot/base.html")
-def find(contextual_bot, sh_core):
+async def find(contextual_bot, sh_core):
     results = searchInventory(contextual_bot.getText()[6:], inventory)
     if len(results) < 10:
         for l in results:
@@ -508,14 +490,19 @@ def find(contextual_bot, sh_core):
         contextual_bot.reply(ContextualBot.TEXT, "Trop de résultats")
 
 
-
-def deprecatedCommand(contextual_bot, sh_core):
-    contextual_bot.reply(ContextualBot.TEXT, "Cette commande n'est plus supportée")
-    contextual_bot.outputMessages()
+async def notWorkingCommand(contextual_bot, sh_core):
+    contextual_bot.reply(ContextualBot.TEXT, "Oups, cette commande ne marche plus, et je sais pas pourquoi")
+    await contextual_bot.outputMessages()
     contextual_bot.reply(ContextualBot.VIDEO, dataServerAddress+'tintin_c\'est_con_capitaine.mp4')
-    contextual_bot.outputMessages()
+    await contextual_bot.outputMessages()
+
+async def deprecatedCommand(contextual_bot, sh_core):
+    contextual_bot.reply(ContextualBot.TEXT, "Cette commande n'est plus supportée")
+    await contextual_bot.outputMessages()
+    contextual_bot.reply(ContextualBot.VIDEO, dataServerAddress+'tintin_c\'est_con_capitaine.mp4')
+    await contextual_bot.outputMessages()
     contextual_bot.reply(ContextualBot.TEXT, "Consultez l'aide (/help) pour découvrir les commandes alternatives")
-    contextual_bot.outputMessages()
+    await contextual_bot.outputMessages()
 
 #########################################################################################
 #                                     CITATIONS                                         #
@@ -524,51 +511,51 @@ def deprecatedCommand(contextual_bot, sh_core):
 def getRandomLine(txt):
     l = txt.split('\n')
     return l[random.randint(0, len(l)-2)]
-def getCitation(contextual_bot, sh_core):
+async def getCitation(contextual_bot, sh_core):
     contextual_bot.reply(ContextualBot.TEXT, getRandomLine(open(mapPath+"citations", "r").read()))
-def getCitations(contextual_bot, sh_core):
+async def getCitations(contextual_bot, sh_core):
     FLM_getFile(contextual_bot, sh_core, "citations")
-def addCitation(contextual_bot, sh_core):
+async def addCitation(contextual_bot, sh_core):
     FLM_addLine(contextual_bot, sh_core, "citations")
 
-def get1AProject(contextual_bot, sh_core):
+async def get1AProject(contextual_bot, sh_core):
     FLM_getFile(contextual_bot, sh_core, "projets1A")
-def add1AProject(contextual_bot, sh_core):
+async def add1AProject(contextual_bot, sh_core):
     FLM_addLine(contextual_bot, sh_core, "projets1A")
 
-def addNewVideo(contextual_bot, sh_core):
+async def addNewVideo(contextual_bot, sh_core):
     FLM_addLine(contextual_bot, sh_core, "new_videos")
 
-def addCard(contextual_bot, sh_core):
+async def addCard(contextual_bot, sh_core):
     FLM_addLine(contextual_bot, sh_core, "cards")
-def showCards(contextual_bot, sh_core):
+async def showCards(contextual_bot, sh_core):
     FLM_getFile(contextual_bot, sh_core, "cards")
 
-def add2060(contextual_bot, sh_core):
+async def add2060(contextual_bot, sh_core):
     FLM_addLine(contextual_bot, sh_core, "questions_for_2060")
-def show2060(contextual_bot, sh_core):
+async def show2060(contextual_bot, sh_core):
     FLM_getFile(contextual_bot, sh_core, "questions_for_2060")
 
 #########################################################################################
 #                                       Forward                                         #
 #########################################################################################
 
-def generic_handle_text(contextual_bot, sh_core):
+async def generic_handle_text(contextual_bot, sh_core):
     msg = contextual_bot.getText()
     if len(msg)==0:return
     if msg[0] == '/':
         for (fun_txt, fun) in commands:
             if msg[1:].startswith(fun_txt) and (len(msg[1:])==len(fun_txt) or msg[len(fun_txt)+1]==' '):
-                fun(contextual_bot, sh_core)
+                await fun(contextual_bot, sh_core)
     else:
-        highLevelTextCallback(contextual_bot, sh_core)
+        await highLevelTextCallback(contextual_bot, sh_core)
 
 #########################################################################################
 #                                       MUSIC                                           #
 #########################################################################################
 
 musicQueue = MusicQueue()
-def addMusic(contextual_bot, sh_core):#/addm
+async def addMusic(contextual_bot, sh_core):#/addm
     data = contextual_bot.getText().split(' ')
     contextual_bot.reply(ContextualBot.TEXT, "Adding data...")
     contextual_bot.outputMessages()
@@ -580,13 +567,13 @@ def addMusic(contextual_bot, sh_core):#/addm
     contextual_bot.reply(ContextualBot.TEXT, str(len(musicQueue.queue))+"  video(s) in total")
     if "shuffle" in data:
         musicQueue.shuffle()
-def shuffleMusic(contextual_bot, sh_core):#/shuffle
+async def shuffleMusic(contextual_bot, sh_core):#/shuffle
     musicQueue.shuffle()
     contextual_bot.reply(ContextualBot.TEXT, "Done")
-def clearMusic(contextual_bot, sh_core):#/clear
+async def clearMusic(contextual_bot, sh_core):#/clear
     musicQueue.clear()
     contextual_bot.reply(ContextualBot.TEXT, "Done")
-def updateMusic(contextual_bot, sh_core):#/fetch
+async def updateMusic(contextual_bot, sh_core):#/fetch
     if musicQueue.playlist == None:
         contextual_bot.reply(ContextualBot.TEXT, "No playlist to update")
     else:
@@ -595,9 +582,9 @@ def updateMusic(contextual_bot, sh_core):#/fetch
         old_size = musicQueue.playlist.size
         musicQueue.updatePlaylist()
         contextual_bot.reply(ContextualBot.TEXT, "Playlist updated ("+str(musicQueue.playlist.size-old_size)+" new videos)")
-def infoMusic(contextual_bot, sh_core):#/queue
+async def infoMusic(contextual_bot, sh_core):#/queue
     contextual_bot.reply(ContextualBot.TEXT, str(len(musicQueue.queue))+"  video(s)\nCursor: "+str(musicQueue.cursor))
-def setCursorMusic(contextual_bot, sh_core):
+async def setCursorMusic(contextual_bot, sh_core):
     musicQueue.setCursor(int(contextual_bot.getText().split(' ')[1]))
 
 #########################################################################################
@@ -689,54 +676,56 @@ async def discordDisconnect():
 #########################################################################################
 
 # Target chat
-def telegram_conv(update, context):
+async def telegram_conv(update, context):
     conv(TelegramBot(update, context))
 # Forward incoming text from Telegram to global core
-def telegram_handle_command(update, context):
+async def telegram_handle_command(update, context):
     contextual_bot = TelegramBot(update, context)
-    generic_handle_text(contextual_bot, sh_core)
-    contextual_bot.outputMessages()
-
-def telegram_handle_video(update, context):
-    handle_video(update, context, sh_core)
+    await generic_handle_text(contextual_bot, sh_core)
+    await contextual_bot.outputMessages()
 
 # Shutdown all system
-def shutdown():
+async def shutdown():
+    global stopTelegramFlag
     eventsUI.stop() # Stop event thread
     brendapi.stop() # Kill BrendAPI
     sh_core.remote_service.stop() # Kill remote service
     stop_periodic_thread_fun() # Kill Mail and Twitter
-    updater.stop() # Kill Telegram
-    updater.is_idle = False
-    os.kill(os.getpid(), signal.SIGINT) # Kill Discord
-def stopAll():
-    threading.Thread(target=shutdown).start()
-# Shutdown command from Telegram
-def telegram_stop(update, context):
+
+    # Stop discord bot
+    await client_discord.close()
+    # Stop telegram bot
+    stopTelegramFlag = True
+
+async def telegram_stop(update, context):
     if update.message.from_user.id == super_admin:
-        context.bot.send_message(update.message.chat_id, "Stopping...")
-        stopAll()
+        await context.bot.send_message(update.message.chat_id, "Stopping...")
+        await shutdown()
 
-def voice_handler(update, context):
-    update.message.voice.get_file().download(tempPath+"out.ogg")
+async def voice_handler(update, context):
+    myFile = await update.message.voice.get_file()
+    await myFile.download_to_drive(tempPath+"out.ogg")
     contextual_bot = SpeechBot2(update, context, speechToText(tempPath+"out.ogg"))
-    generic_handle_text(contextual_bot, sh_core)
-    contextual_bot.outputMessages()
+    await generic_handle_text(contextual_bot, sh_core)
+    await contextual_bot.outputMessages()
 
+async def telegram_left_member(update, context):
+    contextual_bot = TelegramBot(update, context)
+    contextual_bot.reply(ContextualBot.VIDEO, dataServerAddress+'au_revoir.mp4')
+    await contextual_bot.outputMessages()
 
-def telegram_new_member(update, context):
+async def telegram_new_member(update, context):
     dm = data_manager.DataManager()
     contextual_bot = TelegramBot(update, context)
     members = update.message.new_chat_members
     ptdrtki = False
     for m in members:
-        print(str(m))
         if m.id == id_bot:
             # Bot has been added to the chat
             contextual_bot.reply(ContextualBot.VIDEO, dataServerAddress+'eddy_malou_bonjour.mp4')
-            contextual_bot.outputMessages()
+            await contextual_bot.outputMessages()
             contextual_bot.reply(ContextualBot.TEXT, "Aide: /help\nConfiguration: /on, /off, /config, /proba")
-            contextual_bot.outputMessages()
+            await contextual_bot.outputMessages()
             # Init default welcome message in chat group with historic "PTDR T KI"
             dm.saveRessource(contextual_bot.getChatID(), "welcome", 'SCAACAgQAAxkBAAIPVmUm4YE6sR4VTIZvRAmjB_topb1KAAJbBwACTcfgUrO3oPsTnHZbMAQ')
         else:
@@ -745,24 +734,24 @@ def telegram_new_member(update, context):
             ptdrtki = False
             pack = sh_core.telegramBot.get_sticker_set("EIRBOTO")
             contextual_bot.reply(ContextualBot.STICKER, pack.stickers[12])
-            contextual_bot.outputMessages()
+            await contextual_bot.outputMessages()
     if ptdrtki:
         message = dm.getRessource(contextual_bot.getChatID(), "welcome")
         if len(message) > 2:
             if message[0] == 'T':
                 contextual_bot.reply(ContextualBot.TEXT, message[1:])
-                contextual_bot.outputMessages()
+                await contextual_bot.outputMessages()
             elif message[0] == 'S':
                 contextual_bot.reply(ContextualBot.STICKER, message[1:])
-                contextual_bot.outputMessages()
+                await contextual_bot.outputMessages()
             elif message[0] == 'V':
                 contextual_bot.reply(ContextualBot.VIDEO, message[1:])
-                contextual_bot.outputMessages()
+                await contextual_bot.outputMessages()
 
-def telegram_delete(update, context):
+async def telegram_delete(update, context):
     try:
-        context.bot.deleteMessage(update.message.chat_id, update.message.reply_to_message.message_id)
-        context.bot.deleteMessage(update.message.chat_id, update.message.message_id)
+        await context.bot.deleteMessage(update.message.chat_id, update.message.reply_to_message.message_id)
+        await context.bot.deleteMessage(update.message.chat_id, update.message.message_id)
     except Exception as e:
         print("E") #EEEEEEEEEEEEEEEEEEEEEEE
 
@@ -894,12 +883,14 @@ eventsUI = events_ui.EventsUI()
 #                                        MAIN                                           #
 #########################################################################################
 
-# APIs enable
-TELEGRAM_ENABLE = True or not(TEST)
-DISCORD_ENABLE  = False# or not(TEST)
-PERIODIC_ENABLE = False# or not(TEST)
-BRENDAPI_ENABLE = True or not(TEST)
-EVENTS_ENABLE = True or not(TEST)
+# Platform enable
+#                  Normal Test
+TELEGRAM_ENABLE = [True , True ][TEST]
+DISCORD_ENABLE  = [True , False][TEST]
+PERIODIC_ENABLE = [False, False][TEST]
+BRENDAPI_ENABLE = [False, False][TEST]
+EVENTS_ENABLE   = [True , True ][TEST]
+
 
 # Retrieve tokens from file
 tokens = open("tokens", "r").read().split("\n")
@@ -909,12 +900,6 @@ OPENAI_TOKEN = tokens[27]
 
 openai.api_key = OPENAI_TOKEN
 
-# Some init with global variables
-updater = Updater(TELEGRAM_TOKEN, use_context=True)
-sh_core = SharedCore(updater.bot, RemoteServiceServer(65332))
-client_discord = discord.Client()
-
-
 # To add a new command, add a line in this list.
 # A command is described with a tuple containing
 #    - a string that triggers the command if detected in a text chat
@@ -923,36 +908,42 @@ client_discord = discord.Client()
 # If adding a command here, you should consider
 # adding a help description in the help.txt file.
 commands = [
-("di", deprecatedCommand), ("video", deprecatedCommand),
-("config", configureParameters),("proba", configureProba),
-("on", setAutoReplyOn),("off", setAutoReplyOff),("find", find),("info", info),
-("quote", quote),
-("meme", meme),("calc", calc), ("croa", croa),
-("addc", addCitation),("citations", getCitations),("citation", getCitation),
-("addp", add1AProject),("sprojet", get1AProject),
-("addcard", addCard),("scards", showCards),
-("add2060", add2060),("s2060", show2060),
-("say2", sayText), ("say", sayText2), ("lang", setVoiceLanguage), ("speed", setVoiceSpeed),
-("img", search_image), ("sound", search_sound), ("morse", morse),
-("addm", addMusic),
-("shuffle", shuffleMusic),("clear", clearMusic),("fetch", updateMusic),("queue", infoMusic),
-("cursor", setCursorMusic),
-("help", help),
-("addv", addNewVideo),
-("event", eventsUI.addEvent),
-("mainevent", eventsUI.setMainEvent),
-("countdown", eventsUI.reactMainEvent), ("cfr", eventsUI.reactMainEvent),
-("genre", outputGenre),
-("playlists", outputPlaylists),
-("horaires", outputHoraires),
-("gptstart", GPT_startConvMode),
-("gptstop", GPT_stopConvMode),
-("gptconfig", GPT_setSystemPrompt),
-("porte", porteMegane),
-("welcome", setWelcomeMessage),
-("bureau", bureauList),
-("pdf", pdfConvert),
-("card", creditCard),
+    ("config", configureParameters),("proba", configureProba),
+    ("on", setAutoReplyOn),("off", setAutoReplyOff),("find", find),("info", info),
+    ("quote", quote),
+    ("calc", calc), ("croa", croa), # TODO : check this still works
+    ("addc", addCitation),("citations", getCitations),("citation", getCitation),
+    ("addp", add1AProject),("sprojet", get1AProject),
+    ("addcard", addCard),("scards", showCards),
+    ("add2060", add2060),("s2060", show2060),
+    ("addv", addNewVideo),
+    ("say", sayText2), ("lang", setVoiceLanguage), ("speed", setVoiceSpeed),
+    ("img", notWorkingCommand), # search_image TODO : need repair
+    ("sound", search_sound), ("morse", morse),
+
+    ('list', listVideos), ('dico', dico), ('rapport', rapport),
+
+    ("addm", notWorkingCommand), ("shuffle", notWorkingCommand), ("clear", notWorkingCommand),
+    ("fetch", notWorkingCommand), ("queue", notWorkingCommand), ("cursor", notWorkingCommand),
+    # ("addm", addMusic), ("shuffle", shuffleMusic), ("clear", clearMusic),
+    # ("fetch", updateMusic), ("queue", infoMusic), ("cursor", setCursorMusic),
+
+    ("help", help),
+    # TODO: fix error after an event message has been sent asynchronously
+    ("event", eventsUI.addEvent), ("mainevent", eventsUI.setMainEvent),
+    ("countdown", eventsUI.reactMainEvent), ("cfr", eventsUI.reactMainEvent),
+    ("genre", outputGenre),
+    ("playlists", outputPlaylists),
+    ("horaires", outputHoraires),
+
+    # TODO : repair (need to pay tokens...)
+    # ("gptstart", GPT_startConvMode), ("gptstop", GPT_stopConvMode), ("gptconfig", GPT_setSystemPrompt),
+
+    ("porte", porteMegane),
+    ("welcome", setWelcomeMessage), # TODO : check still working
+    ("bureau", bureauList),
+    ("pdf", pdfConvert), # TODO : check still working
+    ("card", creditCard),
 
 ("mycoins", mycoins),
 
@@ -960,7 +951,17 @@ commands = [
 ]
 
 
-def main():
+
+# Some init with global variables
+telegramApplication = Application.builder().token(TELEGRAM_TOKEN).build()
+sh_core = SharedCore(telegramApplication.bot, RemoteServiceServer(65332))
+
+discordIntents = discord.Intents.default()
+discordIntents.message_content = True
+client_discord = discord.Client(intents=discordIntents)
+
+
+async def main():
 
     #####[ BRENDAPI ]#####
     global brendapi
@@ -982,43 +983,55 @@ def main():
 
     #####[ EVENTS ]#####
     if EVENTS_ENABLE:
-        eventsUI.init(sh_core)
+        await eventsUI.init(sh_core)
 
     #####[ TELEGRAM ]#####
-    dp = updater.dispatcher
-    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+    # logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
     if TELEGRAM_ENABLE:
-        dp.add_handler(InlineQueryHandler(inlinequery))
+        print("Starting telegram bot (and doing some shit with asyncio)")
+        telegramApplication.add_handler(InlineQueryHandler(telegramInlinequery))
 
         for (fun_txt, fun) in commands:
-            dp.add_handler(CommandHandler(fun_txt, telegram_handle_command))
+            telegramApplication.add_handler(CommandHandler(fun_txt, telegram_handle_command))
 
-        dp.add_handler(CommandHandler('list',list))
-        dp.add_handler(CommandHandler('dico',dico))
-        dp.add_handler(CommandHandler('rapport',rapport))
-        dp.add_handler(CommandHandler('update',update_video_names_command))
+        telegramApplication.add_handler(CommandHandler('update',update_video_names_command))
 
-        #Personal commands
-        dp.add_handler(CommandHandler('conv', telegram_conv))
-        dp.add_handler(CommandHandler('stopall', telegram_stop))
-        dp.add_handler(CommandHandler('mail', forceMailUpdate))
-        dp.add_handler(CommandHandler('per', telegram_periodic_thread))
-        dp.add_handler(CommandHandler('del', telegram_delete))
+        # Admin commands
+        telegramApplication.add_handler(CommandHandler('conv', telegram_conv))
+        telegramApplication.add_handler(CommandHandler('stopall', telegram_stop))
+        # telegramApplication.add_handler(CommandHandler('mail', forceMailUpdate))
+        # telegramApplication.add_handler(CommandHandler('per', telegram_periodic_thread))
+        telegramApplication.add_handler(CommandHandler('del', telegram_delete))
 
-        dp.add_handler(MessageHandler(Filters.text, telegram_handle_command))
+        # Message handlers with filters
+        telegramApplication.add_handler(MessageHandler(filters.TEXT, telegram_handle_command))
+        telegramApplication.add_handler(MessageHandler(filters.VOICE, voice_handler))
+        telegramApplication.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, telegram_new_member))
+        telegramApplication.add_handler(MessageHandler(filters.StatusUpdate.LEFT_CHAT_MEMBER, telegram_left_member))
 
-        dp.add_handler(MessageHandler(Filters.voice, voice_handler))
-
-        dp.add_handler(MessageHandler(Filters.video, telegram_handle_video))
-
-        dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, telegram_new_member))
-
-        updater.start_polling()
         if not DISCORD_ENABLE:
-            updater.idle()
+            #telegramApplication.run_polling(allowed_updates=Update.ALL_TYPES)
+
+            await telegramApplication.initialize()
+            await telegramApplication.start()
+            await telegramApplication.updater.start_polling()
+
+            print("Entering telegram while 1")
+            while not stopTelegramFlag:
+                await asyncioDeepShit.sleep(1)
+
+            print("Stopping telegram bot")
+            await telegramApplication.updater.stop()
+            await telegramApplication.stop()
+            await telegramApplication.shutdown()
+        else:
+            await telegramApplication.initialize()
+            await telegramApplication.start()
+            await telegramApplication.updater.start_polling()
 
     #####[ DISCORD ]#####
     if DISCORD_ENABLE:
+        print("Starting discord bot")
         @client_discord.event
         async def on_message(message):
             if message.author == client_discord.user:
@@ -1044,12 +1057,11 @@ def main():
                 await discordPlayMic(message)
             if message.content.startswith("/quit"):
                 await discordDisconnect()
-            generic_handle_text(contextual_bot, sh_core)
+            await generic_handle_text(contextual_bot, sh_core)
             await contextual_bot.outputMessages()
         @client_discord.event
         async def on_ready():
             print('Connected to Discord!')
-        client_discord.run(DISCORD_TOKEN)
+        await client_discord.start(DISCORD_TOKEN)
 
-if __name__ == '__main__':
-    main()
+asyncioDeepShit.run(main())

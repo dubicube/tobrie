@@ -1,4 +1,5 @@
 import datetime
+import asyncio as asyncioDeepShit
 import events
 import data_manager
 from contextual_bot import *
@@ -47,11 +48,12 @@ def smartDayPrintStr(days, hours, minutes, seconds):
 
 class EventsUI:
     def __init__(self):
+        self.eventAsyncIOShit = None
         self.dm = data_manager.DataManager()
 
-    def init(self, sh_core):
+    async def init(self, sh_core):
         self.sh_core = sh_core
-        events.stopEventThread()
+        self.stop()
         convs = self.dm.getConvNames()
         eventList = []
         for c in convs:
@@ -59,18 +61,21 @@ class EventsUI:
             (newData, evl) = events.getEventList(data, c)
             self.dm.saveRessource(c, "events", newData)
             eventList+=evl
-        events.startEventThread(eventList, self.eventCallBack)
+
+        self.eventAsyncIOShit = asyncioDeepShit.create_task(events.startEventThread(eventList, self.eventCallBack))
 
     def stop(self):
-        events.stopEventThread()
+        if self.eventAsyncIOShit != None:
+            try:
+                self.eventAsyncIOShit.cancel()
+            except:
+                print("Fuck asyncio dumb shit")
 
-    def eventCallBack(self, ev_conv, ev_txt):
-        try:
-            self.sh_core.telegramBot.send_message(chat_id=ev_conv, text=ev_txt)
-        except:
-            print(ev_conv, ev_txt)
 
-    def addEvent(self, contextual_bot, sh_core):
+    async def eventCallBack(self, ev_conv, ev_txt):
+        await self.sh_core.telegramBot.send_message(chat_id=ev_conv, text=ev_txt)
+
+    async def addEvent(self, contextual_bot, sh_core):
         msg = contextual_bot.getText()[7:]
         i0 = msg.find(' ', 0)
         i1 = msg.find(' ', i0+1)
@@ -82,7 +87,7 @@ class EventsUI:
         if error_code == 0:
             contextual_bot.reply(ContextualBot.TEXT, "Prochaine occurence:\n" + str(nextTrig))
             self.dm.saveRessource(contextual_bot.getChatID(), "events", newdata)
-            self.init(self.sh_core)
+            await self.init(self.sh_core)
         else:
             if error_code == 2:
                 contextual_bot.reply(ContextualBot.TEXT, "Formattage incorrect")
@@ -94,7 +99,7 @@ class EventsUI:
                 contextual_bot.reply(ContextualBot.TEXT, "Jour de la semaine non reconnu")
             elif error_code >= 10:
                 contextual_bot.reply(ContextualBot.TEXT, "Heure invalide")
-    def setMainEvent(self, contextual_bot, sh_core):
+    async def setMainEvent(self, contextual_bot, sh_core):
         msg = contextual_bot.getText()[11:]
         i0 = msg.find(' ', 0)
         i1 = msg.find(' ', i0+1)
@@ -116,7 +121,7 @@ class EventsUI:
                 contextual_bot.reply(ContextualBot.TEXT, "Jour de la semaine non reconnu")
             elif error_code >= 10:
                 contextual_bot.reply(ContextualBot.TEXT, "Heure invalide")
-    def reactMainEvent(self, contextual_bot, sh_core):
+    async def reactMainEvent(self, contextual_bot, sh_core):
         data = self.dm.getRessource(contextual_bot.getChatID(), "main_event")
         (newData, evl) = events.getEventList2(data, contextual_bot.getChatID())
         self.dm.saveRessource(contextual_bot.getChatID(), "main_event", newData)

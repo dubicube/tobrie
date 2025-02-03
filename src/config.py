@@ -46,4 +46,4 @@ TEST = len(sys.argv)>1 and sys.argv[1]=='-t'
 id_bot = 1081958230 if TEST else 720838667
 telegram_id = "@Crickette_bot" if TEST else "@eir_bot"
 
-ffmpeg_path = "/usr/bin/ffmpeg" if not TEST else "C:/Users/dubicube/Desktop/bot/ffmpeg/bin/ffmpeg.exe"
+ffmpeg_path = "/usr/bin/ffmpeg"
