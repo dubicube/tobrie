@@ -444,6 +444,9 @@ async def creditCard(contextual_bot, sh_core):
     card = generate_credit_card('Visa')
     contextual_bot.reply(contextual_bot.TEXT, "Number: " + str(card["card_number"]) + "\nCVV: " + str(card["cvv"]) + "\nExpiry date: " + str(card["expiry_date"]))
 
+async def meCommand(contextual_bot, sh_core):
+    contextual_bot.reply(contextual_bot.TEXT, contextual_bot.getUserName() + contextual_bot.getText()[3:])
+
 #########################################################################################
 #                                        COINS                                          #
 #########################################################################################
@@ -935,6 +938,8 @@ commands = [
     ("genre", outputGenre),
     ("playlists", outputPlaylists),
     ("horaires", outputHoraires),
+
+    ("me", meCommand),
 
     # TODO : repair (need to pay tokens...)
     # ("gptstart", GPT_startConvMode), ("gptstop", GPT_stopConvMode), ("gptconfig", GPT_setSystemPrompt),
