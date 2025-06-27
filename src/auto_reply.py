@@ -93,12 +93,12 @@ def recur(contextual_bot, msg, level):
     if depth > 2:return
 
     # di/cri
-    regex_r = re.search('(?<=d(i|y))\\w{3,}', msg_lower)
+    regex_r = re.search('(?<=d((i|î|í|ì)|y))\\w{3,}', msg_lower)
     if regex_r != None:
         txt_rep = regex_r.group(0)
         contextual_bot.reply(ContextualBot.TEXT, txt_rep)
         recur(contextual_bot, txt_rep, level)
-    regex_r = re.search('(?<=cri)\\w{3,}', msg_lower)
+    regex_r = re.search('(?<=cr(i|î|í|ì))\\w{3,}', msg_lower)
     if regex_r != None:
         txt_rep = regex_r.group(0)
         contextual_bot.reply(ContextualBot.TEXT, txt_rep.upper())
