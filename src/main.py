@@ -34,7 +34,7 @@ from gpt import *
 from generic.web_texts import *
 from eirbot.inventory import *
 from generic.audio import *
-from auto_reply import handleText, load_maps, configureParameters, configureProba, setAutoReplyOn, setAutoReplyOff, conv
+from auto_reply import *
 from generic.youtube import *
 from generic.mail_manager import *
 from service.brendapi import *
@@ -932,9 +932,11 @@ commands = [
     # ("fetch", updateMusic), ("queue", infoMusic), ("cursor", setCursorMusic),
 
     ("help", help),
-    # TODO: fix error after an event message has been sent asynchronously
+
     ("event", eventsUI.addEvent), ("mainevent", eventsUI.setMainEvent),
     ("countdown", eventsUI.reactMainEvent), ("cfr", eventsUI.reactMainEvent),
+    ("randomEvent", eventsUI.configureRandomEvent),
+
     ("genre", outputGenre),
     ("playlists", outputPlaylists),
     ("horaires", outputHoraires),

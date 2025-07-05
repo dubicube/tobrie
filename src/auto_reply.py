@@ -5,13 +5,10 @@ from shared_core import *
 from generic.web_texts import getGoogleResponse
 from contextual_bot import ContextualBot
 from gpt import *
-import events_ui
+
 
 messages_perso = [
-    ['TudorEustache', 100, "C'est Ambre qui t'a dit ça?"],
-    ['dicribolzano', 200, "Mais oui c'est clair!"],
-    ['G_W_did_911', 20, "C'est pas faux"],
-    ['Filipouq',10,"Je sais où tu te caches!"]
+    # ['TudorEustache', 100, "C'est Ambre qui t'a dit ça?"]
 ]
 
 conv_out = conv_perso
@@ -238,3 +235,10 @@ def check_for_text(contextual_bot, msg):
     for s in text_map_regex:
         if not(re.search(s[0], msg.lower()) is None):
             contextual_bot.reply(ContextualBot.TEXT, s[1])
+
+def getRandomVideoURL():
+    global video_map_regex
+    if len(video_map_regex) == 0:
+        return None
+    print(dataServerAddress + video_map_regex[random.randint(0, len(video_map_regex)-1)][1])
+    return dataServerAddress + video_map_regex[random.randint(0, len(video_map_regex)-1)][1]

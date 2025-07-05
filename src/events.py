@@ -95,6 +95,17 @@ def addEvent(data, date, time, text):
     (targetDay, targetMonth, targetYear) = targetDate
     return (0, getNextTrig(datetime.datetime.today(), targetDay, targetMonth, targetYear, targetTime), data)
 
+# Remove the event that contains text
+# Returns the new data
+def removeEventByContent(data, text):
+    r = ""
+    for l in data.split('\n'):
+        m = l.split(',,')
+        if len(m) == 3 and m[2] != text:
+            r += l + '\n'
+    return r
+
+
 def getNextTrigBysextil(todayYear, targetDay, targetMonth, targetYear, targetTime):
     r = None
     try :
