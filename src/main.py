@@ -1,5 +1,5 @@
 import time, os, signal, requests, threading, random, logging, re
-import asyncio as asyncioDeepShit # Mouhahaha
+import asyncio as asyncioDeepShitThatIsAgainBrokenForWhateverReason
 import urllib.parse
 from urllib import request
 from datetime import datetime
@@ -957,16 +957,26 @@ commands = [
 
 
 
-# Some init with global variables
-telegramApplication = Application.builder().token(TELEGRAM_TOKEN).build()
-sh_core = SharedCore(telegramApplication.bot, RemoteServiceServer(65332))
-
-discordIntents = discord.Intents.default()
-discordIntents.message_content = True
-client_discord = discord.Client(intents=discordIntents)
+telegramApplication = None
+sh_core = None
+client_discord = None
 
 
 async def main():
+    global telegramApplication
+    global sh_core
+    global client_discord
+
+
+    # Some init with global variables
+    telegramApplication = Application.builder().token(TELEGRAM_TOKEN).build()
+    sh_core = SharedCore(telegramApplication.bot, RemoteServiceServer(65332))
+
+    discordIntents = discord.Intents.default()
+    discordIntents.message_content = True
+    client_discord = discord.Client(intents=discordIntents)
+
+
 
     #####[ BRENDAPI ]#####
     global brendapi
@@ -1023,7 +1033,7 @@ async def main():
 
             print("Entering telegram while 1")
             while not stopTelegramFlag:
-                await asyncioDeepShit.sleep(1)
+                await asyncioDeepShitThatIsAgainBrokenForWhateverReason.sleep(1)
 
             print("Stopping telegram bot")
             await telegramApplication.updater.stop()
@@ -1069,4 +1079,4 @@ async def main():
             print('Connected to Discord!')
         await client_discord.start(DISCORD_TOKEN)
 
-asyncioDeepShit.run(main())
+asyncioDeepShitThatIsAgainBrokenForWhateverReason.run(main())
