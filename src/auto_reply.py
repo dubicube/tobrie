@@ -40,6 +40,9 @@ async def configureProba(contextual_bot, sh_core):
     parameters = sh_core.getParameterList().getConv(contextual_bot.getChatID())
     t = contextual_bot.getText().split(' ')
     #v = not parameters.getBoolean("DI_ENABLE")
+
+    errorMsg = False
+
     if len(t) == 5:
         prob = parameters.getList("PROBAS")
         t = t[1:]
@@ -52,15 +55,30 @@ async def configureProba(contextual_bot, sh_core):
             if v >= 0 and v <= 100:
                 prob[i] = str(v)
         parameters.setList("PROBAS", prob)
+    elif len(t) == 2:
+        prob = parameters.getList("PROBAS")
+        v = -1
+        try:
+            v = int(t[1])
+        except:
+            v = int(prob[0])
+        if v >= 0 and v <= 100:
+            prob = [str(v) for _ in range(4)]
+        parameters.setList("PROBAS", prob)
+    elif len(t) != 1:
+        errorMsg = True
 
-    prob = parameters.getList("PROBAS")
-    reply = ""
-    reply+="Auto reply: "+prob[0]+"\n"
-    reply+="Text: "+prob[1]+"\n"
-    reply+="Stickers: "+prob[2]+"\n"
-    reply+="Videos: "+prob[3]+"\n"
-    await sh_core.notifConsole(contextual_bot)
-    contextual_bot.reply(ContextualBot.TEXT, reply)
+    if errorMsg:
+        contextual_bot.reply(ContextualBot.TEXT, "Ptdr tu sais pas utiliser la commande\nIl faut 1 ou 4 paramètres entre 0 et 100")
+    else:
+        prob = parameters.getList("PROBAS")
+        reply = ""
+        reply+="Auto reply: "+prob[0]+"\n"
+        reply+="Text: "+prob[1]+"\n"
+        reply+="Stickers: "+prob[2]+"\n"
+        reply+="Videos: "+prob[3]+"\n"
+        await sh_core.notifConsole(contextual_bot)
+        contextual_bot.reply(ContextualBot.TEXT, reply)
 
 def conv(contextual_bot):
     global conv_out

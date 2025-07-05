@@ -392,7 +392,7 @@ async def setWelcomeMessage(contextual_bot, sh_core):
         contextual_bot.reply(ContextualBot.TEXT, "Tocard, tu sais pas utiliser la commande.\nIl faut invoquer la commande en répondant à un message. Le message répondu sera le message automatiquement envoyé lors de l'arrivée d'une nouvelle personne. Seulement le texte, les stickers et les vidéos sont supportés.")
 
 
-def wiki(contextual_bot, sh_core):
+async def wiki(contextual_bot, sh_core):
     url = getRandomWiki()
     contextual_bot.reply(ContextualBot.TEXT, url)
 
@@ -946,13 +946,13 @@ commands = [
 
     ("porte", porteMegane),
     ("welcome", setWelcomeMessage), # TODO : check still working
-    ("bureau", bureauList),
+    ("bureau", bureauList), # TODO : Automatically update bureau.txt file
     ("pdf", pdfConvert), # TODO : check still working
     ("card", creditCard),
 
-("mycoins", mycoins),
+    ("mycoins", mycoins),
 
-("wiki", wiki)
+    ("wiki", wiki)
 ]
 
 
