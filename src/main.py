@@ -516,6 +516,10 @@ def getRandomLine(txt):
     return l[random.randint(0, len(l)-2)]
 async def getCitation(contextual_bot, sh_core):
     contextual_bot.reply(ContextualBot.TEXT, getRandomLine(open(mapPath+"citations", "r").read()))
+async def getCitationVoice(contextual_bot, sh_core):
+    tf = getRandomLine(open(mapPath+"citations", "r").read())
+    getVoice2(tf, soundPath+'v.mp3', voiceLanguage, False)
+    contextual_bot.reply(ContextualBot.AUDIO, open(soundPath+'v.mp3', 'rb'))
 async def getCitations(contextual_bot, sh_core):
     FLM_getFile(contextual_bot, sh_core, "citations")
 async def addCitation(contextual_bot, sh_core):
@@ -915,7 +919,7 @@ commands = [
     ("on", setAutoReplyOn),("off", setAutoReplyOff),("find", find),("info", info),
     ("quote", quote),
     ("calc", calc), ("croa", croa), # TODO : check this still works
-    ("addc", addCitation),("citations", getCitations),("citation", getCitation),
+    ("addc", addCitation),("citations", getCitations),("citation", getCitation),("citationv", getCitationVoice),
     ("addp", add1AProject),("sprojet", get1AProject),
     ("addcard", addCard),("scards", showCards),
     ("add2060", add2060),("s2060", show2060),

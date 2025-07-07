@@ -5,6 +5,8 @@ import data_manager
 from contextual_bot import *
 from random import randint
 
+from zalgo_text import zalgo
+
 from generic.web_texts import *
 from auto_reply import getRandomVideoURL
 
@@ -89,30 +91,67 @@ class EventsUI:
 
 
     async def sendRandomEvent(self, ev_conv):
-        zalgo = (randint(0, 9) == 0)
-        r = randint(0, 3)
-        print("Random " + str(r))
+        r = randint(0, 4)
+
+        respType = ContextualBot.TEXT
+        respData = "Mes hommages madame, je suis autiste" # (Faut la ref, sinon c'est chelou)
+
+        # There is a weird bug around the zalgo mode feature.
+        # It seems not working if the respData text is too long, but I don't know why...
+        # After quick tests, I think the python code is working as expected,
+        # but Telegram is removing zalgo characters for whatever reason.
+        zalgoMode = (randint(0, 1) == 0)
+
+        speakMode = (randint(0, 1) == 0)
+
+
+        def truc(respType, respData):
+            if speakMode:
+                respType = ContextualBot.AUDIO
+                vl = "fr-FR"
+                getVoice2(respData, soundPath+'v.mp3', vl, False)
+                respData = soundPath + "v.mp3"
+            elif zalgoMode:
+                respData = zalgo.zalgo().zalgofy(respData)
+            return (respType, respData)
+
+
         if r == 0:
-            txt = getRandomWiki()
-            await self.sh_core.telegramBot.send_message(chat_id=ev_conv, text=txt)
+            respType = ContextualBot.TEXT
+            respData = getRandomWiki()
         elif r == 1:
-            txt = getInfo()
-            await self.sh_core.telegramBot.send_message(chat_id=ev_conv, text=txt)
+            respType = ContextualBot.TEXT
+            respData = getInfo()
+            (respType, respData) = truc(respType, respData)
         elif r == 2:
-            txt = getQuote()
-            await self.sh_core.telegramBot.send_message(chat_id=ev_conv, text=txt)
+            respType = ContextualBot.TEXT
+            respData = getQuote()
+            (respType, respData) = truc(respType, respData)
         elif r == 3:
-            # txt = getRandomVideoURL()
-            # await self.sh_core.telegramBot.send_message(chat_id=ev_conv, text=txt)
-            txt = getRandomVideoURL()
-            await self.sh_core.telegramBot.send_video(ev_conv, txt)
-        else:
-            await self.sh_core.telegramBot.send_message(chat_id=ev_conv, text="Mes hommages madame, je suis autiste")
+            respType = ContextualBot.VIDEO
+            respData = getRandomVideoURL()
+        elif r == 4:
+            respType = ContextualBot.AUDIO
+            # TODO: find the missing x.wav file
+            sound_files = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+", "-", "d", "d", "r", "c"]
+            soundInputText = ''.join([sound_files[randint(0, len(sound_files)-1)] for i in range(randint(4, 10))])
+            calculate(soundInputText, soundPath)
+            respData = soundPath + "v.mp3"
+
+        if respType == ContextualBot.TEXT:
+            await self.sh_core.telegramBot.send_message(ev_conv, respData)
+        elif respType == ContextualBot.VIDEO:
+            await self.sh_core.telegramBot.send_video(ev_conv, respData)
+        elif respType == ContextualBot.AUDIO:
+            await self.sh_core.telegramBot.send_audio(ev_conv, open(respData, 'rb'))
 
 
     async def eventCallBack(self, ev_conv, ev_txt):
         if (ev_txt == "RANDOM_EVENT"):
-            await self.sendRandomEvent(ev_conv)
+            try:
+                await self.sendRandomEvent(ev_conv)
+            except Exception as e:
+                print("Oups: ", e)
             await self.addNewRandomEventInQueue(ev_conv)
         else:
             await self.sh_core.telegramBot.send_message(chat_id=ev_conv, text=ev_txt)

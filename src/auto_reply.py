@@ -240,5 +240,4 @@ def getRandomVideoURL():
     global video_map_regex
     if len(video_map_regex) == 0:
         return None
-    print(dataServerAddress + video_map_regex[random.randint(0, len(video_map_regex)-1)][1])
     return dataServerAddress + video_map_regex[random.randint(0, len(video_map_regex)-1)][1]
