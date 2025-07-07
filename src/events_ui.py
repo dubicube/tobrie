@@ -12,8 +12,15 @@ from auto_reply import getRandomVideoURL
 
 
 def getRandomDateTime(proba):
-    # proba=0 => every 3 seconds
-    maxSeconds = int(3 + (100-proba)*(0.1*24*3600)/100)
+    # proba=100 => every 3 seconds
+    # proba=90 => once in 1 mn
+    # proba=75 => once in 2 hrs 16mn
+    # proba=50=> once in 1 day 16 hrs
+    # proba=10 => once in 9 days 12 hrs
+    # proba=1 => once in 30 days (but not exactly, it is a random date in the month, so it will happen more than once a month)
+
+    pFactor = 100000 # Magic number, to get an exponential scale of the probability vs delay
+    maxSeconds = int(3 + (  (pFactor**(1.0-proba/100.0) - 1) / pFactor  )*(30*24*3600))
     targetSeconds = randint(3, maxSeconds)
 
     now = datetime.now()
@@ -69,7 +76,7 @@ class EventsUI:
         self.eventAsyncIOShit = None
         self.dm = data_manager.DataManager()
 
-    async def init(self, sh_core):
+    async def init(self, sh_core, startup = False):
         self.sh_core = sh_core
         self.stop()
         convs = self.dm.getConvNames()
@@ -77,6 +84,11 @@ class EventsUI:
         for c in convs:
             data = self.dm.getRessource(c, "events")
             (newData, evl) = events.getEventList(data, c)
+            if startup and not events.checkIfEventExists(newData, "RANDOM_EVENT"):
+                # If there is no random event, we add it
+                # The funtion addNewRandomEventInQueue already checks the probability value,
+                # and if it is 0, it will not add the event.
+                await self.addNewRandomEventInQueue(c)
             self.dm.saveRessource(c, "events", newData)
             eventList+=evl
 
@@ -108,7 +120,10 @@ class EventsUI:
         def truc(respType, respData):
             if speakMode:
                 respType = ContextualBot.AUDIO
-                vl = "fr-FR"
+                languageList = ['af', 'ar', 'bn', 'bs', 'ca', 'cs', 'cy', 'da', 'de', 'el', 'en-au', 'en-ca', 'en-gb', 'en-gh', 'en-ie', 'en-in', 'en-ng', 'en-nz', 'en-ph', 'en-tz', 'en-uk', 'en-us', 'en-za', 'en', 'eo', 'es-es', 'es-us', 'es', 'et', 'fi', 'fr-ca', 'fr-fr', 'fr', 'gu', 'hi', 'hr', 'hu', 'hy', 'id', 'is', 'it', 'ja', 'jw', 'km', 'kn', 'ko', 'la', 'lv', 'mk', 'ml', 'mr', 'my', 'ne', 'nl', 'no', 'pl', 'pt-br', 'pt-pt', 'pt', 'ro', 'ru', 'si', 'sk', 'sq', 'sr', 'su', 'sv', 'sw', 'ta', 'te', 'th', 'tl', 'tr', 'uk', 'ur', 'vi', 'zh-CN', 'zh-cn', 'zh-tw']
+                vl = languageList[randint(0, len(languageList)-1)]
+                if randint(0, 1) == 0:
+                    vl = "fr-FR"
                 getVoice2(respData, soundPath+'v.mp3', vl, False)
                 respData = soundPath + "v.mp3"
             elif zalgoMode:

@@ -262,4 +262,17 @@ Indique très probablement le bureau d'une année passée
 Commande: /wiki
 Renvoie un article wikipédia aléatoire (super utile). Je crois que c'est forcément en anglais, mais j'en suis pas trop sûr, c'est à tester.
 
+Commande: /randomevent
+Configure la probabilité d'un événement aléatoire entre 0 et 100.
+Exemple:
+/randomevent 50
+Evaluation très approximative des délais vs pourcentage:
+  proba=100 => every 3 seconds (Telegram API max throughput)
+  proba=90  => min once in 1 mn
+  proba=75  => min once in 2 hrs 16mn
+  proba=50  => min once in 1 day 16 hrs
+  proba=10  => min once in 9 days 12 hrs
+  proba=1   => min once in 30 days
+(la fréquence d'envoi moyenne est en fait plus rapide que le temps indiqué, car c'est un délai aléatoire pris dans l'ensemble de l'intervalle)
+
 Dummy text

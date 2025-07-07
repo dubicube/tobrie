@@ -939,7 +939,7 @@ commands = [
 
     ("event", eventsUI.addEvent), ("mainevent", eventsUI.setMainEvent),
     ("countdown", eventsUI.reactMainEvent), ("cfr", eventsUI.reactMainEvent),
-    ("randomEvent", eventsUI.configureRandomEvent),
+    ("randomevent", eventsUI.configureRandomEvent),
 
     ("genre", outputGenre),
     ("playlists", outputPlaylists),
@@ -1004,7 +1004,7 @@ async def main():
 
     #####[ EVENTS ]#####
     if EVENTS_ENABLE:
-        await eventsUI.init(sh_core)
+        await eventsUI.init(sh_core, True)
 
     #####[ TELEGRAM ]#####
     # logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)

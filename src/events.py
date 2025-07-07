@@ -105,6 +105,12 @@ def removeEventByContent(data, text):
             r += l + '\n'
     return r
 
+def checkIfEventExists(data, text):
+    for l in data.split('\n'):
+        m = l.split(',,')
+        if len(m) == 3 and m[2] == text:
+            return True
+    return False
 
 def getNextTrigBysextil(todayYear, targetDay, targetMonth, targetYear, targetTime):
     r = None
