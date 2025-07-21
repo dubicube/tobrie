@@ -6,6 +6,8 @@ from generic.web_texts import getGoogleResponse
 from contextual_bot import ContextualBot
 from gpt import *
 
+from generic.dateFuns import *
+
 
 messages_perso = [
     # ['TudorEustache', 100, "C'est Ambre qui t'a dit ça?"]
@@ -153,12 +155,51 @@ async def handleText(contextual_bot, sh_core, level=0):
         contextual_bot.reply(ContextualBot.TEXT, chatgpt_resp)
         return
 
-    # Achievement
+
+    #================================================
+    # Achievements
+    #================================================
     dataManager = data_manager.DataManager()
+
+    # Achievement long message
     maxMessageLength = dataManager.getRessource(contextual_bot.getChatID(), "maxMessageLength")
     if len(maxMessageLength) == 0 or len(msg) > int(maxMessageLength):
         dataManager.saveRessource(contextual_bot.getChatID(), "maxMessageLength", str(len(msg)))
         contextual_bot.addAchievement(contextual_bot.TEXT, "Achievement unlocked: message le plus long dans la conversation: " + str(len(msg)) + " caractères")
+
+    # Achievement last message date
+    lastMessageDates = dataManager.getRessource(contextual_bot.getChatID(), "lastMessageDates")
+    lastMessageDates = [i.split('$') for i in lastMessageDates.split(',') if len(i) > 0]
+    if len(lastMessageDates) == 0:
+        lastMessageDates = [["0"]]
+    maxDuration = float(lastMessageDates[0][0])
+    lastMessageDates = [[int(i[0]), i[1]] for i in lastMessageDates[1:]]
+    idIndex = -1
+    for i in range(len(lastMessageDates)):
+        if lastMessageDates[i][0] == contextual_bot.getUserID():
+            idIndex = i
+            break
+    now = datetime.today()
+    if idIndex == -1:
+        lastMessageDates += [[contextual_bot.getUserID(), str(now)]]
+        idIndex = len(lastMessageDates) - 1
+    delta_s = (now-datetime.strptime(lastMessageDates[idIndex][1], "%Y-%m-%d %H:%M:%S.%f")).total_seconds()
+    lastMessageDates[idIndex][1] = str(now)
+
+    # Check if achievement should be unlocked
+    if delta_s > maxDuration:
+        maxDuration = delta_s
+        (days, hours, minutes, seconds) = getDHMS(delta_s)
+        contextual_bot.addAchievement(contextual_bot.TEXT, "Achievement unlocked: plus long temps depuis le dernier message de " + smartDayPrintStr(days, hours, minutes, seconds))
+
+    # Pack all data to a single string before saving it with the data manager
+    lastMessageDates = [str(maxDuration)] + [str(i[0])+'$'+str(i[1]) for i in lastMessageDates]
+    lastMessageDates = ','.join(lastMessageDates)
+    dataManager.saveRessource(contextual_bot.getChatID(), "lastMessageDates", lastMessageDates)
+
+
+
+
 
     if parameters.getBoolean("AUTOREPLY_ENABLE") and random.randint(1, 100) <= int(parameters.getList("PROBAS")[0]):
 
