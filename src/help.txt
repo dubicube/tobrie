@@ -275,4 +275,7 @@ Evaluation très approximative des délais vs pourcentage:
   proba=1   => min once in 30 days
 (la fréquence d'envoi moyenne est en fait plus rapide que le temps indiqué, car c'est un délai aléatoire pris dans l'ensemble de l'intervalle)
 
+Commande: /text
+Convertit un fichier audio en texte. La commande doit être invoquée en répondant au message audio.
+
 Dummy text

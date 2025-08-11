@@ -181,7 +181,7 @@ async def dico(contextual_bot, sh_core):
 async def morse(contextual_bot, sh_core):
     cdata = contextual_bot.getText()[7:]
     # Get eventual audio file replying to
-    fpath = contextual_bot.getReplyAudioFile()
+    fpath = await contextual_bot.getReplyAudioFile()
     # Convert file to wav if format is mp3
     if fpath.endswith('.mp3'):
         convertAudioFile(fpath, tempPath + 'morse.wav')
@@ -275,6 +275,13 @@ async def setVoiceSpeed(contextual_bot, sh_core):
         voiceSpeed = True
     else:
         contextual_bot.reply(ContextualBot.TEXT, "TOCARD ! T'es sensé mettre 0 ou 1 en paramètre !")
+
+
+async def speechToTextCommand(contextual_bot, sh_core):
+    audioFilePath = await contextual_bot.getReplyAudioFile()
+    t = speechToText(audioFilePath)
+    contextual_bot.reply(ContextualBot.TEXT, t)
+
 
 
 #########################################################################################
@@ -926,6 +933,7 @@ commands = [
     ("add2060", add2060),("s2060", show2060),
     ("addv", addNewVideo),
     ("say", sayText2), ("lang", setVoiceLanguage), ("speed", setVoiceSpeed),
+    ("text", speechToTextCommand),
     ("img", notWorkingCommand), # search_image TODO : need repair
     ("sound", search_sound), ("morse", morse),
 

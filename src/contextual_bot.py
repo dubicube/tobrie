@@ -40,7 +40,7 @@ class ContextualBot:
         return ""
     # Returns audio of message which the current message is replying to.
     # Returns a string which is a local path to the downloaded audio file.
-    def getReplyAudioFile(self):
+    async def getReplyAudioFile(self):
         return ""
     # Returns sticker file_id of message which the current message is replying to
     # Return value is a string.
@@ -108,18 +108,18 @@ class TelegramBot(ContextualBot):
             return self.removeBotID(self.update.message)
         else:
             return ""
-    def getReplyAudioFile(self):
+    async def getReplyAudioFile(self):
         if self.message.reply_to_message == None or self.message.reply_to_message.audio == None:
             return ""
         else:
             fname = self.message.reply_to_message.audio.file_name
-            fpath = ''
-            if fname.endswith('.wav'):
-                fpath = tempPath + 'morse.wav'
-            if fname.endswith('.mp3'):
-                fpath = tempPath + 'morse.mp3'
+            if '.' in fname:
+                # Replace file name with 'v', but keep extension
+                fname = 'v.' + fname.split('.')[-1]
+            fpath = tempPath + fname
             if fpath != '':
-                self.message.reply_to_message.audio.get_file().download(fpath)
+                f = await self.message.reply_to_message.audio.get_file()
+                await f.download_to_drive(fpath)
                 return fpath
             return ''
     def getReplySticker(self):
