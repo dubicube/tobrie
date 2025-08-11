@@ -238,8 +238,9 @@ async def sayText2(contextual_bot, sh_core):
         else:
             tf+=t[i]+' '
             i+=1
-    # if tf == "":
-    #     tf = contextual_bot.getReplyText()
+    tf = tf[:-1]
+    if tf == "":
+        tf = contextual_bot.getReplyText()
     vl = voiceLanguage
     if isValidLanguage(forcel) != "":
         vl = forcel
