@@ -2,6 +2,7 @@ __pycache__
 sound/v.mp3
 sound/v.wav
 temp/*
+!temp/UselessFile.txt
 data/*/
 tokens
 ctrl_bot.py

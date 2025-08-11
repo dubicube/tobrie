@@ -1,0 +1,2 @@
+This file is completly useless and can be deleted
+Its only purpose is to force the github repository to create the /temp/ directory when cloning the repo
