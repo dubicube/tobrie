@@ -404,6 +404,26 @@ async def wiki(contextual_bot, sh_core):
     url = getRandomWiki()
     contextual_bot.reply(ContextualBot.TEXT, url)
 
+async def ananas(contextual_bot, sh_core):
+    years = datetime.now().year - 2017
+    contextual_bot.reply(ContextualBot.TEXT, "L'ananas a " + str(years) + " ans")
+    contextual_bot.reply(ContextualBot.VIDEO, dataServerAddress+'tintin_ananas.mp4')
+
+async def ananas(contextual_bot, sh_core):
+    years = datetime.now().year - 2017
+    contextual_bot.reply(ContextualBot.TEXT, "L'ananas a " + str(years) + " ans")
+    contextual_bot.reply(ContextualBot.VIDEO, dataServerAddress+'tintin_ananas.mp4')
+
+async def pokibot(contextual_bot, sh_core):
+    start_date = datetime(2017, 9, 1)
+    today = datetime.now()
+    years = today.year - start_date.year + 1
+    if (today.month, today.day) < (start_date.month, start_date.day):
+        years -= 1
+    contextual_bot.reply(ContextualBot.TEXT, "Pokibot est principalement " + str(years) + "A (" + "A"*years + ")")
+    contextual_bot.reply(ContextualBot.VIDEO, dataServerAddress+'aaaaaaaa.mp4')
+
+
 #########################################################################################
 #                                   USELESS TEXTS                                       #
 #########################################################################################
@@ -967,7 +987,9 @@ commands = [
 
     ("mycoins", mycoins),
 
-    ("wiki", wiki)
+    ("wiki", wiki),
+
+    ('ananas', ananas), ('pokibot', pokibot)
 ]
 
 
