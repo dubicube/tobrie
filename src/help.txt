@@ -278,4 +278,12 @@ Evaluation très approximative des délais vs pourcentage:
 Commande: /text
 Convertit un fichier audio en texte. La commande doit être invoquée en répondant au message audio.
 
+Commande: /reglement param0
+Renvoie le règlement de l'année donnée en paramètre. Si aucun paramètre n'est donné, renvoie le dernier règlement en date.
+Alias de commande: /rules
+
+Commande: /rules param0
+Renvoie le règlement de l'année donnée en paramètre. Si aucun paramètre n'est donné, renvoie le dernier règlement en date.
+Alias de commande: /reglement
+
 Dummy text
