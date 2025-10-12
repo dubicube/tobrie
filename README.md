@@ -1,14 +1,11 @@
 # Tobrie
-Le magnifique bot de l'asso Eirbot, actuellement déployé sur 4 plateformes:
+Le magnifique bot originel de l'asso Eirbot, depuis 2019:
+Actuellement fonctionnel sur 2 plateformes:
 + Telegram: @eir_bot
 + Discord: https://discord.com/api/oauth2/authorize?client_id=693578928777854986&permissions=3197504&scope=bot
-+ Mail: brenda.tobrie@gmail.com
-+ Twitter: @BrendaTobrie
-
-Déploiements futurs potentiels (non garanti lol):
-+ Application mobile (en cours de développement)
-+ Messenger
-+ Youtube (live 24h/24)
+Précédemment:
++ Mail: brenda.tobrie@gmail.com (no longer maintained)
++ Twitter: @BrendaTobrie (no longer maintained)
 
 Ce bot a avant tout été développé autour de l'API Telegram. Il a ensuite été remodelé dans une forme relativement adaptative pour supporter facilement l'ajout de nouvelles API pour le déploiement sur d'autres plateformes. Certaines fonctionnalités ne peuvent cependant pas être déployées sur toutes les plateformes, .
 

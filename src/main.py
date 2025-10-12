@@ -424,6 +424,47 @@ async def pokibot(contextual_bot, sh_core):
     contextual_bot.reply(ContextualBot.VIDEO, dataServerAddress+'aaaaaaaa.mp4')
 
 
+
+def getCFRPDF(year):
+    cfrHomeURL = 'https://www.coupederobotique.fr/'
+    html = requests.get(cfrHomeURL).text
+    results = re.search(r'https://www\.coupederobotique\.fr/[^"\s>]*?/reglement-' + str(year) + '/', html)
+    if results:
+        url = results.group(0)
+        html = requests.get(url).text
+
+        results = re.search(r'https://[^"\s>]*?/Eurobot\d{4}_Rules[^"\s>]*(FR)?[^"\s>]*\.pdf', html)
+        if results:
+            return results.group(0)
+        else:
+            return ''
+    else:
+        return ''
+
+async def cfrRules(contextual_bot, sh_core):
+    year = 0
+    if len(contextual_bot.getText()) > 7:
+        try:
+            year = int(contextual_bot.getText()[7:])
+        except Exception:
+            year = 0
+
+    pdfUrl = ''
+
+    if year == 0:
+        targetYear = datetime.now().year + 1
+        pdfUrl = getCFRPDF(targetYear)
+        if pdfUrl == '':
+            pdfUrl = getCFRPDF(targetYear)
+    else:
+        pdfUrl = getCFRPDF(year)
+    
+    if pdfUrl != '':
+        contextual_bot.reply(ContextualBot.TEXT, pdfUrl + '\n(Pour @TudorEustache qui n\'a toujours pas lu les règles)')
+    else:
+        contextual_bot.reply(ContextualBot.TEXT, "Pas trouvé (ou alors ça a planté)")
+
+
 #########################################################################################
 #                                   USELESS TEXTS                                       #
 #########################################################################################
@@ -967,8 +1008,12 @@ commands = [
     ("help", help),
 
     ("event", eventsUI.addEvent), ("mainevent", eventsUI.setMainEvent),
-    ("countdown", eventsUI.reactMainEvent), ("cfr", eventsUI.reactMainEvent),
+    ("countdown", eventsUI.reactMainEvent),
     ("randomevent", eventsUI.configureRandomEvent),
+
+    # CFR
+    ("cfr", eventsUI.reactMainEvent),
+    ("rules", cfrRules),
 
     ("genre", outputGenre),
     ("playlists", outputPlaylists),
