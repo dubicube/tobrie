@@ -443,9 +443,10 @@ def getCFRPDF(year):
 
 async def cfrRules(contextual_bot, sh_core):
     year = 0
-    if len(contextual_bot.getText()) > 7:
+    params = contextual_bot.getText().split(' ')
+    if len(params) > 1:
         try:
-            year = int(contextual_bot.getText()[7:])
+            year = int(params[1])
         except Exception:
             year = 0
 
@@ -460,7 +461,11 @@ async def cfrRules(contextual_bot, sh_core):
         pdfUrl = getCFRPDF(year)
     
     if pdfUrl != '':
-        contextual_bot.reply(ContextualBot.TEXT, pdfUrl + '\n(Pour @TudorEustache qui n\'a toujours pas lu les règles)')
+        if year == 0:
+            t = smartDayPrintStr2(getDHMS((datetime.today() - datetime(2025, 10, 5, 12, 00, 00, 0)).total_seconds()))
+            contextual_bot.reply(ContextualBot.TEXT, pdfUrl + '\n(Pour @TudorEustache qui ne l\'a toujours pas lu depuis ' + t + ')')
+        else:
+            contextual_bot.reply(ContextualBot.TEXT, pdfUrl)
     else:
         contextual_bot.reply(ContextualBot.TEXT, "Pas trouvé (ou alors ça a planté)")
 
@@ -1013,7 +1018,7 @@ commands = [
 
     # CFR
     ("cfr", eventsUI.reactMainEvent),
-    ("rules", cfrRules),
+    ("rules", cfrRules), ("reglement", cfrRules),
 
     ("genre", outputGenre),
     ("playlists", outputPlaylists),

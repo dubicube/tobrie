@@ -40,3 +40,7 @@ def smartDayPrintStr(days, hours, minutes, seconds):
 
     print("Message à mon moi du futur qui comprendra pas pourquoi j'ai mis ce print qui ne peut jamais être exécuté")
     # Enfin techniquement pas totalement impossible, avec un peu de chance avec les rayons cosmiques...
+
+def smartDayPrintStr2(params):
+    (days, hours, minutes, seconds) = params
+    return smartDayPrintStr(days, hours, minutes, seconds)
