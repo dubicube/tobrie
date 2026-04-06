@@ -48,6 +48,8 @@ class EventsUI:
                 # The funtion addNewRandomEventInQueue already checks the probability value,
                 # and if it is 0, it will not add the event.
                 await self.addNewRandomEventInQueue(c)
+                data = self.dm.getRessource(c, "events")
+                (newData, evl) = events.getEventList(data, c)
             self.dm.saveRessource(c, "events", newData)
             eventList+=evl
 
@@ -127,6 +129,7 @@ class EventsUI:
             except Exception as e:
                 print("Oups: ", e)
             await self.addNewRandomEventInQueue(ev_conv)
+            await self.init(self.sh_core)
         else:
             await self.sh_core.telegramBot.send_message(chat_id=ev_conv, text=ev_txt)
 
@@ -229,7 +232,6 @@ class EventsUI:
         else:
             newdata = data
         self.dm.saveRessource(ev_conv, "events", newdata)
-        await self.init(self.sh_core)
 
 
 
@@ -251,6 +253,7 @@ class EventsUI:
 
                 # Configure the random event
                 await self.addNewRandomEventInQueue(contextual_bot.getChatID())
+                await self.init(self.sh_core)
 
 
         reParams = parameters.getList("RANDOM_EVENT")
