@@ -41,6 +41,7 @@ from service.brendapi import *
 from service.remote_service_server import *
 from file_list_manager import *
 from generic.morse import MSR_cancer, MSR_config
+from generic.horoscope import *
 import coin
 
 import events_ui
@@ -520,6 +521,13 @@ async def creditCard(contextual_bot, sh_core):
 
 async def meCommand(contextual_bot, sh_core):
     contextual_bot.reply(contextual_bot.TEXT, contextual_bot.getUserName() + contextual_bot.getText()[3:])
+
+async def horoscopeCommand(contextual_bot, sh_core):
+    target = contextual_bot.getText()[10:]
+    if len(target) == 0:
+        target = None
+    contextual_bot.reply(contextual_bot.TEXT, generate_horoscope(target))
+
 
 #########################################################################################
 #                                        COINS                                          #
@@ -1025,6 +1033,8 @@ commands = [
     ("horaires", outputHoraires),
 
     ("me", meCommand),
+
+    ("horoscope", horoscopeCommand),
 
     # TODO : repair (need to pay tokens...)
     # ("gptstart", GPT_startConvMode), ("gptstop", GPT_stopConvMode), ("gptconfig", GPT_setSystemPrompt),

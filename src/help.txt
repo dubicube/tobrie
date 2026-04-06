@@ -286,4 +286,7 @@ Commande: /rules param0
 Renvoie le règlement de l'année donnée en paramètre. Si aucun paramètre n'est donné, renvoie le dernier règlement en date.
 Alias de commande: /reglement
 
+Commande: /horoscope signe
+Renvoie l'horoscope scientifique et factuel du signe astrologique en paramètre (renvoie avec un signe aléatoire absence de signe).
+
 Dummy text
