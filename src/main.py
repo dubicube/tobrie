@@ -523,7 +523,7 @@ async def meCommand(contextual_bot, sh_core):
     contextual_bot.reply(contextual_bot.TEXT, contextual_bot.getUserName() + contextual_bot.getText()[3:])
 
 async def horoscopeCommand(contextual_bot, sh_core):
-    target = contextual_bot.getText()[10:]
+    target = contextual_bot.getText()[len('/horoscope '):]
     if len(target) == 0:
         target = None
     contextual_bot.reply(contextual_bot.TEXT, generate_horoscope(target))

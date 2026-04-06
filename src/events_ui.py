@@ -11,6 +11,7 @@ from generic.web_texts import *
 from auto_reply import getRandomVideoURL
 
 from generic.dateFuns import *
+from generic.horoscope import *
 
 def getRandomDateTime(proba):
     # proba=100 => every 3 seconds
@@ -64,7 +65,7 @@ class EventsUI:
 
 
     async def sendRandomEvent(self, ev_conv):
-        r = randint(0, 4)
+        r = randint(0, 5)
 
         respType = ContextualBot.TEXT
         respData = "Mes hommages madame, je suis autiste" # (Faut la ref, sinon c'est chelou)
@@ -113,6 +114,10 @@ class EventsUI:
             soundInputText = ''.join([sound_files[randint(0, len(sound_files)-1)] for i in range(randint(4, 10))])
             calculate(soundInputText, soundPath)
             respData = soundPath + "v.mp3"
+        elif r == 5:
+            respType = ContextualBot.TEXT
+            respData = generate_horoscope()
+            (respType, respData) = truc(respType, respData)
 
         if respType == ContextualBot.TEXT:
             await self.sh_core.telegramBot.send_message(ev_conv, respData)
